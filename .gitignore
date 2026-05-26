@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+*.pid
+*.seed
+*.pid.lock
+
+# Client specific
+client/dist/
+client/.nuxt/
+client/.output/
+
+# Server specific
+server/dist/
+server/.nuxt/
+server/.output/
+
+# Admin specific
+admin/dist/
+admin/.nuxt/
+admin/.output/
