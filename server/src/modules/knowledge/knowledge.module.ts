@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { KnowledgeArticle, KnowledgeCategory, ArticleLike, ArticleCollect } from '@/database/entities';
 import { KnowledgeService } from './knowledge.service';
 import { KnowledgeController } from './knowledge.controller';
+import { CategoryController } from './category.controller';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { KnowledgeController } from './knowledge.controller';
     })
   ],
   providers: [KnowledgeService],
-  controllers: [KnowledgeController],
+  controllers: [KnowledgeController, CategoryController],
   exports: [KnowledgeService]
 })
 export class KnowledgeModule {}

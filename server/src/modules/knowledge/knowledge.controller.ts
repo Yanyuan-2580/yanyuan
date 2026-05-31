@@ -3,11 +3,12 @@ import { KnowledgeService } from './knowledge.service';
 import { JwtAuthGuard } from '@/common';
 import { CurrentUser } from '@/common';
 import { JwtPayload } from '@/types';
-import { CreateArticleDto } from './dto/create-article.dto';
 
 @Controller('articles')
 export class KnowledgeController {
   constructor(private knowledgeService: KnowledgeService) {}
+
+  // Static routes FIRST (before dynamic :id)
 
   @Get('search')
   searchArticles(
@@ -31,14 +32,13 @@ export class KnowledgeController {
     );
   }
 
+  // Dynamic route last
   @Get(':id')
   getArticle(@Param('id') id: string) {
+    if (id === 'categories' || id === 'category-list') {
+      return this.knowledgeService.getCategories();
+    }
     return this.knowledgeService.getArticle(parseInt(id));
-  }
-
-  @Get('categories')
-  getCategories() {
-    return this.knowledgeService.getCategories();
   }
 
   @Post(':id/like')

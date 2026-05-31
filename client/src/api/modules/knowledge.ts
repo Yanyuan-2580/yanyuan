@@ -25,7 +25,7 @@ export const knowledgeApi = {
   },
 
   getCategories: (): Promise<ApiResponse<KnowledgeCategory[]>> => {
-    return get('/articles/categories');
+    return get('/categories');
   },
 
   like: (id: number): Promise<ApiResponse<LikeResponse>> => {
