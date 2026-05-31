@@ -13,7 +13,7 @@ export class UploadService {
     }
   }
 
-  async uploadImage(file: Express.Multer.File, subDir: string = 'images'): Promise<{ url: string }> {
+  async uploadImage(file: any, subDir: string = 'images'): Promise<{ url: string }> {
     if (!file) throw new BadRequestException('请选择文件');
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];

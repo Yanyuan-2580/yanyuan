@@ -163,7 +163,7 @@ export class KnowledgeService {
     return { success: true };
   }
 
-  async searchArticles(query: string, page: number, pageSize: number): Promise<{ list: KnowledgeArticle[]; total: number }> {
+  async searchArticles(query: string, page: number, pageSize: number): Promise<{ list: KnowledgeArticle[]; total: number; page: number; pageSize: number; totalPages: number }> {
     const [list, total] = await this.articleRepository
       .createQueryBuilder('article')
       .where('article.status = 2')

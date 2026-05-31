@@ -30,7 +30,7 @@ export class CommentService {
     return this.commentRepository.save(comment);
   }
 
-  async getComments(articleId: number, page: number = 1, pageSize: number = 20): Promise<{ list: any[]; total: number }> {
+  async getComments(articleId: number, page: number = 1, pageSize: number = 20): Promise<{ list: any[]; total: number; page: number; pageSize: number; totalPages: number }> {
     // Get top-level comments
     const [list, total] = await this.commentRepository.findAndCount({
       where: { articleId, parentId: null as any, status: 1 },
@@ -67,7 +67,7 @@ export class CommentService {
       })
     );
 
-    return { list: commentsWithReplies, total, page, pageSize };
+    return { list: commentsWithReplies, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
 
   async deleteComment(userId: number, commentId: number): Promise<void> {

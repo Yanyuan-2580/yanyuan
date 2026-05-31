@@ -31,7 +31,7 @@ export class UserNotificationService {
     page: number = 1,
     pageSize: number = 20,
     unreadOnly?: boolean
-  ): Promise<{ list: Notification[]; total: number }> {
+  ): Promise<{ list: Notification[]; total: number; page: number; pageSize: number; totalPages: number }> {
     const query = this.notificationRepository
       .createQueryBuilder('notification')
       .where('notification.userId = :userId', { userId });

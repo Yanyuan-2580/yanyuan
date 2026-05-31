@@ -84,7 +84,7 @@ export class QuestionnaireService {
     return this.resultRepository.save(result);
   }
 
-  async getUserResults(userId: number, page: number = 1, pageSize: number = 10): Promise<{ list: QuestionnaireResult[]; total: number }> {
+  async getUserResults(userId: number, page: number = 1, pageSize: number = 10): Promise<{ list: QuestionnaireResult[]; total: number; page: number; pageSize: number; totalPages: number }> {
     const [list, total] = await this.resultRepository.findAndCount({
       where: { userId },
       relations: ['questionnaire'],

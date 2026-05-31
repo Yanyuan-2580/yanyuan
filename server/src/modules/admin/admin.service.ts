@@ -77,7 +77,7 @@ export class AdminService {
 
   // ==================== User Management ====================
 
-  async getUsers(page: number, pageSize: number, status?: number, riskLevel?: number, keyword?: string): Promise<{ list: User[]; total: number }> {
+  async getUsers(page: number, pageSize: number, status?: number, riskLevel?: number, keyword?: string): Promise<{ list: User[]; total: number; page: number; pageSize: number; totalPages: number }> {
     const query = this.userRepository.createQueryBuilder('user');
 
     if (status !== undefined) {
@@ -146,7 +146,7 @@ export class AdminService {
 
   // ==================== Article Management ====================
 
-  async getArticles(page: number, pageSize: number, status?: number, categoryId?: number, keyword?: string): Promise<{ list: KnowledgeArticle[]; total: number }> {
+  async getArticles(page: number, pageSize: number, status?: number, categoryId?: number, keyword?: string): Promise<{ list: KnowledgeArticle[]; total: number; page: number; pageSize: number; totalPages: number }> {
     const query = this.articleRepository.createQueryBuilder('article')
       .leftJoinAndSelect('article.category', 'category');
 
@@ -202,7 +202,7 @@ export class AdminService {
 
   // ==================== Chat & Diary ====================
 
-  async getSessions(page: number, pageSize: number, riskFlag?: number): Promise<{ list: AiSession[]; total: number }> {
+  async getSessions(page: number, pageSize: number, riskFlag?: number): Promise<{ list: AiSession[]; total: number; page: number; pageSize: number; totalPages: number }> {
     const query = this.aiSessionRepository.createQueryBuilder('session');
 
     if (riskFlag !== undefined) {
@@ -218,7 +218,7 @@ export class AdminService {
     return { list, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
 
-  async getDiaries(page: number, pageSize: number): Promise<{ list: MoodDiary[]; total: number }> {
+  async getDiaries(page: number, pageSize: number): Promise<{ list: MoodDiary[]; total: number; page: number; pageSize: number; totalPages: number }> {
     const [list, total] = await this.moodDiaryRepository.findAndCount({
       order: { createdAt: 'DESC' },
       skip: (page - 1) * pageSize,
@@ -290,7 +290,7 @@ export class AdminService {
 
   // ==================== Risk Management ====================
 
-  async getRiskRecords(page: number, pageSize: number, riskLevel?: number, type?: string): Promise<{ list: any[]; total: number }> {
+  async getRiskRecords(page: number, pageSize: number, riskLevel?: number, type?: string): Promise<{ list: any[]; total: number; page: number; pageSize: number; totalPages: number }> {
     const conditions: any = {};
     if (riskLevel !== undefined) {
       conditions.riskLevel = riskLevel;
@@ -363,7 +363,7 @@ export class AdminService {
 
   // ==================== Audit Logs ====================
 
-  async getAuditLogs(page: number, pageSize: number, adminId?: number, action?: string, targetType?: string): Promise<{ list: AdminOperationLog[]; total: number }> {
+  async getAuditLogs(page: number, pageSize: number, adminId?: number, action?: string, targetType?: string): Promise<{ list: AdminOperationLog[]; total: number; page: number; pageSize: number; totalPages: number }> {
     const query = this.operationLogRepository.createQueryBuilder('log');
 
     if (adminId) {
