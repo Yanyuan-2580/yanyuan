@@ -5,3 +5,4 @@ export { KnowledgeModule } from './knowledge/knowledge.module';
 export { AdminModule } from './admin/admin.module';
 export { MoodModule } from './mood/mood.module';
 export { MeditationModule } from './meditation/meditation.module';
+export { NotificationModule } from './notification/notification.module';

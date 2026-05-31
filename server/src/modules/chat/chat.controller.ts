@@ -1,4 +1,5 @@
-import { Controller, Post, Get, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Body, Param, UseGuards, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '@/common';
 import { CurrentUser } from '@/common';
@@ -49,5 +50,40 @@ export class ChatController {
   @UseGuards(JwtAuthGuard)
   sendMessage(@CurrentUser() user: JwtPayload, @Body() dto: SendMessageDto) {
     return this.chatService.sendMessage(user.userId, dto);
+  }
+
+  @Post('messages/stream')
+  @UseGuards(JwtAuthGuard)
+  sendMessageStream(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: SendMessageDto,
+    @Res() res: Response
+  ) {
+    // Set SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
+
+    const stream = this.chatService.sendMessageStream(user.userId, dto);
+
+    stream.subscribe({
+      next: (event) => {
+        res.write(`data: ${JSON.stringify(event)}\n\n`);
+      },
+      error: (err) => {
+        res.write(`data: ${JSON.stringify({ type: 'error', data: { message: err.message || '服务器错误' } })}\n\n`);
+        res.end();
+      },
+      complete: () => {
+        res.end();
+      }
+    });
+
+    // Handle client disconnect
+    res.on('close', () => {
+      // Stream will be garbage collected
+    });
   }
 }

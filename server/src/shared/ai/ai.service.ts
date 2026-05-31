@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class AiService {
@@ -34,6 +35,121 @@ export class AiService {
       this.logger.error(`AI model call failed: ${error.message}`);
       return this.getMockResponse(content);
     }
+  }
+
+  generateResponseStream(sessionId: string, userId: number, content: string, history: any[] = []): Observable<string> {
+    return new Observable<string>(subscriber => {
+      (async () => {
+        try {
+          const systemPrompt = this.buildSystemPrompt();
+          const messages = [
+            { role: 'system', content: systemPrompt },
+            ...history,
+            { role: 'user', content: content }
+          ];
+
+          if (!this.apiKey || this.apiKey === 'your_api_key') {
+            // Mock streaming with fallback response
+            const mockResponse = this.getMockResponse(content);
+            const chars = mockResponse.split('');
+            for (let i = 0; i < chars.length; i++) {
+              subscriber.next(chars[i]);
+              await this.delay(30); // simulate typing
+            }
+            subscriber.complete();
+            return;
+          }
+
+          let url: string;
+          let data: any;
+
+          switch (this.provider.toLowerCase()) {
+            case 'deepseek':
+              url = 'https://api.deepseek.com/v1/chat/completions';
+              data = {
+                model: this.modelName,
+                messages,
+                max_tokens: this.maxTokens,
+                temperature: this.temperature,
+                stream: true
+              };
+              break;
+            case 'openai':
+              url = 'https://api.openai.com/v1/chat/completions';
+              data = {
+                model: this.modelName,
+                messages,
+                max_tokens: this.maxTokens,
+                temperature: this.temperature,
+                stream: true
+              };
+              break;
+            default:
+              throw new Error(`Unsupported AI provider: ${this.provider}`);
+          }
+
+          const response = await axios.post(url, data, {
+            headers: {
+              'Authorization': `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: 120000,
+            responseType: 'stream'
+          });
+
+          let buffer = '';
+          response.data.on('data', (chunk: Buffer) => {
+            buffer += chunk.toString();
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed || !trimmed.startsWith('data: ')) continue;
+
+              const dataStr = trimmed.slice(6);
+              if (dataStr === '[DONE]') {
+                subscriber.complete();
+                return;
+              }
+
+              try {
+                const parsed = JSON.parse(dataStr);
+                const delta = parsed.choices?.[0]?.delta?.content;
+                if (delta) {
+                  subscriber.next(delta);
+                }
+              } catch {
+                // Skip unparseable lines
+              }
+            }
+          });
+
+          response.data.on('end', () => {
+            subscriber.complete();
+          });
+
+          response.data.on('error', (err: Error) => {
+            this.logger.error(`Stream error: ${err.message}`);
+            subscriber.error(err);
+          });
+        } catch (error) {
+          this.logger.error(`AI streaming failed: ${error.message}`);
+          // Fallback to mock streaming on error
+          const fallback = this.getMockResponse(content);
+          const chars = fallback.split('');
+          for (let i = 0; i < chars.length; i++) {
+            subscriber.next(chars[i]);
+            await this.delay(20);
+          }
+          subscriber.complete();
+        }
+      })();
+    });
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   async analyzeMood(text: string): Promise<{ mood: string; score: number; tags: string[] }> {

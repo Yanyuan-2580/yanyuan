@@ -10,3 +10,4 @@ export { ArticleCollect } from './ArticleCollect.entity';
 export { MoodRecord } from './MoodRecord.entity';
 export { Meditation } from './Meditation.entity';
 export { MeditationHistory } from './MeditationHistory.entity';
+export { Notification } from './Notification.entity';

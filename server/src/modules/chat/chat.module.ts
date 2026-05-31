@@ -8,6 +8,7 @@ import { ChatMessageSchema } from '@/database/schemas';
 import { ChatService } from './chat.service';
 import { ChatController } from './chat.controller';
 import { AiModule, RiskControlModule, CacheModule, NotificationModule } from '@/shared';
+import { NotificationModule as UserNotificationModule } from '@/modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { AiModule, RiskControlModule, CacheModule, NotificationModule } from '@/
     AiModule,
     RiskControlModule,
     CacheModule,
-    NotificationModule
+    NotificationModule,
+    UserNotificationModule
   ],
   providers: [ChatService],
   controllers: [ChatController]

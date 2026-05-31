@@ -6,7 +6,7 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { getTypeOrmConfig, getMongoConfig } from '@/config/database.config';
 import { HttpExceptionFilter } from '@/common';
 import { ResponseInterceptor, LoggingInterceptor } from '@/common';
-import { UserModule, ChatModule, DiaryModule, KnowledgeModule, AdminModule, MoodModule, MeditationModule } from '@/modules';
+import { UserModule, ChatModule, DiaryModule, KnowledgeModule, AdminModule, MoodModule, MeditationModule, NotificationModule as UserNotificationModule } from '@/modules';
 import { AiModule, CacheModule, RiskControlModule, NotificationModule } from '@/shared';
 
 @Module({
@@ -42,7 +42,8 @@ import { AiModule, CacheModule, RiskControlModule, NotificationModule } from '@/
     AiModule,
     CacheModule,
     RiskControlModule,
-    NotificationModule
+    NotificationModule,
+    UserNotificationModule
   ],
   providers: [
     {
