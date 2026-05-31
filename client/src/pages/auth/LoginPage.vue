@@ -30,6 +30,10 @@ const handleLogin = async () => {
  isLoading.value = false;
  }
 };
+
+const handleRegister = () => {
+ router.push('/register');
+};
 </script>
 
 <template>
@@ -104,7 +108,7 @@ const handleLogin = async () => {
         
         <p class="mt-6 text-center text-gray-500 text-sm">
           还没有账号？
-          <button class="text-primary-500 hover:text-primary-600 font-medium" @click="router.push('/register')">
+          <button class="text-primary-500 hover:text-primary-600 font-medium" @click="handleRegister">
             立即注册
           </button>
         </p>

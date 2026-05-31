@@ -1,11 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 
 @Injectable()
 export class AiService {
   private readonly logger = new Logger(AiService.name);
+  private readonly apiKey: string;
+  private readonly modelName: string;
+  private readonly provider: string;
+  private readonly maxTokens: number;
+  private readonly temperature: number;
 
-  constructor(private configService: ConfigService) {}
+  constructor(private configService: ConfigService) {
+    this.apiKey = this.configService.get('AI_MODEL_API_KEY', '');
+    this.modelName = this.configService.get('AI_MODEL_NAME', 'deepseek-chat');
+    this.provider = this.configService.get('AI_MODEL_PROVIDER', 'deepseek');
+    this.maxTokens = parseInt(this.configService.get('AI_MAX_TOKENS', '2000'), 10);
+    this.temperature = parseFloat(this.configService.get('AI_TEMPERATURE', '0.7'));
+  }
 
   async generateResponse(sessionId: string, userId: number, content: string, history: any[] = []): Promise<string> {
     const systemPrompt = this.buildSystemPrompt();
@@ -20,7 +32,7 @@ export class AiService {
       return response;
     } catch (error) {
       this.logger.error(`AI model call failed: ${error.message}`);
-      throw new Error('AI服务暂时不可用');
+      return this.getMockResponse(content);
     }
   }
 
@@ -37,10 +49,10 @@ export class AiService {
           tags: result.tags || []
         };
       } catch {
-        return { mood: 'neutral', score: 3, tags: [] };
+        return this.analyzeMoodSimple(text);
       }
     } catch {
-      return { mood: 'neutral', score: 3, tags: [] };
+      return this.analyzeMoodSimple(text);
     }
   }
 
@@ -141,8 +153,146 @@ ${diaryContent}
   }
 
   private async callModel(messages: { role: string; content: string }[]): Promise<string> {
-    const mockResponse = `我理解你现在的感受，这确实不容易。${messages[messages.length - 1].content.includes('难过') ? '难过的时候就好好哭一场，释放出来会好受很多。' : '你已经很棒了，在努力面对这些情绪。'}你愿意和我多说说吗？`;
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return mockResponse;
+    if (!this.apiKey || this.apiKey === 'your_api_key') {
+      return this.getMockResponse(messages[messages.length - 1]?.content || '');
+    }
+
+    try {
+      let url: string;
+      let data: any;
+
+      switch (this.provider.toLowerCase()) {
+        case 'deepseek':
+          url = 'https://api.deepseek.com/v1/chat/completions';
+          data = {
+            model: this.modelName,
+            messages: messages,
+            max_tokens: this.maxTokens,
+            temperature: this.temperature
+          };
+          this.logger.log(`Sending request to DeepSeek API with ${messages.length} messages`);
+          this.logger.debug(`Request data: ${JSON.stringify(data)}`);
+          break;
+        case 'openai':
+          url = 'https://api.openai.com/v1/chat/completions';
+          data = {
+            model: this.modelName,
+            messages: messages,
+            max_tokens: this.maxTokens,
+            temperature: this.temperature
+          };
+          break;
+        default:
+          throw new Error(`Unsupported AI provider: ${this.provider}`);
+      }
+
+      const response = await axios.post(url, data, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 60000
+      });
+
+      this.logger.log(`DeepSeek API response: ${JSON.stringify(response.data)}`);
+      return response.data.choices[0].message.content;
+    } catch (error) {
+      this.logger.error(`AI API call failed: ${error.message}`);
+      if (error.response) {
+        this.logger.error(`API Error Response: ${JSON.stringify(error.response.data)}`);
+      }
+      throw error;
+    }
+  }
+
+  private getMockResponse(content: string): string {
+    const mockResponses: Record<string, string[]> = {
+      '焦虑': [
+        '我理解你的焦虑，这是很正常的情绪。试着做几个深呼吸，把注意力集中在当下的事情上，一步一步来~',
+        '焦虑的时候，我们的思绪会像脱缰的野马。不如试着把担心的事情写下来，也许会发现很多都是过度思考呢。',
+        '抱抱你~焦虑是身体在提醒我们需要关注自己了。今天先做一件小事让自己放松一下吧。'
+      ],
+      '压力': [
+        '压力大的时候，记得给自己留一些喘息的空间。哪怕只是五分钟的放空，也会有帮助的。',
+        '压力就像背了很重的包袱，试着把它放下一会儿。你不需要时刻都那么坚强呀。',
+        '感受到压力说明你对自己有期待，这很棒！但也要学会照顾好自己，休息是为了更好地出发。'
+      ],
+      '难过': [
+        '难过的时候就好好哭一场，释放出来会好受很多。我在这里陪着你~',
+        '允许自己难过，这不是软弱，而是勇敢地面对自己的情绪。一切都会好起来的。',
+        '想哭就哭吧，眼泪是情绪的出口。哭完之后，你会发现自己其实很坚强。'
+      ],
+      '孤独': [
+        '孤独的感觉确实很难受，但你不是一个人。我一直在这里，愿意听你说话。',
+        '有时候孤独感会悄悄来临，但请记住，总有人在关心你。想聊聊吗？',
+        '孤独的时候，试着做一些能让自己专注的事情，也许会发现内心的平静。'
+      ],
+      '开心': [
+        '看到你开心我也很开心！这份好心情要好好珍藏呀~',
+        '开心的时光总是很美好，记得记录下来，以后回忆起来也会很温暖。',
+        '愿这份开心能一直伴随着你，每天都有小确幸~'
+      ],
+      '生气': [
+        '生气是很正常的情绪，说明你在乎这件事。先深呼吸几次，冷静下来再处理吧。',
+        '愤怒就像一团火，先别被它吞噬。试着找个安全的方式释放出来。',
+        '我理解你的愤怒，这是很自然的反应。但请记住，不要用别人的错误惩罚自己。'
+      ],
+      '抑郁': [
+        '我知道现在很难，但请相信，这只是暂时的。你不是一个人在战斗。',
+        '抑郁就像乌云笼罩，但总会有放晴的一天。请一定不要放弃希望。',
+        '如果你感到非常痛苦，记得寻求专业的帮助。你值得被好好对待。'
+      ],
+      '失眠': [
+        '失眠的夜晚确实很煎熬。不如试着做一些放松的事情，比如听轻音乐或者阅读。',
+        '睡不着的时候别着急，闭上眼睛休息也是一种充电。告诉自己，慢慢来~',
+        '试试478呼吸法：吸气4秒，憋气7秒，呼气8秒，也许会有帮助。'
+      ]
+    };
+
+    for (const [keyword, responses] of Object.entries(mockResponses)) {
+      if (content.includes(keyword)) {
+        return responses[Math.floor(Math.random() * responses.length)];
+      }
+    }
+
+    const defaultResponses = [
+      '我理解你的感受，这确实不容易。你愿意和我多说说吗？',
+      '谢谢你愿意和我分享这些，我在这里听你说。',
+      '你的感受很重要，我愿意陪你一起面对。',
+      '有时候倾诉本身就是一种治愈，继续说吧，我在。',
+      '你已经很棒了，能够表达自己的情绪就是一种勇气。'
+    ];
+
+    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+  }
+
+  private analyzeMoodSimple(text: string): { mood: string; score: number; tags: string[] } {
+    const moodKeywords: Record<string, { mood: string; score: number }> = {
+      '开心': { mood: 'happy', score: 5 },
+      '高兴': { mood: 'happy', score: 5 },
+      '快乐': { mood: 'happy', score: 5 },
+      '幸福': { mood: 'happy', score: 5 },
+      '难过': { mood: 'sad', score: 1 },
+      '伤心': { mood: 'sad', score: 1 },
+      '悲伤': { mood: 'sad', score: 1 },
+      '沮丧': { mood: 'sad', score: 2 },
+      '生气': { mood: 'angry', score: 1 },
+      '愤怒': { mood: 'angry', score: 1 },
+      '烦躁': { mood: 'angry', score: 2 },
+      '焦虑': { mood: 'anxious', score: 2 },
+      '紧张': { mood: 'anxious', score: 2 },
+      '压力': { mood: 'anxious', score: 2 },
+      '平静': { mood: 'calm', score: 4 },
+      '放松': { mood: 'calm', score: 4 },
+      '平和': { mood: 'calm', score: 4 }
+    };
+
+    for (const [keyword, result] of Object.entries(moodKeywords)) {
+      if (text.includes(keyword)) {
+        return { ...result, tags: [keyword] };
+      }
+    }
+
+    return { mood: 'neutral', score: 3, tags: [] };
   }
 }

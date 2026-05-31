@@ -12,7 +12,7 @@ import { AiModule, RiskControlModule, CacheModule, NotificationModule } from '@/
 @Module({
   imports: [
     TypeOrmModule.forFeature([AiSession]),
-    // MongooseModule.forFeature([{ name: 'ChatMessage', schema: ChatMessageSchema }]), // Temporarily disabled
+    MongooseModule.forFeature([{ name: 'ChatMessage', schema: ChatMessageSchema }]),
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),

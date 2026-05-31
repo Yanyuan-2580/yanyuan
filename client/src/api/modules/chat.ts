@@ -11,7 +11,17 @@ export interface SendMessageResponse {
   message: ChatMessage;
 }
 
+export interface WeeklyChatCount {
+  weeklyCount: number;
+  weeklyLimit: number;
+  totalCount: number;
+}
+
 export const chatApi = {
+  getWeeklyChatCount: (): Promise<ApiResponse<WeeklyChatCount>> => {
+    return get('/chat/stats/weekly-count');
+  },
+
   createSession: (): Promise<ApiResponse<AiSession>> => {
     return post('/chat/sessions');
   },

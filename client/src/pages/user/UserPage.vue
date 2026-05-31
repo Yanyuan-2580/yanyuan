@@ -1,14 +1,17 @@
-<script setup lang="ts">import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+<script setup lang="ts">import { ref, onMounted, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/user';
-import { diaryApi, knowledgeApi } from '@/api';
+import { diaryApi, chatApi } from '@/api';
 import type { User } from '@/types';
 import { Calendar, BookOpen, MessageCircle, Settings, Shield, HelpCircle, LogOut, ChevronRight, Edit, Lock, User as UserIcon, Heart, Award } from 'lucide-vue-next';
 import type { DiaryStats } from '@/api/modules/diary';
+import type { WeeklyChatCount } from '@/api/modules/chat';
 const router = useRouter();
+const route = useRoute();
 const userStore = useUserStore();
 const user = ref<User | null>(null);
 const diaryStats = ref<DiaryStats | null>(null);
+const weeklyChatCount = ref<WeeklyChatCount | null>(null);
 const showEditModal = ref(false);
 const nickname = ref('');
 const loadUser = async () => {
@@ -29,7 +32,20 @@ const loadStats = async () => {
  }
  }
  catch (error) {
- console.error('Failed to load stats:', error);
+ console.error('Failed to load diary stats:', error);
+ }
+};
+const loadChatStats = async () => {
+ try {
+ const res = await chatApi.getWeeklyChatCount();
+ console.log('loadChatStats response:', JSON.stringify(res));
+ if (res.code === 200) {
+ weeklyChatCount.value = res.data;
+ console.log('weeklyChatCount.value:', weeklyChatCount.value);
+ }
+ }
+ catch (error) {
+ console.error('Failed to load chat stats:', error);
  }
 };
 const saveProfile = async () => {
@@ -64,7 +80,12 @@ const settingsItems = [
 onMounted(async () => {
  await loadUser();
  await loadStats();
+ await loadChatStats();
 });
+
+watch(() => route.fullPath, async () => {
+ await loadChatStats();
+}, { immediate: false });
 </script>
 
 <template>
@@ -90,18 +111,22 @@ onMounted(async () => {
         </div>
       </div>
       
-      <div class="grid grid-cols-3 gap-4 mt-6">
-        <div class="bg-white/10 backdrop-blur rounded-xl p-4 text-center">
-          <p class="text-2xl font-bold">{{ diaryStats?.total || 0 }}</p>
+      <div class="grid grid-cols-4 gap-3 mt-6">
+        <div class="bg-white/10 backdrop-blur rounded-xl p-3 text-center">
+          <p class="text-xl font-bold">{{ diaryStats?.total || 0 }}</p>
           <p class="text-xs text-white/70 mt-1">日记天数</p>
         </div>
-        <div class="bg-white/10 backdrop-blur rounded-xl p-4 text-center">
-          <p class="text-2xl font-bold">{{ diaryStats?.avgScore || '0' }}</p>
+        <div class="bg-white/10 backdrop-blur rounded-xl p-3 text-center">
+          <p class="text-xl font-bold">{{ diaryStats?.avgScore || '0' }}</p>
           <p class="text-xs text-white/70 mt-1">平均心情</p>
         </div>
-        <div class="bg-white/10 backdrop-blur rounded-xl p-4 text-center">
-          <p class="text-2xl font-bold">0</p>
-          <p class="text-xs text-white/70 mt-1">咨询次数</p>
+        <div class="bg-white/10 backdrop-blur rounded-xl p-3 text-center">
+          <p class="text-xl font-bold">{{ weeklyChatCount?.weeklyCount || 0 }}</p>
+          <p class="text-xs text-white/70 mt-1">本周咨询</p>
+        </div>
+        <div class="bg-white/10 backdrop-blur rounded-xl p-3 text-center">
+          <p class="text-xl font-bold">{{ weeklyChatCount?.totalCount || 0 }}</p>
+          <p class="text-xs text-white/70 mt-1">总咨询次数</p>
         </div>
       </div>
     </header>

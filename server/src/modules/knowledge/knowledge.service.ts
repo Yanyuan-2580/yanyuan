@@ -41,6 +41,9 @@ export class KnowledgeService {
   }
 
   async getArticle(id: number): Promise<KnowledgeArticle> {
+    if (!id || isNaN(id)) {
+      throw new NotFoundException('文章不存在或未发布');
+    }
     const article = await this.articleRepository.findOne({ where: { id, status: 2 } });
     if (!article) {
       throw new NotFoundException('文章不存在或未发布');

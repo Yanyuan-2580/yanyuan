@@ -9,6 +9,12 @@ import { SendMessageDto } from './dto/send-message.dto';
 export class ChatController {
   constructor(private chatService: ChatService) {}
 
+  @Get('stats/weekly-count')
+  @UseGuards(JwtAuthGuard)
+  getWeeklyChatCount(@CurrentUser() user: JwtPayload) {
+    return this.chatService.getWeeklyChatCount(user.userId);
+  }
+
   @Post('sessions')
   @UseGuards(JwtAuthGuard)
   createSession(@CurrentUser() user: JwtPayload) {

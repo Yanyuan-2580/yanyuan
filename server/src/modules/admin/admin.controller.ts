@@ -4,14 +4,26 @@ import { JwtAuthGuard } from '@/common';
 import { CurrentUser } from '@/common';
 import { JwtPayload } from '@/types';
 import { AdminLoginDto } from './dto/login.dto';
+import { AdminRegisterDto } from './dto/register.dto';
 
 @Controller('admin')
 export class AdminController {
   constructor(private adminService: AdminService) {}
 
+  @Post('register')
+  register(@Body() dto: AdminRegisterDto) {
+    return this.adminService.register(dto);
+  }
+
   @Post('login')
   login(@Body() dto: AdminLoginDto) {
     return this.adminService.login(dto);
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  logout(@CurrentUser() payload: JwtPayload) {
+    return this.adminService.logout(payload.userId);
   }
 
   @Get('users')
@@ -75,5 +87,20 @@ export class AdminController {
   @UseGuards(JwtAuthGuard)
   getDashboard() {
     return this.adminService.getDashboardData();
+  }
+
+  @Get('statistics')
+  @UseGuards(JwtAuthGuard)
+  getStatistics() {
+    return this.adminService.getDashboardData();
+  }
+
+  @Get('risk-records')
+  @UseGuards(JwtAuthGuard)
+  getRiskRecords(
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '10'
+  ) {
+    return this.adminService.getRiskRecords(parseInt(page), parseInt(pageSize));
   }
 }

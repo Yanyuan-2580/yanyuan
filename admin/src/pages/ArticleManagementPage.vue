@@ -3,8 +3,8 @@ import { useRouter } from 'vue-router';
 import { useAdminStore } from '@/stores/admin';
 import { knowledgeApi } from '@/api';
 import type { KnowledgeArticle, KnowledgeCategory } from '@/types';
-import type { CreateArticleData } from '@/api/modules/knowledge';
-import { ElMessage, ElTable, ElTableColumn, ElPagination, ElButton, ElDialog, ElInput, ElSelect, ElOption, ElTextarea } from 'element-plus';
+import { ElMessage, ElTable, ElTableColumn, ElPagination, ElButton, ElDialog, ElInput, ElSelect, ElOption } from 'element-plus';
+import ElTextarea from 'element-plus';
 const router = useRouter();
 const adminStore = useAdminStore();
 const articles = ref<KnowledgeArticle[]>([]);
@@ -16,13 +16,13 @@ const activeMenu = ref('articles');
 const showCreateDialog = ref(false);
 const showEditDialog = ref(false);
 const editArticle = ref<KnowledgeArticle | null>(null);
-const form = ref<CreateArticleData>({
+const form = ref({
  title: '',
  content: '',
  summary: '',
  author: '',
  categoryId: 0,
- tags: []
+ tags: ''
 });
 const menuItems = [
  { name: 'dashboard', label: '数据概览', icon: '📊', path: '/' },
@@ -30,6 +30,17 @@ const menuItems = [
  { name: 'articles', label: '文章管理', icon: '📝', path: '/articles' },
  { name: 'risk', label: '风险监控', icon: '🛡️', path: '/risk' }
 ];
+const handleMenuClick = async (item: typeof menuItems[0]) => {
+  activeMenu.value = item.name;
+  try {
+    await router.push(item.path);
+  }
+  catch (error: any) {
+    console.error('路由跳转失败:', error);
+    ElMessage.error('页面跳转失败，请刷新重试');
+  }
+};
+
 const loadArticles = async () => {
  try {
  const res = await knowledgeApi.getArticles(page.value, pageSize.value);
@@ -60,7 +71,7 @@ const openCreateDialog = () => {
  summary: '',
  author: '',
  categoryId: 0,
- tags: []
+ tags: ''
  };
  showCreateDialog.value = true;
 };
@@ -72,7 +83,7 @@ const openEditDialog = (article: KnowledgeArticle) => {
  summary: article.summary,
  author: article.author,
  categoryId: article.categoryId,
- tags: article.tags
+ tags: Array.isArray(article.tags) ? article.tags.join(',') : article.tags || ''
  };
  showEditDialog.value = true;
 };
@@ -82,12 +93,16 @@ const saveArticle = async () => {
  return;
  }
  try {
+ const articleData = {
+ ...form.value,
+ tags: form.value.tags ? form.value.tags.split(',').map(t => t.trim()).filter(Boolean) : []
+ };
  if (editArticle.value) {
- await knowledgeApi.updateArticle(editArticle.value.id, form.value);
+ await knowledgeApi.updateArticle(editArticle.value.id, articleData);
  ElMessage.success('修改成功');
  }
  else {
- await knowledgeApi.createArticle(form.value);
+ await knowledgeApi.createArticle(articleData);
  ElMessage.success('创建成功');
  }
  showCreateDialog.value = false;
@@ -157,7 +172,7 @@ onMounted(() => {
               <button
                 class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
                 :class="activeMenu === item.name ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-100'"
-                @click="activeMenu = item.name; router.push(item.path)"
+                @click="handleMenuClick(item)"
               >
                 <span class="text-xl">{{ item.icon }}</span>
                 <span class="font-medium">{{ item.label }}</span>
@@ -229,7 +244,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <ElDialog :title="editArticle ? '编辑文章' : '新增文章'" v-model="showCreateDialog || showEditDialog" width="800px">
+        <ElDialog :title="editArticle ? '编辑文章' : '新增文章'" :visible="showCreateDialog || showEditDialog" @close="showCreateDialog = false; showEditDialog = false" width="800px">
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">标题</label>

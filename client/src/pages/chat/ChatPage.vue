@@ -19,16 +19,60 @@ const scrollToBottom = async () => {
  }
 };
 const loadSessions = async () => {
+ try {
+ console.log('loadSessions called');
  const res = await chatApi.getSessions();
- if (res.code === 200) {
- sessions.value = res.data;
+ console.log('loadSessions response:', JSON.stringify(res));
+ if (res && res.code === 200) {
+ sessions.value = res.data || [];
+ console.log('sessions.value after load:', sessions.value.length, 'items');
+ } else {
+ sessions.value = [];
+ console.log('loadSessions failed or no data');
+ }
+ } catch (error) {
+ console.error('Error loading sessions:', error);
+ sessions.value = [];
  }
 };
 const loadMessages = async (sessionId: number) => {
+ try {
+ console.log('loadMessages called with sessionId:', sessionId);
+ if (!sessionId || isNaN(sessionId)) {
+ console.error('Invalid sessionId:', sessionId);
+ return;
+ }
  const res = await chatApi.getMessages(sessionId.toString());
- if (res.code === 200) {
+ console.log('API Response:', JSON.stringify(res));
+ 
+ if (res && res.code === 200) {
+ console.log('Messages data received:', res.data);
+ console.log('Data length:', res.data?.length || 0);
+ 
+ if (res.data && Array.isArray(res.data)) {
  messages.value = res.data;
+ console.log('messages.value after assignment:', messages.value.length, 'items');
+ } else {
+ messages.value = [];
+ console.log('res.data is not an array');
+ }
+ 
+ if (!currentSession.value) {
+ currentSession.value = {
+ id: sessionId,
+ title: '历史会话',
+ messageCount: messages.value.length,
+ createdAt: new Date().toISOString(),
+ updatedAt: new Date().toISOString()
+ } as AiSession;
+ }
+ await nextTick();
  await scrollToBottom();
+ } else {
+ console.log('API response error:', res?.code, res?.message);
+ }
+ } catch (error) {
+ console.error('Error loading messages:', error);
  }
 };
 const selectSession = async (session: AiSession) => {
@@ -82,20 +126,39 @@ const sendMessage = async () => {
 };
 watch(() => route.params.sessionId, async (newSessionId) => {
  if (newSessionId) {
- const session = sessions.value.find(s => s.id === parseInt(newSessionId));
+ const sessionId = parseInt(newSessionId);
+ const session = sessions.value.find(s => s.id === sessionId);
  if (session) {
  await selectSession(session);
+ } else {
+ await loadMessages(sessionId);
  }
  }
 });
 onMounted(async () => {
+ console.log('onMounted called');
+ console.log('Current route:', JSON.stringify(route.params));
+ 
  await loadSessions();
+ console.log('Sessions loaded:', sessions.value.length);
+ 
  if (route.params.sessionId) {
  const sessionId = parseInt(route.params.sessionId as string);
+ console.log('Found sessionId in route:', sessionId);
+ 
  const session = sessions.value.find(s => s.id === sessionId);
  if (session) {
+ console.log('Found session in list:', session.title);
  await selectSession(session);
+ } else {
+ console.log('Session not in list, loading messages directly');
+ await loadMessages(sessionId);
  }
+ } else if (sessions.value.length > 0) {
+ console.log('No sessionId in route, selecting first session:', sessions.value[0].title);
+ await selectSession(sessions.value[0]);
+ } else {
+ console.log('No sessions found, showing welcome screen');
  }
 });
 </script>
@@ -237,7 +300,7 @@ onMounted(async () => {
       </div>
     </main>
     
-    <footer class="bg-white border-t border-gray-100 p-4">
+    <footer class="bg-white border-t border-gray-100 p-4 pb-20">
       <div class="flex items-end gap-3">
         <button class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
           <Plus class="w-5 h-5 text-gray-600" />

@@ -23,6 +23,17 @@ const menuItems = [
  { name: 'articles', label: '文章管理', icon: '📝', path: '/articles' },
  { name: 'risk', label: '风险监控', icon: '🛡️', path: '/risk' }
 ];
+const handleMenuClick = async (item: typeof menuItems[0]) => {
+  activeMenu.value = item.name;
+  try {
+    await router.push(item.path);
+  }
+  catch (error: any) {
+    console.error('路由跳转失败:', error);
+    ElMessage.error('页面跳转失败，请刷新重试');
+  }
+};
+
 const loadUsers = async () => {
  try {
  const res = await userApi.getUsers(page.value, pageSize.value);
@@ -114,7 +125,7 @@ onMounted(() => {
               <button
                 class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
                 :class="activeMenu === item.name ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-100'"
-                @click="activeMenu = item.name; router.push(item.path)"
+                @click="handleMenuClick(item)"
               >
                 <span class="text-xl">{{ item.icon }}</span>
                 <span class="font-medium">{{ item.label }}</span>

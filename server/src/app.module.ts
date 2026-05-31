@@ -19,20 +19,19 @@ import { AiModule, CacheModule, RiskControlModule, NotificationModule } from '@/
       useFactory: (configService: ConfigService) => getTypeOrmConfig(configService),
       inject: [ConfigService]
     }),
-    // MongooseModule - temporarily disabled for development
-    // MongooseModule.forRootAsync({
-    //   useFactory: (configService: ConfigService) => {
-    //     const mongoUri = getMongoConfig(configService);
-    //     if (!mongoUri) {
-    //       console.warn('MongoDB URI not configured, skipping MongoDB connection');
-    //     }
-    //     return {
-    //       uri: mongoUri || 'mongodb://localhost:27017/dummy',
-    //       retryAttempts: 0
-    //     };
-    //   },
-    //   inject: [ConfigService]
-    // }),
+    MongooseModule.forRootAsync({
+      useFactory: (configService: ConfigService) => {
+        const mongoUri = getMongoConfig(configService);
+        if (!mongoUri) {
+          console.warn('MongoDB URI not configured, skipping MongoDB connection');
+        }
+        return {
+          uri: mongoUri || 'mongodb://localhost:27017/mental_health',
+          retryAttempts: 0
+        };
+      },
+      inject: [ConfigService]
+    }),
     UserModule,
     ChatModule,
     DiaryModule,

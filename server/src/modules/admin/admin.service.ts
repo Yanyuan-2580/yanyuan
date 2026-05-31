@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -6,6 +6,7 @@ import * as bcrypt from 'bcryptjs';
 import { User, Admin, AdminOperationLog, AiSession, MoodDiary, KnowledgeArticle } from '@/database/entities';
 import { JwtPayload, UserStatus, RiskLevel } from '@/types';
 import { AdminLoginDto } from './dto/login.dto';
+import { AdminRegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AdminService {
@@ -24,6 +25,25 @@ export class AdminService {
     private operationLogRepository: Repository<AdminOperationLog>,
     private jwtService: JwtService
   ) {}
+
+  async register(dto: AdminRegisterDto) {
+    const existing = await this.adminRepository.findOne({ where: { username: dto.username } });
+    if (existing) {
+      throw new ConflictException('用户名已存在');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+
+    const admin = this.adminRepository.create({
+      username: dto.username,
+      passwordHash,
+      nickname: dto.nickname || dto.username,
+      roles: ['admin'],
+      status: 1
+    });
+
+    return this.adminRepository.save(admin);
+  }
 
   async login(dto: AdminLoginDto) {
     const admin = await this.adminRepository.findOne({ where: { username: dto.username } });
@@ -147,6 +167,55 @@ export class AdminService {
       highRiskUsers,
       highRiskSessions
     };
+  }
+
+  async getRiskRecords(page: number, pageSize: number): Promise<{ list: any[]; total: number }> {
+    const [users, userCount] = await this.userRepository.findAndCount({
+      where: { riskLevel: 2 },
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * pageSize,
+      take: pageSize
+    });
+
+    const [sessions, sessionCount] = await this.aiSessionRepository.findAndCount({
+      where: { riskFlag: 2 },
+      order: { updatedAt: 'DESC' },
+      skip: (page - 1) * pageSize,
+      take: pageSize
+    });
+
+    const list: any[] = [
+      ...users.map(u => ({
+        type: 'user',
+        id: u.id,
+        name: u.nickname || u.phone,
+        phone: u.phone,
+        createdAt: u.createdAt,
+        riskLevel: u.riskLevel
+      })),
+      ...sessions.map(s => ({
+        type: 'session',
+        id: s.id,
+        userId: s.userId,
+        riskFlag: s.riskFlag,
+        updatedAt: s.updatedAt
+      }))
+    ];
+
+    list.sort((a: any, b: any) => {
+      const dateA = a.createdAt || a.updatedAt;
+      const dateB = b.createdAt || b.updatedAt;
+      return new Date(dateB).getTime() - new Date(dateA).getTime();
+    });
+
+    return {
+      list: list.slice(0, pageSize),
+      total: userCount + sessionCount
+    };
+  }
+
+  async logout(adminId: number): Promise<{ success: boolean }> {
+    return { success: true };
   }
 
   async logOperation(adminId: number, action: string, targetType: string, targetId?: number, detail?: Record<string, any>, ip?: string): Promise<void> {

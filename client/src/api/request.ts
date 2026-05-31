@@ -8,6 +8,18 @@ const instance = axios.create({
   }
 });
 
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+const onTokenRefreshed = (token: string) => {
+  refreshSubscribers.forEach(callback => callback(token));
+  refreshSubscribers = [];
+};
+
+const addRefreshSubscriber = (callback: (token: string) => void) => {
+  refreshSubscribers.push(callback);
+};
+
 instance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
@@ -25,11 +37,39 @@ instance.interceptors.response.use(
   (response: AxiosResponse) => {
     return response.data;
   },
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          addRefreshSubscriber((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(instance(originalRequest));
+          });
+        });
+      }
+      originalRequest._retry = true;
+      isRefreshing = true;
+      try {
+        const refreshResponse = await instance.post('/users/refresh-token');
+        if (refreshResponse.code === 200) {
+          const newToken = refreshResponse.data.accessToken;
+          localStorage.setItem('accessToken', newToken);
+          instance.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          onTokenRefreshed(newToken);
+          return instance(originalRequest);
+        } else {
+          throw new Error('Token refresh failed');
+        }
+      } catch (refreshError) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
     return Promise.reject(error.response?.data || error);
   }

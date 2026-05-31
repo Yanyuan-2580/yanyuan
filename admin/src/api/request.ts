@@ -1,15 +1,14 @@
-import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios';
+import axios, { type InternalAxiosRequestConfig, type AxiosResponse } from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:3000/admin',
+  baseURL: 'http://localhost:3000/api/v1/admin',
   timeout: 30000,
 });
 
 axiosInstance.interceptors.request.use(
-  (config: AxiosRequestConfig) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('adminToken');
     if (token) {
-      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
