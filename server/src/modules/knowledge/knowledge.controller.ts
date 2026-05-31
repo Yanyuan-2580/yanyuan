@@ -9,6 +9,15 @@ import { CreateArticleDto } from './dto/create-article.dto';
 export class KnowledgeController {
   constructor(private knowledgeService: KnowledgeService) {}
 
+  @Get('search')
+  searchArticles(
+    @Query('q') q: string,
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '20'
+  ) {
+    return this.knowledgeService.searchArticles(q, parseInt(page), parseInt(pageSize));
+  }
+
   @Get()
   getArticles(
     @Query('page') page: string = '1',

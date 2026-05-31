@@ -9,12 +9,14 @@ export interface PageResult<T> {
   total: number;
   page: number;
   pageSize: number;
+  totalPages?: number;
 }
 
 export interface Admin {
   id: number;
   username: string;
   nickname: string;
+  roles?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -22,9 +24,11 @@ export interface Admin {
 export interface User {
   id: number;
   phone: string;
+  email?: string;
   nickname: string;
-  avatar: string;
+  avatarUrl?: string;
   status: number;
+  riskLevel: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,15 +37,18 @@ export interface KnowledgeArticle {
   id: number;
   title: string;
   content: string;
-  summary: string;
-  author: string;
+  summary?: string;
+  coverUrl?: string;
+  author?: string;
+  authorId?: number;
   categoryId: number;
-  categoryName: string;
-  tags: string[];
+  category?: KnowledgeCategory;
+  tags?: string[];
   viewCount: number;
   likeCount: number;
   collectCount: number;
   status: number;
+  publishedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -49,25 +56,39 @@ export interface KnowledgeArticle {
 export interface KnowledgeCategory {
   id: number;
   name: string;
-  description: string;
-  createdAt: string;
+  description?: string;
+  sortOrder?: number;
+  status?: number;
+  createdAt?: string;
 }
 
 export interface RiskRecord {
   id: number;
-  userId: number;
-  userName: string;
+  type: string;
+  userId?: number;
+  userName?: string;
+  name?: string;
+  phone?: string;
   content: string;
   riskLevel: number;
-  riskType: string;
+  riskFlag?: number;
+  riskType?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Statistics {
   totalUsers: number;
-  activeUsers: number;
-  totalDiaries: number;
-  totalChats: number;
+  activeUsers?: number;
+  todayUsers?: number;
+  totalSessions?: number;
+  todaySessions?: number;
+  totalDiaries?: number;
+  todayDiaries?: number;
+  totalArticles?: number;
+  totalChats?: number;
+  highRiskUsers: number;
+  highRiskSessions: number;
   riskCount: number;
 }
 

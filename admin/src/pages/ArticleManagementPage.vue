@@ -1,284 +1,318 @@
-<script setup lang="ts">import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAdminStore } from '@/stores/admin';
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import { knowledgeApi } from '@/api';
 import type { KnowledgeArticle, KnowledgeCategory } from '@/types';
-import { ElMessage, ElTable, ElTableColumn, ElPagination, ElButton, ElDialog, ElInput, ElSelect, ElOption } from 'element-plus';
-import ElTextarea from 'element-plus';
-const router = useRouter();
-const adminStore = useAdminStore();
+import type { CreateArticleData } from '@/api/modules/knowledge';
+import { ElMessage } from 'element-plus';
+import AdminLayout from '@/components/AdminLayout.vue';
+import MarkdownEditor from '@/components/MarkdownEditor.vue';
+
 const articles = ref<KnowledgeArticle[]>([]);
 const categories = ref<KnowledgeCategory[]>([]);
 const total = ref(0);
 const page = ref(1);
 const pageSize = ref(10);
-const activeMenu = ref('articles');
+const searchKeyword = ref('');
+const filterStatus = ref<number | undefined>(undefined);
 const showCreateDialog = ref(false);
 const showEditDialog = ref(false);
+const showCategoryDialog = ref(false);
 const editArticle = ref<KnowledgeArticle | null>(null);
-const form = ref({
- title: '',
- content: '',
- summary: '',
- author: '',
- categoryId: 0,
- tags: ''
+const newCategoryName = ref('');
+const newCategoryDesc = ref('');
+const form = ref<CreateArticleData>({
+  title: '',
+  content: '',
+  coverUrl: '',
+  categoryId: 0,
+  tags: [],
+  authorId: 1
 });
-const menuItems = [
- { name: 'dashboard', label: '数据概览', icon: '📊', path: '/' },
- { name: 'users', label: '用户管理', icon: '👥', path: '/users' },
- { name: 'articles', label: '文章管理', icon: '📝', path: '/articles' },
- { name: 'risk', label: '风险监控', icon: '🛡️', path: '/risk' }
-];
-const handleMenuClick = async (item: typeof menuItems[0]) => {
-  activeMenu.value = item.name;
+
+const loadArticles = async () => {
   try {
-    await router.push(item.path);
-  }
-  catch (error: any) {
-    console.error('路由跳转失败:', error);
-    ElMessage.error('页面跳转失败，请刷新重试');
+    const res = await knowledgeApi.getArticles(page.value, pageSize.value, filterStatus.value, searchKeyword.value || undefined);
+    if (res.code === 200) {
+      articles.value = res.data.list;
+      total.value = res.data.total;
+    }
+  } catch (error: any) {
+    ElMessage.error(error.message || '获取文章列表失败');
   }
 };
 
-const loadArticles = async () => {
- try {
- const res = await knowledgeApi.getArticles(page.value, pageSize.value);
- if (res.code === 200) {
- articles.value = res.data.list;
- total.value = res.data.total;
- }
- }
- catch (error: any) {
- ElMessage.error(error.message || '获取文章列表失败');
- }
-};
 const loadCategories = async () => {
- try {
- const res = await knowledgeApi.getCategories();
- if (res.code === 200) {
- categories.value = res.data;
- }
- }
- catch (error: any) {
- ElMessage.error(error.message || '获取分类失败');
- }
+  try {
+    const res = await knowledgeApi.getCategories();
+    if (res.code === 200) {
+      categories.value = res.data;
+    }
+  } catch (e) {
+    console.error('获取分类失败:', e);
+  }
 };
+
 const openCreateDialog = () => {
- form.value = {
- title: '',
- content: '',
- summary: '',
- author: '',
- categoryId: 0,
- tags: ''
- };
- showCreateDialog.value = true;
+  form.value = { title: '', content: '', coverUrl: '', categoryId: categories.value[0]?.id || 0, tags: [], authorId: 1 };
+  showEditDialog.value = false;
+  showCreateDialog.value = true;
 };
+
 const openEditDialog = (article: KnowledgeArticle) => {
- editArticle.value = article;
- form.value = {
- title: article.title,
- content: article.content,
- summary: article.summary,
- author: article.author,
- categoryId: article.categoryId,
- tags: Array.isArray(article.tags) ? article.tags.join(',') : article.tags || ''
- };
- showEditDialog.value = true;
+  editArticle.value = article;
+  form.value = {
+    title: article.title,
+    content: article.content,
+    coverUrl: article.coverUrl || '',
+    categoryId: article.categoryId,
+    tags: article.tags || [],
+    authorId: article.authorId
+  };
+  showCreateDialog.value = false;
+  showEditDialog.value = true;
 };
+
 const saveArticle = async () => {
- if (!form.value.title || !form.value.content) {
- ElMessage.error('请填写标题和内容');
- return;
- }
- try {
- const articleData = {
- ...form.value,
- tags: form.value.tags ? form.value.tags.split(',').map(t => t.trim()).filter(Boolean) : []
- };
- if (editArticle.value) {
- await knowledgeApi.updateArticle(editArticle.value.id, articleData);
- ElMessage.success('修改成功');
- }
- else {
- await knowledgeApi.createArticle(articleData);
- ElMessage.success('创建成功');
- }
- showCreateDialog.value = false;
- showEditDialog.value = false;
- loadArticles();
- }
- catch (error: any) {
- ElMessage.error(error.message || '操作失败');
- }
+  try {
+    if (showEditDialog.value && editArticle.value) {
+      await knowledgeApi.updateArticle(editArticle.value.id, form.value);
+      ElMessage.success('修改成功');
+    } else {
+      await knowledgeApi.createArticle(form.value);
+      ElMessage.success('创建成功');
+    }
+    showCreateDialog.value = false;
+    showEditDialog.value = false;
+    loadArticles();
+  } catch (error: any) {
+    ElMessage.error(error.message || '操作失败');
+  }
 };
+
 const deleteArticle = async (id: number) => {
- if (!confirm('确定要删除该文章吗？'))
- return;
- try {
- await knowledgeApi.deleteArticle(id);
- ElMessage.success('删除成功');
- loadArticles();
- }
- catch (error: any) {
- ElMessage.error(error.message || '删除失败');
- }
+  if (!confirm('确定删除此文章？')) return;
+  try {
+    await knowledgeApi.deleteArticle(id);
+    ElMessage.success('删除成功');
+    loadArticles();
+  } catch (error: any) {
+    ElMessage.error(error.message || '删除失败');
+  }
 };
-const handleLogout = async () => {
- try {
- await adminStore.logout();
- ElMessage.success('退出成功');
- router.push('/login');
- }
- catch (error: any) {
- ElMessage.error(error.message || '退出失败');
- }
+
+const toggleStatus = async (article: KnowledgeArticle) => {
+  const newStatus = article.status === 2 ? 1 : 2; // toggle between published and draft
+  try {
+    await knowledgeApi.updateArticleStatus(article.id, newStatus);
+    ElMessage.success(newStatus === 2 ? '已发布' : '已下架');
+    loadArticles();
+  } catch (error: any) {
+    ElMessage.error(error.message || '操作失败');
+  }
 };
-const handlePageChange = (newPage: number) => {
- page.value = newPage;
- loadArticles();
+
+const createCategory = async () => {
+  if (!newCategoryName.value) return;
+  try {
+    await knowledgeApi.createCategory({ name: newCategoryName.value, description: newCategoryDesc.value });
+    ElMessage.success('分类创建成功');
+    newCategoryName.value = '';
+    newCategoryDesc.value = '';
+    loadCategories();
+  } catch (error: any) {
+    ElMessage.error(error.message || '创建失败');
+  }
 };
-const handlePageSizeChange = (newSize: number) => {
- pageSize.value = newSize;
- page.value = 1;
- loadArticles();
+
+const deleteCategory = async (id: number) => {
+  if (!confirm('确定删除此分类？')) return;
+  try {
+    await knowledgeApi.deleteCategory(id);
+    ElMessage.success('删除成功');
+    loadCategories();
+  } catch (error: any) {
+    ElMessage.error(error.message || '删除失败');
+  }
 };
+
+const handleSearch = () => {
+  page.value = 1;
+  loadArticles();
+};
+
 onMounted(() => {
- loadArticles();
- loadCategories();
+  loadArticles();
+  loadCategories();
 });
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <div class="flex">
-      <aside class="w-64 bg-white shadow-md min-h-screen">
-        <div class="p-6 border-b">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
-              <span class="text-white text-lg">AI</span>
-            </div>
-            <div>
-              <h1 class="font-bold text-gray-800">管理后台</h1>
-              <p class="text-xs text-gray-500">心理健康助手</p>
-            </div>
-          </div>
-        </div>
-
-        <nav class="p-4">
-          <ul class="space-y-2">
-            <li v-for="item in menuItems" :key="item.name">
-              <button
-                class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
-                :class="activeMenu === item.name ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-100'"
-                @click="handleMenuClick(item)"
-              >
-                <span class="text-xl">{{ item.icon }}</span>
-                <span class="font-medium">{{ item.label }}</span>
-              </button>
-            </li>
-          </ul>
-        </nav>
-
-        <div class="absolute bottom-0 left-0 w-64 p-4 border-t">
-          <button
-            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all"
-            @click="handleLogout"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            <span class="font-medium">退出登录</span>
-          </button>
-        </div>
-      </aside>
-
-      <main class="flex-1 p-6">
-        <header class="flex items-center justify-between mb-8">
-          <div>
-            <h2 class="text-2xl font-bold text-gray-800">文章管理</h2>
-            <p class="text-gray-500 mt-1">管理知识库文章</p>
-          </div>
-          <ElButton type="primary" @click="openCreateDialog">新增文章</ElButton>
-        </header>
-
-        <div class="bg-white rounded-2xl shadow-sm">
-          <ElTable :data="articles" border class="w-full">
-            <ElTableColumn prop="id" label="ID" width="80" />
-            <ElTableColumn prop="title" label="标题" />
-            <ElTableColumn prop="categoryName" label="分类" />
-            <ElTableColumn prop="author" label="作者" width="120" />
-            <ElTableColumn prop="viewCount" label="浏览量" width="100" />
-            <ElTableColumn prop="likeCount" label="点赞数" width="100" />
-            <ElTableColumn prop="status" label="状态">
-              <template #default="scope">
-                <span :class="scope.row.status === 1 ? 'px-2 py-1 bg-green-100 text-green-600 rounded-full text-sm' : 'px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-sm'">
-                  {{ scope.row.status === 1 ? '发布' : '草稿' }}
-                </span>
-              </template>
-            </ElTableColumn>
-            <ElTableColumn prop="createdAt" label="创建时间">
-              <template #default="scope">
-                {{ new Date(scope.row.createdAt).toLocaleDateString('zh-CN') }}
-              </template>
-            </ElTableColumn>
-            <ElTableColumn label="操作" width="180">
-              <template #default="scope">
-                <ElButton size="small" @click="openEditDialog(scope.row)">编辑</ElButton>
-                <ElButton size="small" type="danger" @click="deleteArticle(scope.row.id)">删除</ElButton>
-              </template>
-            </ElTableColumn>
-          </ElTable>
-
-          <div class="p-4 flex justify-end">
-            <ElPagination
-              :total="total"
-              :page-size="pageSize"
-              :current-page="page"
-              @current-change="handlePageChange"
-              @size-change="handlePageSizeChange"
-            />
-          </div>
-        </div>
-
-        <ElDialog :title="editArticle ? '编辑文章' : '新增文章'" :visible="showCreateDialog || showEditDialog" @close="showCreateDialog = false; showEditDialog = false" width="800px">
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">标题</label>
-              <ElInput v-model="form.title" placeholder="请输入标题" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">分类</label>
-              <ElSelect v-model="form.categoryId" placeholder="请选择分类">
-                <ElOption v-for="cat in categories" :key="cat.id" :label="cat.name" :value="cat.id" />
-              </ElSelect>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">作者</label>
-              <ElInput v-model="form.author" placeholder="请输入作者" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">摘要</label>
-              <ElTextarea v-model="form.summary" placeholder="请输入摘要" :rows="3" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">内容</label>
-              <ElTextarea v-model="form.content" placeholder="请输入内容" :rows="6" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">标签（用逗号分隔）</label>
-              <ElInput v-model="form.tags" placeholder="请输入标签" />
-            </div>
-          </div>
-          <template #footer>
-            <ElButton @click="showCreateDialog = false; showEditDialog = false">取消</ElButton>
-            <ElButton type="primary" @click="saveArticle">保存</ElButton>
-          </template>
-        </ElDialog>
-      </main>
+  <AdminLayout active-menu="articles">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-800">文章管理</h2>
+        <p class="text-gray-500 mt-1">管理知识库文章</p>
+      </div>
+      <div class="flex gap-3">
+        <button class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50" @click="showCategoryDialog = true">
+          管理分类
+        </button>
+        <button class="btn-primary px-4 py-2 rounded-lg" @click="openCreateDialog">
+          + 新建文章
+        </button>
+      </div>
     </div>
-  </div>
+
+    <!-- Search & Filter -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-4 items-center">
+      <input
+        v-model="searchKeyword"
+        type="text"
+        placeholder="搜索标题或内容..."
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64"
+        @keyup.enter="handleSearch"
+      />
+      <select v-model="filterStatus" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" @change="handleSearch">
+        <option :value="undefined">全部状态</option>
+        <option :value="2">已发布</option>
+        <option :value="1">待审核</option>
+        <option :value="0">草稿</option>
+        <option :value="3">已下线</option>
+      </select>
+      <button class="btn-primary px-4 py-2 text-sm rounded-lg" @click="handleSearch">搜索</button>
+    </div>
+
+    <!-- Articles Table -->
+    <div class="bg-white rounded-2xl shadow-sm">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-gray-100">
+            <th class="text-left p-4 text-sm font-medium text-gray-500 w-16">ID</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500">标题</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 w-24">分类</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 w-20">状态</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 w-24">浏览量</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 w-32">创建时间</th>
+            <th class="text-right p-4 text-sm font-medium text-gray-500 w-48">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="article in articles" :key="article.id" class="border-b border-gray-50 hover:bg-gray-50">
+            <td class="p-4 text-sm text-gray-600">{{ article.id }}</td>
+            <td class="p-4 text-sm text-gray-800 max-w-xs truncate">{{ article.title }}</td>
+            <td class="p-4 text-sm text-gray-500">{{ article.category?.name || '-' }}</td>
+            <td class="p-4">
+              <span :class="['px-2 py-1 rounded-full text-xs',
+                article.status === 2 ? 'bg-green-100 text-green-600' :
+                article.status === 1 ? 'bg-yellow-100 text-yellow-600' :
+                article.status === 0 ? 'bg-gray-100 text-gray-600' :
+                'bg-red-100 text-red-600'
+              ]">
+                {{ article.status === 2 ? '已发布' : article.status === 1 ? '待审' : article.status === 0 ? '草稿' : '已下线' }}
+              </span>
+            </td>
+            <td class="p-4 text-sm text-gray-500">{{ article.viewCount || 0 }}</td>
+            <td class="p-4 text-sm text-gray-500">{{ new Date(article.createdAt).toLocaleDateString('zh-CN') }}</td>
+            <td class="p-4 text-right">
+              <button class="text-sm text-green-500 hover:underline mr-2" :class="{ 'text-gray-400': article.status === 2 }" @click="toggleStatus(article)">
+                {{ article.status === 2 ? '下架' : '发布' }}
+              </button>
+              <button class="text-sm text-blue-500 hover:underline mr-2" @click="openEditDialog(article)">编辑</button>
+              <button class="text-sm text-red-500 hover:underline" @click="deleteArticle(article.id)">删除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="p-4 flex justify-between items-center">
+        <span class="text-sm text-gray-500">共 {{ total }} 条</span>
+        <div class="flex gap-2">
+          <button v-for="p in Math.min(Math.ceil(total / pageSize), 10)" :key="p"
+            class="w-8 h-8 rounded-lg text-sm"
+            :class="page === p ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+            @click="page = p; loadArticles()"
+          >{{ p }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Dialog -->
+    <el-dialog title="新建文章" v-model="showCreateDialog" width="700px">
+      <div class="space-y-4 max-h-[70vh] overflow-y-auto">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">标题 *</label>
+          <el-input v-model="form.title" placeholder="文章标题" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">分类</label>
+            <el-select v-model="form.categoryId" class="w-full">
+              <el-option v-for="cat in categories" :key="cat.id" :label="cat.name" :value="cat.id" />
+            </el-select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">封面图URL</label>
+            <el-input v-model="form.coverUrl" placeholder="可选" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">内容 *</label>
+          <MarkdownEditor v-model="form.content" />
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showCreateDialog = false">取消</el-button>
+        <el-button type="primary" @click="saveArticle">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- Edit Dialog -->
+    <el-dialog title="编辑文章" v-model="showEditDialog" width="700px">
+      <div class="space-y-4 max-h-[70vh] overflow-y-auto">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">标题 *</label>
+          <el-input v-model="form.title" placeholder="文章标题" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">分类</label>
+            <el-select v-model="form.categoryId" class="w-full">
+              <el-option v-for="cat in categories" :key="cat.id" :label="cat.name" :value="cat.id" />
+            </el-select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">封面图URL</label>
+            <el-input v-model="form.coverUrl" placeholder="可选" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">内容 *</label>
+          <MarkdownEditor v-model="form.content" />
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showEditDialog = false">取消</el-button>
+        <el-button type="primary" @click="saveArticle">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- Category Management Dialog -->
+    <el-dialog title="管理分类" v-model="showCategoryDialog" width="500px">
+      <div class="space-y-4">
+        <div class="flex gap-2">
+          <el-input v-model="newCategoryName" placeholder="分类名称" />
+          <el-input v-model="newCategoryDesc" placeholder="描述（可选）" />
+          <el-button type="primary" @click="createCategory">添加</el-button>
+        </div>
+        <div class="space-y-2 max-h-60 overflow-y-auto">
+          <div v-for="cat in categories" :key="cat.id" class="flex items-center justify-between py-2 border-b border-gray-100">
+            <div>
+              <span class="text-sm text-gray-800">{{ cat.name }}</span>
+              <span v-if="cat.description" class="text-xs text-gray-400 ml-2">{{ cat.description }}</span>
+            </div>
+            <button class="text-xs text-red-500 hover:underline" @click="deleteCategory(cat.id)">删除</button>
+          </div>
+        </div>
+      </div>
+    </el-dialog>
+  </AdminLayout>
 </template>

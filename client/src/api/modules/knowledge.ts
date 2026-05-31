@@ -16,6 +16,10 @@ export const knowledgeApi = {
     return get('/articles', { page, pageSize, categoryId });
   },
 
+  search: (q: string, page: number = 1, pageSize: number = 20): Promise<ApiResponse<PageResult<KnowledgeArticle>>> => {
+    return get('/articles/search', { q, page, pageSize });
+  },
+
   getArticle: (id: number): Promise<ApiResponse<KnowledgeArticle>> => {
     return get(`/articles/${id}`);
   },

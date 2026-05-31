@@ -1,6 +1,16 @@
 import { post, get } from '../request';
 import type { ApiResponse, Admin, LoginData, LoginResponse, Statistics } from '@/types';
 
+export interface WeeklyTrend {
+  trends: Array<{
+    day: string;
+    date: string;
+    newUsers: number;
+    sessions: number;
+    diaries: number;
+  }>;
+}
+
 export const adminApi = {
   login: (data: LoginData): Promise<ApiResponse<LoginResponse>> => {
     return post('/login', data);
@@ -16,5 +26,9 @@ export const adminApi = {
 
   getStatistics: (): Promise<ApiResponse<Statistics>> => {
     return get('/statistics');
+  },
+
+  getWeeklyTrend: (): Promise<ApiResponse<WeeklyTrend>> => {
+    return get('/analytics/weekly-trend');
   }
 };

@@ -1,218 +1,237 @@
-<script setup lang="ts">import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAdminStore } from '@/stores/admin';
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import { userApi } from '@/api';
 import type { User } from '@/types';
-import { ElMessage, ElTable, ElTableColumn, ElPagination, ElButton, ElDialog, ElInput, ElSelect } from 'element-plus';
-const router = useRouter();
-const adminStore = useAdminStore();
+import { ElMessage } from 'element-plus';
+import AdminLayout from '@/components/AdminLayout.vue';
+
 const users = ref<User[]>([]);
 const total = ref(0);
 const page = ref(1);
 const pageSize = ref(10);
-const activeMenu = ref('users');
 const showEditDialog = ref(false);
+const showCreateDialog = ref(false);
 const editUser = ref<User | null>(null);
-const editForm = ref({
- nickname: '',
- status: 1
-});
-const menuItems = [
- { name: 'dashboard', label: '数据概览', icon: '📊', path: '/' },
- { name: 'users', label: '用户管理', icon: '👥', path: '/users' },
- { name: 'articles', label: '文章管理', icon: '📝', path: '/articles' },
- { name: 'risk', label: '风险监控', icon: '🛡️', path: '/risk' }
-];
-const handleMenuClick = async (item: typeof menuItems[0]) => {
-  activeMenu.value = item.name;
+const editForm = ref({ nickname: '', status: 1, riskLevel: 0 });
+const createForm = ref({ phone: '', password: '', nickname: '' });
+const searchKeyword = ref('');
+const filterStatus = ref<number | undefined>(undefined);
+const filterRiskLevel = ref<number | undefined>(undefined);
+
+const loadUsers = async () => {
   try {
-    await router.push(item.path);
-  }
-  catch (error: any) {
-    console.error('路由跳转失败:', error);
-    ElMessage.error('页面跳转失败，请刷新重试');
+    const params: any = {};
+    if (filterStatus.value !== undefined) params.status = filterStatus.value;
+    if (filterRiskLevel.value !== undefined) params.riskLevel = filterRiskLevel.value;
+    if (searchKeyword.value) params.keyword = searchKeyword.value;
+    const res = await userApi.getUsers(page.value, pageSize.value, params);
+    if (res.code === 200) {
+      users.value = res.data.list;
+      total.value = res.data.total;
+    }
+  } catch (error: any) {
+    ElMessage.error(error.message || '获取用户列表失败');
   }
 };
 
-const loadUsers = async () => {
- try {
- const res = await userApi.getUsers(page.value, pageSize.value);
- if (res.code === 200) {
- users.value = res.data.list;
- total.value = res.data.total;
- }
- }
- catch (error: any) {
- ElMessage.error(error.message || '获取用户列表失败');
- }
-};
 const openEditDialog = (user: User) => {
- editUser.value = user;
- editForm.value = {
- nickname: user.nickname,
- status: user.status
- };
- showEditDialog.value = true;
+  editUser.value = user;
+  editForm.value = { nickname: user.nickname, status: user.status, riskLevel: user.riskLevel || 0 };
+  showEditDialog.value = true;
 };
+
 const saveUser = async () => {
- if (!editUser.value)
- return;
- try {
- await userApi.updateUser(editUser.value.id, editForm.value);
- ElMessage.success('修改成功');
- showEditDialog.value = false;
- loadUsers();
- }
- catch (error: any) {
- ElMessage.error(error.message || '修改失败');
- }
+  if (!editUser.value) return;
+  try {
+    await userApi.updateUser(editUser.value.id, editForm.value);
+    ElMessage.success('修改成功');
+    showEditDialog.value = false;
+    loadUsers();
+  } catch (error: any) {
+    ElMessage.error(error.message || '修改失败');
+  }
 };
+
+const createUser = async () => {
+  if (!createForm.value.phone || !createForm.value.password) {
+    ElMessage.warning('请填写手机号和密码');
+    return;
+  }
+  try {
+    await userApi.createUser(createForm.value);
+    ElMessage.success('创建成功');
+    showCreateDialog.value = false;
+    createForm.value = { phone: '', password: '', nickname: '' };
+    loadUsers();
+  } catch (error: any) {
+    ElMessage.error(error.message || '创建失败');
+  }
+};
+
 const deleteUser = async (id: number) => {
- if (!confirm('确定要删除该用户吗？'))
- return;
- try {
- await userApi.deleteUser(id);
- ElMessage.success('删除成功');
- loadUsers();
- }
- catch (error: any) {
- ElMessage.error(error.message || '删除失败');
- }
+  if (!confirm('确定要删除该用户吗？')) return;
+  try {
+    await userApi.deleteUser(id);
+    ElMessage.success('删除成功');
+    loadUsers();
+  } catch (error: any) {
+    ElMessage.error(error.message || '删除失败');
+  }
 };
-const handleLogout = async () => {
- try {
- await adminStore.logout();
- ElMessage.success('退出成功');
- router.push('/login');
- }
- catch (error: any) {
- ElMessage.error(error.message || '退出失败');
- }
+
+const handleSearch = () => {
+  page.value = 1;
+  loadUsers();
 };
+
 const handlePageChange = (newPage: number) => {
- page.value = newPage;
- loadUsers();
+  page.value = newPage;
+  loadUsers();
 };
-const handlePageSizeChange = (newSize: number) => {
- pageSize.value = newSize;
- page.value = 1;
- loadUsers();
-};
-onMounted(() => {
- loadUsers();
-});
+
+onMounted(loadUsers);
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <div class="flex">
-      <aside class="w-64 bg-white shadow-md min-h-screen">
-        <div class="p-6 border-b">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
-              <span class="text-white text-lg">AI</span>
-            </div>
-            <div>
-              <h1 class="font-bold text-gray-800">管理后台</h1>
-              <p class="text-xs text-gray-500">心理健康助手</p>
-            </div>
-          </div>
-        </div>
-
-        <nav class="p-4">
-          <ul class="space-y-2">
-            <li v-for="item in menuItems" :key="item.name">
-              <button
-                class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
-                :class="activeMenu === item.name ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-100'"
-                @click="handleMenuClick(item)"
-              >
-                <span class="text-xl">{{ item.icon }}</span>
-                <span class="font-medium">{{ item.label }}</span>
-              </button>
-            </li>
-          </ul>
-        </nav>
-
-        <div class="absolute bottom-0 left-0 w-64 p-4 border-t">
-          <button
-            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all"
-            @click="handleLogout"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            <span class="font-medium">退出登录</span>
-          </button>
-        </div>
-      </aside>
-
-      <main class="flex-1 p-6">
-        <header class="flex items-center justify-between mb-8">
-          <div>
-            <h2 class="text-2xl font-bold text-gray-800">用户管理</h2>
-            <p class="text-gray-500 mt-1">管理平台用户</p>
-          </div>
-        </header>
-
-        <div class="bg-white rounded-2xl shadow-sm">
-          <ElTable :data="users" border class="w-full">
-            <ElTableColumn prop="id" label="ID" width="80" />
-            <ElTableColumn prop="phone" label="手机号" />
-            <ElTableColumn prop="nickname" label="昵称" />
-            <ElTableColumn prop="status" label="状态">
-              <template #default="scope">
-                <span :class="scope.row.status === 1 ? 'px-2 py-1 bg-green-100 text-green-600 rounded-full text-sm' : 'px-2 py-1 bg-red-100 text-red-600 rounded-full text-sm'">
-                  {{ scope.row.status === 1 ? '正常' : '禁用' }}
-                </span>
-              </template>
-            </ElTableColumn>
-            <ElTableColumn prop="createdAt" label="注册时间">
-              <template #default="scope">
-                {{ new Date(scope.row.createdAt).toLocaleString('zh-CN') }}
-              </template>
-            </ElTableColumn>
-            <ElTableColumn label="操作" width="180">
-              <template #default="scope">
-                <ElButton size="small" @click="openEditDialog(scope.row)">编辑</ElButton>
-                <ElButton size="small" type="danger" @click="deleteUser(scope.row.id)">删除</ElButton>
-              </template>
-            </ElTableColumn>
-          </ElTable>
-
-          <div class="p-4 flex justify-end">
-            <ElPagination
-              :total="total"
-              :page-size="pageSize"
-              :current-page="page"
-              @current-change="handlePageChange"
-              @size-change="handlePageSizeChange"
-            />
-          </div>
-        </div>
-
-        <ElDialog title="编辑用户" v-model="showEditDialog">
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">昵称</label>
-              <ElInput v-model="editForm.nickname" placeholder="请输入昵称" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">状态</label>
-              <ElSelect v-model="editForm.status">
-                <ElSelectOption :label="'\u6B63\u5E38'" :value="1" />
-                <ElSelectOption :label="'\u7981\u7528'" :value="0" />
-              </ElSelect>
-            </div>
-          </div>
-          <template #footer>
-            <ElButton @click="showEditDialog = false">取消</ElButton>
-            <ElButton type="primary" @click="saveUser">保存</ElButton>
-          </template>
-        </ElDialog>
-      </main>
+  <AdminLayout active-menu="users">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-800">用户管理</h2>
+        <p class="text-gray-500 mt-1">管理平台用户，共 {{ total }} 人</p>
+      </div>
+      <button class="btn-primary px-4 py-2 rounded-lg" @click="showCreateDialog = true">
+        + 创建用户
+      </button>
     </div>
-  </div>
+
+    <!-- Search & Filters -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-4 items-center">
+      <input
+        v-model="searchKeyword"
+        type="text"
+        placeholder="搜索手机号或昵称..."
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64"
+        @keyup.enter="handleSearch"
+      />
+      <select v-model="filterStatus" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" @change="handleSearch">
+        <option :value="undefined">全部状态</option>
+        <option :value="1">正常</option>
+        <option :value="0">禁用</option>
+      </select>
+      <select v-model="filterRiskLevel" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" @change="handleSearch">
+        <option :value="undefined">全部风险等级</option>
+        <option :value="0">正常</option>
+        <option :value="1">关注</option>
+        <option :value="2">高危</option>
+      </select>
+      <button class="btn-primary px-4 py-2 text-sm rounded-lg" @click="handleSearch">搜索</button>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-white rounded-2xl shadow-sm">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-gray-100">
+            <th class="text-left p-4 text-sm font-medium text-gray-500">ID</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500">手机号</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500">昵称</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500">状态</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500">风险等级</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500">注册时间</th>
+            <th class="text-right p-4 text-sm font-medium text-gray-500">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="user in users" :key="user.id" class="border-b border-gray-50 hover:bg-gray-50">
+            <td class="p-4 text-sm text-gray-600">{{ user.id }}</td>
+            <td class="p-4 text-sm text-gray-800">{{ user.phone }}</td>
+            <td class="p-4 text-sm text-gray-800">{{ user.nickname }}</td>
+            <td class="p-4">
+              <span :class="['px-2 py-1 rounded-full text-xs', user.status === 1 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600']">
+                {{ user.status === 1 ? '正常' : '禁用' }}
+              </span>
+            </td>
+            <td class="p-4">
+              <span :class="['px-2 py-1 rounded-full text-xs',
+                user.riskLevel === 2 ? 'bg-red-100 text-red-600' :
+                user.riskLevel === 1 ? 'bg-yellow-100 text-yellow-600' :
+                'bg-gray-100 text-gray-600'
+              ]">
+                {{ user.riskLevel === 2 ? '高危' : user.riskLevel === 1 ? '关注' : '正常' }}
+              </span>
+            </td>
+            <td class="p-4 text-sm text-gray-500">{{ new Date(user.createdAt).toLocaleString('zh-CN') }}</td>
+            <td class="p-4 text-right">
+              <button class="text-blue-500 text-sm hover:underline mr-3" @click="openEditDialog(user)">编辑</button>
+              <button class="text-red-500 text-sm hover:underline" @click="deleteUser(user.id)">删除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="p-4 flex justify-between items-center">
+        <span class="text-sm text-gray-500">共 {{ total }} 条</span>
+        <div class="flex gap-2">
+          <button
+            v-for="p in Math.ceil(total / pageSize)"
+            :key="p"
+            class="w-8 h-8 rounded-lg text-sm"
+            :class="page === p ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+            @click="handlePageChange(p)"
+          >{{ p }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Dialog -->
+    <el-dialog title="编辑用户" v-model="showEditDialog">
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">昵称</label>
+          <el-input v-model="editForm.nickname" placeholder="请输入昵称" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+          <el-select v-model="editForm.status" class="w-full">
+            <el-option label="正常" :value="1" />
+            <el-option label="禁用" :value="0" />
+          </el-select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">风险等级</label>
+          <el-select v-model="editForm.riskLevel" class="w-full">
+            <el-option label="正常" :value="0" />
+            <el-option label="关注" :value="1" />
+            <el-option label="高危" :value="2" />
+          </el-select>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showEditDialog = false">取消</el-button>
+        <el-button type="primary" @click="saveUser">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- Create Dialog -->
+    <el-dialog title="创建用户" v-model="showCreateDialog">
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">手机号 *</label>
+          <el-input v-model="createForm.phone" placeholder="请输入手机号" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">密码 *</label>
+          <el-input v-model="createForm.password" type="password" placeholder="至少6位" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">昵称</label>
+          <el-input v-model="createForm.nickname" placeholder="可选" />
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showCreateDialog = false">取消</el-button>
+        <el-button type="primary" @click="createUser">创建</el-button>
+      </template>
+    </el-dialog>
+  </AdminLayout>
 </template>

@@ -29,6 +29,11 @@ const router = createRouter({
       component: () => import('@/pages/diary/DiaryCreatePage.vue')
     },
     {
+      path: '/diary/:id/edit',
+      name: 'DiaryEdit',
+      component: () => import('@/pages/diary/DiaryEditPage.vue')
+    },
+    {
       path: '/diary/:id',
       name: 'DiaryDetail',
       component: () => import('@/pages/diary/DiaryDetailPage.vue')
@@ -59,6 +64,56 @@ const router = createRouter({
       component: () => import('@/pages/user/UserPage.vue')
     },
     {
+      path: '/user/settings',
+      name: 'UserSettings',
+      component: () => import('@/pages/user/UserSettingsPage.vue')
+    },
+    {
+      path: '/user/change-password',
+      name: 'ChangePassword',
+      component: () => import('@/pages/user/ChangePasswordPage.vue')
+    },
+    {
+      path: '/user/help',
+      name: 'UserHelp',
+      component: () => import('@/pages/user/UserHelpPage.vue')
+    },
+    {
+      path: '/user/about',
+      name: 'About',
+      component: () => import('@/pages/user/AboutPage.vue')
+    },
+    {
+      path: '/user/notifications',
+      name: 'Notifications',
+      component: () => import('@/pages/user/NotificationPage.vue')
+    },
+    {
+      path: '/user/reminders',
+      name: 'Reminders',
+      component: () => import('@/pages/user/ReminderPage.vue')
+    },
+    {
+      path: '/questionnaire',
+      name: 'QuestionnaireList',
+      component: () => import('@/pages/questionnaire/QuestionnaireListPage.vue')
+    },
+    {
+      path: '/questionnaire/:id',
+      name: 'Questionnaire',
+      component: () => import('@/pages/questionnaire/QuestionnairePage.vue')
+    },
+    {
+      path: '/questionnaire/:id/result',
+      name: 'QuestionnaireResult',
+      component: () => import('@/pages/questionnaire/QuestionnaireResultPage.vue')
+    },
+    {
+      path: '/video/:roomId?',
+      name: 'VideoCall',
+      component: () => import('@/pages/video/VideoCallPage.vue')
+    },
+    {
       path: '/login',
       name: 'Login',
       component: () => import('@/pages/auth/LoginPage.vue')
@@ -78,17 +133,24 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const isLoggedIn = !!localStorage.getItem('accessToken');
-  
-  if (to.path !== '/login' && to.path !== '/register' && !isLoggedIn) {
+
+  // Public routes
+  const publicRoutes = ['/login', '/register'];
+  if (publicRoutes.includes(to.path)) {
+    if (isLoggedIn) {
+      next('/');
+      return;
+    }
+    next();
+    return;
+  }
+
+  // Protected routes
+  if (!isLoggedIn) {
     next('/login');
     return;
   }
-  
-  if ((to.path === '/login' || to.path === '/register') && isLoggedIn) {
-    next('/');
-    return;
-  }
-  
+
   next();
 });
 

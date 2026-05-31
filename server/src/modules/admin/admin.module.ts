@@ -2,13 +2,14 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { User, Admin, AdminOperationLog, AiSession, MoodDiary, KnowledgeArticle } from '@/database/entities';
+import { User, Admin, AdminOperationLog, AiSession, MoodDiary, KnowledgeArticle, KnowledgeCategory, ArticleLike, ArticleCollect } from '@/database/entities';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
+import { KnowledgeService } from '@/modules/knowledge/knowledge.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Admin, AdminOperationLog, AiSession, MoodDiary, KnowledgeArticle]),
+    TypeOrmModule.forFeature([User, Admin, AdminOperationLog, AiSession, MoodDiary, KnowledgeArticle, KnowledgeCategory, ArticleLike, ArticleCollect]),
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
@@ -17,7 +18,7 @@ import { AdminController } from './admin.controller';
       inject: [ConfigService]
     })
   ],
-  providers: [AdminService],
+  providers: [AdminService, KnowledgeService],
   controllers: [AdminController]
 })
 export class AdminModule {}

@@ -1,78 +1,57 @@
-import axios from 'axios';
+import { get, post, put, del } from '../request';
 import type { ApiResponse, KnowledgeArticle, KnowledgeCategory, PageResult } from '@/types';
-
-const axiosInstance = axios.create({
-  baseURL: 'http://localhost:3000/api/v1',
-  timeout: 30000,
-});
-
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('adminToken');
-    if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-axiosInstance.interceptors.response.use(
-  (response) => {
-    return response.data;
-  },
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('adminToken');
-      localStorage.removeItem('admin');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error.response?.data || error.message);
-  }
-);
 
 export interface CreateArticleData {
   title: string;
   content: string;
-  summary: string;
-  author: string;
+  coverUrl?: string;
   categoryId: number;
-  tags: string[];
+  tags?: string[];
+  authorId?: number;
 }
 
 export const knowledgeApi = {
-  getArticles: (page: number, pageSize: number): Promise<ApiResponse<PageResult<KnowledgeArticle>>> => {
-    return axiosInstance.get('/articles', { params: { page, pageSize } });
+  getArticles: (page: number, pageSize: number, status?: number, keyword?: string): Promise<ApiResponse<PageResult<KnowledgeArticle>>> => {
+    return get('/articles', { page, pageSize, status, keyword });
   },
 
   getArticle: (id: number): Promise<ApiResponse<KnowledgeArticle>> => {
-    return axiosInstance.get(`/articles/${id}`);
+    return get(`/articles/${id}`);
   },
 
   createArticle: (data: CreateArticleData): Promise<ApiResponse<KnowledgeArticle>> => {
-    return axiosInstance.post('/articles', data);
+    return post('/articles', data);
   },
 
-  updateArticle: (id: number, data: CreateArticleData): Promise<ApiResponse<KnowledgeArticle>> => {
-    return axiosInstance.put(`/articles/${id}`, data);
+  updateArticle: (id: number, data: Partial<CreateArticleData>): Promise<ApiResponse<KnowledgeArticle>> => {
+    return put(`/articles/${id}`, data);
   },
 
   deleteArticle: (id: number): Promise<ApiResponse<void>> => {
-    return axiosInstance.delete(`/articles/${id}`);
+    return del(`/articles/${id}`);
+  },
+
+  updateArticleStatus: (id: number, status: number): Promise<ApiResponse<KnowledgeArticle>> => {
+    return put(`/articles/${id}/status`, { status });
+  },
+
+  publishArticle: (id: number): Promise<ApiResponse<KnowledgeArticle>> => {
+    return put(`/articles/${id}/publish`);
   },
 
   getCategories: (): Promise<ApiResponse<KnowledgeCategory[]>> => {
-    return axiosInstance.get('/articles/categories');
+    return get('/categories');
   },
 
-  createCategory: (data: { name: string; description: string }): Promise<ApiResponse<KnowledgeCategory>> => {
-    return axiosInstance.post('/articles/categories', data);
+  createCategory: (data: { name: string; description?: string }): Promise<ApiResponse<KnowledgeCategory>> => {
+    return post('/categories', data);
+  },
+
+  updateCategory: (id: number, data: { name?: string; description?: string }): Promise<ApiResponse<KnowledgeCategory>> => {
+    return put(`/categories/${id}`, data);
   },
 
   deleteCategory: (id: number): Promise<ApiResponse<void>> => {
-    return axiosInstance.delete(`/articles/categories/${id}`);
+    return del(`/categories/${id}`);
   }
 };

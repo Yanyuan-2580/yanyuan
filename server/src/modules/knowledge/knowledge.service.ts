@@ -130,7 +130,49 @@ export class KnowledgeService {
     if (existing) {
       throw new ConflictException('分类已存在');
     }
-    const category = this.categoryRepository.create({ name, description });
+    const category = this.categoryRepository.create({ name, description, status: 1, sortOrder: 0 });
     return this.categoryRepository.save(category);
+  }
+
+  async updateCategory(id: number, data: { name?: string; description?: string }): Promise<KnowledgeCategory> {
+    const category = await this.categoryRepository.findOne({ where: { id } });
+    if (!category) {
+      throw new NotFoundException('分类不存在');
+    }
+    if (data.name && data.name !== category.name) {
+      const existing = await this.categoryRepository.findOne({ where: { name: data.name } });
+      if (existing) {
+        throw new ConflictException('分类名已存在');
+      }
+    }
+    await this.categoryRepository.update(id, data);
+    return this.categoryRepository.findOne({ where: { id } });
+  }
+
+  async deleteCategory(id: number): Promise<{ success: boolean }> {
+    const category = await this.categoryRepository.findOne({ where: { id } });
+    if (!category) {
+      throw new NotFoundException('分类不存在');
+    }
+    // Check if any articles use this category
+    const articlesCount = await this.articleRepository.count({ where: { categoryId: id } });
+    if (articlesCount > 0) {
+      throw new ConflictException(`该分类下有 ${articlesCount} 篇文章，无法删除`);
+    }
+    await this.categoryRepository.delete(id);
+    return { success: true };
+  }
+
+  async searchArticles(query: string, page: number, pageSize: number): Promise<{ list: KnowledgeArticle[]; total: number }> {
+    const [list, total] = await this.articleRepository
+      .createQueryBuilder('article')
+      .where('article.status = 2')
+      .andWhere('(article.title LIKE :q OR article.content LIKE :q)', { q: `%${query}%` })
+      .orderBy('article.publishedAt', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
+
+    return { list, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
 }

@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
 import { ArticleStatus } from '@/types';
+import { KnowledgeCategory } from './KnowledgeCategory.entity';
 
 @Entity('knowledge_articles')
 export class KnowledgeArticle {
@@ -18,6 +19,10 @@ export class KnowledgeArticle {
   @Column()
   @Index()
   categoryId: number;
+
+  @ManyToOne(() => KnowledgeCategory, { nullable: true })
+  @JoinColumn({ name: 'categoryId' })
+  category: KnowledgeCategory;
 
   @Column({ type: 'json', nullable: true })
   tags: string[];

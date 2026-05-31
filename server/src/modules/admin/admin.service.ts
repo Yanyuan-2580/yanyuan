@@ -1,12 +1,13 @@
-import { Injectable, UnauthorizedException, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException, ForbiddenException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual } from 'typeorm';
+import { Repository, MoreThanOrEqual, Like } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { User, Admin, AdminOperationLog, AiSession, MoodDiary, KnowledgeArticle } from '@/database/entities';
 import { JwtPayload, UserStatus, RiskLevel } from '@/types';
 import { AdminLoginDto } from './dto/login.dto';
 import { AdminRegisterDto } from './dto/register.dto';
+import { CreateArticleDto } from '@/modules/knowledge/dto/create-article.dto';
 
 @Injectable()
 export class AdminService {
@@ -74,14 +75,19 @@ export class AdminService {
     };
   }
 
-  async getUsers(page: number, pageSize: number, status?: number, riskLevel?: number): Promise<{ list: User[]; total: number }> {
+  // ==================== User Management ====================
+
+  async getUsers(page: number, pageSize: number, status?: number, riskLevel?: number, keyword?: string): Promise<{ list: User[]; total: number }> {
     const query = this.userRepository.createQueryBuilder('user');
-    
+
     if (status !== undefined) {
       query.andWhere('user.status = :status', { status });
     }
     if (riskLevel !== undefined) {
       query.andWhere('user.riskLevel = :riskLevel', { riskLevel });
+    }
+    if (keyword) {
+      query.andWhere('(user.nickname LIKE :keyword OR user.phone LIKE :keyword)', { keyword: `%${keyword}%` });
     }
 
     const [list, total] = await query
@@ -90,7 +96,7 @@ export class AdminService {
       .take(pageSize)
       .getManyAndCount();
 
-    return { list, total };
+    return { list, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
 
   async getUser(id: number): Promise<User> {
@@ -101,9 +107,28 @@ export class AdminService {
     return user;
   }
 
-  async updateUserStatus(id: number, status: number): Promise<User> {
+  async createUser(data: { phone: string; password: string; nickname?: string }): Promise<User> {
+    const existing = await this.userRepository.findOne({ where: { phone: data.phone } });
+    if (existing) {
+      throw new ConflictException('手机号已被注册');
+    }
+    const passwordHash = await bcrypt.hash(data.password, 10);
+    const user = this.userRepository.create({
+      phone: data.phone,
+      passwordHash,
+      nickname: data.nickname || `用户${data.phone.slice(-4)}`,
+      status: 1 as UserStatus,
+      riskLevel: 0 as RiskLevel
+    });
+    return this.userRepository.save(user);
+  }
+
+  async updateUserStatus(id: number, status: number, adminId?: number): Promise<User> {
     const user = await this.getUser(id);
     await this.userRepository.update(id, { status: status as UserStatus });
+    if (adminId) {
+      await this.logOperation(adminId, 'updateUserStatus', 'user', id, { from: user.status, to: status });
+    }
     return this.getUser(id);
   }
 
@@ -113,9 +138,73 @@ export class AdminService {
     return this.getUser(id);
   }
 
+  async deleteUser(id: number): Promise<{ success: boolean }> {
+    const user = await this.getUser(id);
+    await this.userRepository.softDelete(id);
+    return { success: true };
+  }
+
+  // ==================== Article Management ====================
+
+  async getArticles(page: number, pageSize: number, status?: number, categoryId?: number, keyword?: string): Promise<{ list: KnowledgeArticle[]; total: number }> {
+    const query = this.articleRepository.createQueryBuilder('article')
+      .leftJoinAndSelect('article.category', 'category');
+
+    if (status !== undefined) {
+      query.andWhere('article.status = :status', { status });
+    }
+    if (categoryId) {
+      query.andWhere('article.categoryId = :categoryId', { categoryId });
+    }
+    if (keyword) {
+      query.andWhere('(article.title LIKE :keyword OR article.content LIKE :keyword)', { keyword: `%${keyword}%` });
+    }
+
+    const [list, total] = await query
+      .orderBy('article.createdAt', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
+
+    return { list, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+  }
+
+  async getArticleDetail(id: number): Promise<KnowledgeArticle> {
+    const article = await this.articleRepository.findOne({
+      where: { id },
+      relations: ['category']
+    });
+    if (!article) {
+      throw new NotFoundException('文章不存在');
+    }
+    return article;
+  }
+
+  async adminCreateArticle(dto: CreateArticleDto, adminId: number): Promise<KnowledgeArticle> {
+    const article = this.articleRepository.create(dto);
+    const saved = await this.articleRepository.save(article);
+    await this.logOperation(adminId, 'createArticle', 'article', saved.id, { title: dto.title });
+    return saved;
+  }
+
+  async updateArticleStatus(id: number, status: number): Promise<KnowledgeArticle> {
+    const article = await this.articleRepository.findOne({ where: { id } });
+    if (!article) {
+      throw new NotFoundException('文章不存在');
+    }
+    const updateData: any = { status };
+    if (status === 2) {
+      updateData.publishedAt = new Date();
+    }
+    await this.articleRepository.update(id, updateData);
+    return this.articleRepository.findOne({ where: { id } });
+  }
+
+  // ==================== Chat & Diary ====================
+
   async getSessions(page: number, pageSize: number, riskFlag?: number): Promise<{ list: AiSession[]; total: number }> {
     const query = this.aiSessionRepository.createQueryBuilder('session');
-    
+
     if (riskFlag !== undefined) {
       query.andWhere('session.riskFlag = :riskFlag', { riskFlag });
     }
@@ -126,7 +215,7 @@ export class AdminService {
       .take(pageSize)
       .getManyAndCount();
 
-    return { list, total };
+    return { list, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
 
   async getDiaries(page: number, pageSize: number): Promise<{ list: MoodDiary[]; total: number }> {
@@ -135,22 +224,25 @@ export class AdminService {
       skip: (page - 1) * pageSize,
       take: pageSize
     });
-    return { list, total };
+    return { list, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
+
+  // ==================== Analytics ====================
 
   async getDashboardData(): Promise<any> {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     const totalUsers = await this.userRepository.count();
-    const todayUsers = await this.userRepository.count({ where: { createdAt: MoreThanOrEqual(today) } });
-    
+    const activeUsers = await this.userRepository.count({ where: { updatedAt: MoreThanOrEqual(weekAgo) } });
+
     const totalSessions = await this.aiSessionRepository.count();
     const todaySessions = await this.aiSessionRepository.count({ where: { createdAt: MoreThanOrEqual(today) } });
-    
+
     const totalDiaries = await this.moodDiaryRepository.count();
     const todayDiaries = await this.moodDiaryRepository.count({ where: { createdAt: MoreThanOrEqual(today) } });
-    
+
     const totalArticles = await this.articleRepository.count({ where: { status: 2 } });
 
     const highRiskUsers = await this.userRepository.count({ where: { riskLevel: 2 } });
@@ -158,60 +250,139 @@ export class AdminService {
 
     return {
       totalUsers,
-      todayUsers,
+      activeUsers,
       totalSessions,
       todaySessions,
       totalDiaries,
       todayDiaries,
       totalArticles,
       highRiskUsers,
-      highRiskSessions
+      highRiskSessions,
+      riskCount: highRiskUsers + highRiskSessions
     };
   }
 
-  async getRiskRecords(page: number, pageSize: number): Promise<{ list: any[]; total: number }> {
-    const [users, userCount] = await this.userRepository.findAndCount({
-      where: { riskLevel: 2 },
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * pageSize,
-      take: pageSize
-    });
+  async getWeeklyTrend(): Promise<any> {
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      const nextDate = new Date(date.getTime() + 24 * 60 * 60 * 1000);
+      days.push({ date, label: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][date.getDay()], nextDate });
+    }
 
-    const [sessions, sessionCount] = await this.aiSessionRepository.findAndCount({
-      where: { riskFlag: 2 },
-      order: { updatedAt: 'DESC' },
-      skip: (page - 1) * pageSize,
-      take: pageSize
-    });
+    const trends = await Promise.all(days.map(async d => {
+      const newUsers = await this.userRepository.count({
+        where: { createdAt: MoreThanOrEqual(d.date) }
+      });
+      const sessions = await this.aiSessionRepository.count({
+        where: { createdAt: MoreThanOrEqual(d.date) }
+      });
+      const diaries = await this.moodDiaryRepository.count({
+        where: { createdAt: MoreThanOrEqual(d.date) }
+      });
+      return { day: d.label, date: d.date.toISOString().split('T')[0], newUsers, sessions, diaries };
+    }));
+
+    return { trends };
+  }
+
+  // ==================== Risk Management ====================
+
+  async getRiskRecords(page: number, pageSize: number, riskLevel?: number, type?: string): Promise<{ list: any[]; total: number }> {
+    const conditions: any = {};
+    if (riskLevel !== undefined) {
+      conditions.riskLevel = riskLevel;
+    }
+
+    let userList: any[] = [];
+    let sessionList: any[] = [];
+    let userCount = 0;
+    let sessionCount = 0;
+
+    if (!type || type === 'user') {
+      [userList, userCount] = await this.userRepository.findAndCount({
+        where: { ...conditions, riskLevel: riskLevel !== undefined ? riskLevel : 2 as any },
+        order: { createdAt: 'DESC' },
+        skip: (page - 1) * pageSize,
+        take: pageSize
+      });
+    }
+
+    if (!type || type === 'session') {
+      [sessionList, sessionCount] = await this.aiSessionRepository.findAndCount({
+        where: { ...conditions, riskFlag: riskLevel !== undefined ? riskLevel as any : undefined },
+        order: { updatedAt: 'DESC' },
+        skip: (page - 1) * pageSize,
+        take: pageSize
+      });
+    }
 
     const list: any[] = [
-      ...users.map(u => ({
+      ...userList.map(u => ({
         type: 'user',
         id: u.id,
         name: u.nickname || u.phone,
         phone: u.phone,
-        createdAt: u.createdAt,
-        riskLevel: u.riskLevel
+        riskLevel: u.riskLevel,
+        content: u.nickname || u.phone,
+        createdAt: u.createdAt
       })),
-      ...sessions.map(s => ({
+      ...sessionList.map(s => ({
         type: 'session',
         id: s.id,
         userId: s.userId,
         riskFlag: s.riskFlag,
-        updatedAt: s.updatedAt
+        riskLevel: s.riskFlag,
+        content: `会话 #${s.id} 触发风险预警`,
+        createdAt: s.updatedAt
       }))
     ];
 
-    list.sort((a: any, b: any) => {
-      const dateA = a.createdAt || a.updatedAt;
-      const dateB = b.createdAt || b.updatedAt;
-      return new Date(dateB).getTime() - new Date(dateA).getTime();
-    });
+    list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return {
       list: list.slice(0, pageSize),
-      total: userCount + sessionCount
+      total: userCount + sessionCount,
+      page,
+      pageSize,
+      totalPages: Math.ceil((userCount + sessionCount) / pageSize)
     };
+  }
+
+  async resolveRiskRecord(type: string, id: number, resolution: string, adminId: number): Promise<any> {
+    if (type === 'user') {
+      await this.userRepository.update(id, { riskLevel: 0 as RiskLevel });
+    } else if (type === 'session') {
+      await this.aiSessionRepository.update(id, { riskFlag: 0 });
+    }
+    await this.logOperation(adminId, 'resolveRisk', type, id, { resolution });
+    return { success: true };
+  }
+
+  // ==================== Audit Logs ====================
+
+  async getAuditLogs(page: number, pageSize: number, adminId?: number, action?: string, targetType?: string): Promise<{ list: AdminOperationLog[]; total: number }> {
+    const query = this.operationLogRepository.createQueryBuilder('log');
+
+    if (adminId) {
+      query.andWhere('log.adminId = :adminId', { adminId });
+    }
+    if (action) {
+      query.andWhere('log.action = :action', { action });
+    }
+    if (targetType) {
+      query.andWhere('log.targetType = :targetType', { targetType });
+    }
+
+    const [list, total] = await query
+      .orderBy('log.createdAt', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
+
+    return { list, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
 
   async logout(adminId: number): Promise<{ success: boolean }> {
