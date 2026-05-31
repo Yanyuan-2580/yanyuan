@@ -82,7 +82,15 @@ onMounted(async () => {
 <template>
   <div class="min-h-screen pb-24">
     <header class="bg-gradient-to-br from-calm-400 via-primary-500 to-warm-500 text-white p-6 rounded-b-3xl">
-      <h1 class="text-2xl font-bold mb-2">心理健康知识库</h1>
+      <div class="flex items-center justify-between mb-2">
+        <h1 class="text-2xl font-bold">心理健康知识库</h1>
+        <button
+          class="px-4 py-2 bg-white/20 backdrop-blur rounded-xl text-sm font-medium hover:bg-white/30 transition-colors"
+          @click="router.push('/knowledge/new')"
+        >
+          ✏️ 写文章
+        </button>
+      </div>
       <p class="text-white/80">探索专业的心理健康知识</p>
 
       <div class="mt-4 relative">

@@ -3,7 +3,8 @@
  * Reuses the same /api/v1 server API
  */
 
-const BASE_URL = 'https://your-api-domain.com/api/v1';
+// 开发环境使用本地代理，生产环境配置实际域名
+const BASE_URL = 'http://localhost:3000/api/v1';
 
 interface RequestOptions {
   url: string;
@@ -31,12 +32,14 @@ export function request<T = any>(options: RequestOptions): Promise<T> {
       success: (res: any) => {
         if (res.statusCode === 401) {
           uni.removeStorageSync('accessToken');
+          uni.removeStorageSync('user');
           uni.reLaunch({ url: '/pages/index/index' });
           return;
         }
         resolve(res.data);
       },
       fail: (err) => {
+        uni.showToast({ title: '网络请求失败', icon: 'none' });
         reject(err);
       }
     });

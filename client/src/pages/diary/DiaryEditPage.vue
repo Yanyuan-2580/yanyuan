@@ -78,7 +78,7 @@ const handleSubmit = async () => {
       moodTags: moodTags.value.length > 0 ? moodTags.value : undefined,
       triggerEvent: triggerEvent.value || undefined,
       bodyFeeling: bodyFeeling.value || undefined,
-      sleepHours: sleepHours.value ? parseFloat(sleepHours.value) : undefined,
+      sleepHours: sleepHours.value ? parseInt(sleepHours.value) : undefined,
       content: content.value || undefined,
       isPublic: isPublic.value
     };
@@ -162,8 +162,8 @@ const handleSubmit = async () => {
             type="number"
             min="0"
             max="24"
-            step="0.5"
-            placeholder="昨晚睡了多久？"
+            step="1"
+            placeholder="昨晚睡了多久？（整数）"
             class="input-field w-full"
           />
         </div>

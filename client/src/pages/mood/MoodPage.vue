@@ -63,15 +63,15 @@
         <!-- 提交按钮 -->
         <button
           @click="submitMood"
-          :disabled="!selectedMood"
+          :disabled="!selectedMood || isSubmitting"
           :class="[
             'w-full py-3 rounded-xl font-medium transition-all duration-300',
-            selectedMood
+            selectedMood && !isSubmitting
               ? 'bg-gradient-to-r from-[#4ECDC4] to-[#45B7AA] text-white hover:shadow-lg hover:scale-[1.02]'
               : 'bg-[#E2E8F0] text-[#94A3B8] cursor-not-allowed'
           ]"
         >
-          记录心情
+          {{ isSubmitting ? '记录中...' : '记录心情' }}
         </button>
       </div>
 
@@ -147,6 +147,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { moodApi } from '@/api/modules/mood';
+import { getToast } from '@/composables/useToast';
+
+const toast = getToast();
 
 const moods = [
   { type: 'happy', label: '开心', icon: '😊' },
@@ -161,6 +164,8 @@ const moodScore = ref(3);
 const reason = ref('');
 const stats = ref<any>(null);
 const moodHistory = ref<any[]>([]);
+const isLoading = ref(true);
+const isSubmitting = ref(false);
 
 const trendColor = computed(() => {
   if (!stats.value?.trend) return 'text-[#64748B]';
@@ -195,32 +200,37 @@ const formatDate = (dateStr: string) => {
 };
 
 const submitMood = async () => {
-  if (!selectedMood.value) return;
-  
+  if (!selectedMood.value || isSubmitting.value) return;
+
+  isSubmitting.value = true;
   try {
     await moodApi.recordMood({
       moodScore: moodScore.value,
       moodType: selectedMood.value.type as any,
       reason: reason.value || undefined
     });
-    
-    alert('记录成功！');
+
+    toast.success('心情记录成功！');
     selectedMood.value = null;
     moodScore.value = 3;
     reason.value = '';
     await loadData();
-  } catch (error) {
-    console.error('记录失败:', error);
-    alert('记录失败，请重试');
+  } catch (error: any) {
+    toast.error(error?.message || '记录失败，请重试');
+  } finally {
+    isSubmitting.value = false;
   }
 };
 
 const loadData = async () => {
+  isLoading.value = true;
   try {
     stats.value = await moodApi.getMoodStats();
     moodHistory.value = await moodApi.getMoodHistory();
   } catch (error) {
     console.error('加载数据失败:', error);
+  } finally {
+    isLoading.value = false;
   }
 };
 

@@ -47,6 +47,10 @@ export class ReminderService {
     return { success: true };
   }
 
+  async updateLastTriggered(id: number): Promise<void> {
+    await this.reminderRepository.update(id, { lastTriggeredAt: new Date() });
+  }
+
   async getDueReminders(): Promise<Reminder[]> {
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;

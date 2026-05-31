@@ -7,6 +7,7 @@ import { MessageCircle, BookOpen, Calendar, Heart, Star, ChevronRight, TrendingU
 import type { DiaryStats } from '@/api/modules/diary';
 const router = useRouter();
 const userStore = useUserStore();
+const isLoading = ref(true);
 const todayMood = ref<number>(3);
 const diaryStats = ref<DiaryStats | null>(null);
 const recentDiary = ref<MoodDiary | null>(null);
@@ -41,25 +42,27 @@ const getScoreDistributionArray = () => {
 };
 
 const loadData = async () => {
- try {
- const [statsRes, diaryRes, articlesRes] = await Promise.all([
+ isLoading.value = true;
+ // 使用 allSettled 避免单个 API 失败导致全部内容无法加载
+ const results = await Promise.allSettled([
  diaryApi.stats('week'),
  diaryApi.list(1, 1),
  knowledgeApi.getArticles(1, 4)
  ]);
- if (statsRes.code === 200) {
- diaryStats.value = statsRes.data;
+
+ const [statsResult, diaryResult, articlesResult] = results;
+
+ if (statsResult.status === 'fulfilled' && statsResult.value.code === 200) {
+ diaryStats.value = statsResult.value.data;
  }
- if (diaryRes.code === 200 && diaryRes.data.list.length > 0) {
- recentDiary.value = diaryRes.data.list[0];
+ if (diaryResult.status === 'fulfilled' && diaryResult.value.code === 200 && diaryResult.value.data.list.length > 0) {
+ recentDiary.value = diaryResult.value.data.list[0];
  }
- if (articlesRes.code === 200) {
- recentArticles.value = articlesRes.data.list;
+ if (articlesResult.status === 'fulfilled' && articlesResult.value.code === 200) {
+ recentArticles.value = articlesResult.value.data.list;
  }
- }
- catch (error) {
- console.error('Failed to load data:', error);
- }
+
+ isLoading.value = false;
 };
 onMounted(() => {
  loadData();
@@ -103,6 +106,33 @@ onMounted(() => {
     </header>
     
     <main class="p-6">
+      <!-- Loading skeleton -->
+      <template v-if="isLoading">
+        <section class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <div v-for="i in 5" :key="i" class="card flex flex-col items-center p-6 animate-pulse">
+            <div class="w-14 h-14 rounded-2xl bg-gray-200 mb-3" />
+            <div class="h-4 w-12 bg-gray-200 rounded" />
+          </div>
+        </section>
+        <section class="mb-8">
+          <div class="h-6 w-24 bg-gray-200 rounded mb-4" />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div v-for="i in 2" :key="i" class="card flex gap-4 animate-pulse">
+              <div class="w-24 h-24 rounded-xl bg-gray-200 flex-shrink-0" />
+              <div class="flex-1 space-y-2">
+                <div class="h-4 w-3/4 bg-gray-200 rounded" />
+                <div class="h-3 w-1/2 bg-gray-200 rounded" />
+                <div class="flex gap-2">
+                  <div class="h-5 w-12 bg-gray-200 rounded-full" />
+                  <div class="h-5 w-12 bg-gray-200 rounded-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </template>
+
+      <template v-else>
       <section class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
         <button
           v-for="action in quickActions"
@@ -210,8 +240,9 @@ onMounted(() => {
           </div>
         </div>
       </section>
+      </template>
     </main>
-    
+
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 shadow-lg">
       <div class="max-w-lg mx-auto flex justify-around">
         <button 

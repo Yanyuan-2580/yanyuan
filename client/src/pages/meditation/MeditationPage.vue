@@ -7,6 +7,37 @@
         <p class="text-[#64748B]">静下心来，找回内心的平静</p>
       </div>
 
+      <!-- 加载骨架 -->
+      <template v-if="isLoading">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div v-for="i in 4" :key="i" class="bg-white rounded-xl shadow-sm p-4 text-center animate-pulse">
+            <div class="h-8 w-16 bg-gray-200 rounded mx-auto mb-1" />
+            <div class="h-4 w-12 bg-gray-200 rounded mx-auto" />
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm p-4 mb-6 animate-pulse">
+          <div class="flex gap-2">
+            <div v-for="i in 5" :key="i" class="h-9 w-16 bg-gray-200 rounded-lg" />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div v-for="i in 4" :key="i" class="bg-white rounded-xl shadow-sm p-6 animate-pulse">
+            <div class="flex items-start gap-4">
+              <div class="w-16 h-16 bg-gray-200 rounded-xl flex-shrink-0" />
+              <div class="flex-1 space-y-2">
+                <div class="h-5 w-24 bg-gray-200 rounded" />
+                <div class="h-4 w-full bg-gray-200 rounded" />
+                <div class="flex gap-3">
+                  <div class="h-4 w-16 bg-gray-200 rounded" />
+                  <div class="h-5 w-12 bg-gray-200 rounded-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <template v-else>
       <!-- 统计卡片 -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div class="bg-white rounded-xl shadow-sm p-4 text-center">
@@ -58,7 +89,11 @@
       </div>
 
       <!-- 冥想课程列表 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div v-if="filteredMeditations.length === 0" class="text-center py-16">
+        <span class="text-5xl block mb-4">🧘</span>
+        <p class="text-[#64748B]">该分类暂无冥想课程</p>
+      </div>
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div
           v-for="meditation in filteredMeditations"
           :key="meditation.id"
@@ -80,6 +115,8 @@
           </div>
         </div>
       </div>
+
+      </template>
 
       <!-- 播放弹窗 -->
       <div
@@ -140,6 +177,7 @@ const categories = ['放松', '睡眠', '专注', '情绪调节'];
 const selectedCategory = ref('');
 const meditations = ref<any[]>([]);
 const stats = ref<any>({});
+const isLoading = ref(true);
 
 // 播放状态
 const playingMeditation = ref<any>(null);
@@ -201,11 +239,14 @@ const stopPlayback = () => {
 };
 
 const loadData = async () => {
+  isLoading.value = true;
   try {
     meditations.value = await meditationApi.getAllMeditations();
     stats.value = await meditationApi.getMeditationStats();
   } catch (error) {
     console.error('加载数据失败:', error);
+  } finally {
+    isLoading.value = false;
   }
 };
 

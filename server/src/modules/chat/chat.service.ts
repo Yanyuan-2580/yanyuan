@@ -83,7 +83,7 @@ export class ChatService {
   async getWeeklyChatCount(userId: number): Promise<{ weeklyCount: number; weeklyLimit: number; totalCount: number }> {
     const weeklyCount = await this.cacheService.getWeeklyChatCount(userId);
     const totalCount = await this.cacheService.getTotalChatCount(userId);
-    console.log(`[DEBUG] getWeeklyChatCount - userId: ${userId}, weeklyCount: ${weeklyCount}, totalCount: ${totalCount}`);
+    this.logger.debug(`getWeeklyChatCount - userId: ${userId}, weeklyCount: ${weeklyCount}, totalCount: ${totalCount}`);
     return { weeklyCount, weeklyLimit: 50, totalCount };
   }
 
@@ -114,7 +114,7 @@ export class ChatService {
 
     const weeklyCount = await this.cacheService.incrementWeeklyChatCount(userId);
     const totalCount = await this.cacheService.incrementTotalChatCount(userId);
-    console.log(`[DEBUG] sendMessage - userId: ${userId}, weeklyCount: ${weeklyCount}, totalCount: ${totalCount}`);
+    this.logger.debug(`sendMessage - userId: ${userId}, weeklyCount: ${weeklyCount}, totalCount: ${totalCount}`);
 
     const history = await this.getMessages(session.id.toString());
     const historyMessages = history.slice(-10).map(m => ({

@@ -287,7 +287,6 @@ ${diaryContent}
             temperature: this.temperature
           };
           this.logger.log(`Sending request to DeepSeek API with ${messages.length} messages`);
-          this.logger.debug(`Request data: ${JSON.stringify(data)}`);
           break;
         case 'openai':
           url = 'https://api.openai.com/v1/chat/completions';
@@ -310,7 +309,7 @@ ${diaryContent}
         timeout: 60000
       });
 
-      this.logger.log(`DeepSeek API response: ${JSON.stringify(response.data)}`);
+      this.logger.log(`DeepSeek API response received, tokens: ${response.data.usage?.total_tokens || 'unknown'}`);
       return response.data.choices[0].message.content;
     } catch (error) {
       this.logger.error(`AI API call failed: ${error.message}`);

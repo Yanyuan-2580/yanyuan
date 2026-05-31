@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { request } from '@/api/request';
 import PageHeader from '@/components/PageHeader.vue';
 import BottomNavBar from '@/components/BottomNavBar.vue';
@@ -23,9 +24,9 @@ const isLoading = ref(true);
 const loadReminders = async () => {
   isLoading.value = true;
   try {
-    const res = await request.get('/reminders');
-    if (res.data?.code === 200) {
-      reminders.value = res.data.data || [];
+    const res: any = await request.get('/reminders');
+    if (res?.code === 200) {
+      reminders.value = res.data || [];
     }
   } catch (e) {
     console.error('Failed to load reminders:', e);
@@ -53,7 +54,10 @@ const deleteReminder = async (id: number) => {
   }
 };
 
-import { useRouter } from 'vue-router';
+const showAddDialog = () => {
+  alert('提醒功能即将上线，敬请期待');
+};
+
 onMounted(loadReminders);
 
 const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
@@ -90,7 +94,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
       </div>
 
       <EmptyState
-        v-if="reminders.length === 0"
+        v-if="!isLoading && reminders.length === 0"
         emoji="⏰"
         title="暂无提醒"
         description="添加提醒，帮助养成好习惯"
@@ -98,7 +102,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
 
       <button
         class="w-full bg-white border-2 border-dashed border-gray-300 rounded-2xl p-4 text-sm text-gray-400 hover:text-primary-500 hover:border-primary-300 flex items-center justify-center gap-2"
-        @click="/* TODO: add reminder dialog */"
+        @click="showAddDialog"
       >
         <Plus class="w-5 h-5" />
         添加新提醒

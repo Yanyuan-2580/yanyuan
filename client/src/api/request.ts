@@ -1,4 +1,7 @@
 import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios';
+import { getToast } from '@/composables/useToast';
+
+const toast = getToast();
 
 const instance = axios.create({
   baseURL: '/api/v1',
@@ -65,13 +68,36 @@ instance.interceptors.response.use(
       } catch (refreshError) {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        toast.warning('登录已过期，请重新登录');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1500);
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
       }
     }
-    return Promise.reject(error.response?.data || error);
+
+    // 统一错误提示
+    const data = error.response?.data;
+    const status = error.response?.status;
+
+    if (status === 403) {
+      toast.error(data?.message || '权限不足，无法执行此操作');
+    } else if (status === 404) {
+      toast.error(data?.message || '请求的资源不存在');
+    } else if (status === 429) {
+      toast.warning('操作过于频繁，请稍后再试');
+    } else if (status === 500) {
+      toast.error('服务器异常，请稍后再试');
+    } else if (status === 0 || !status) {
+      // 网络错误
+      toast.error('网络连接失败，请检查网络');
+    } else if (data?.message) {
+      toast.error(data.message);
+    }
+
+    return Promise.reject(data || error);
   }
 );
 

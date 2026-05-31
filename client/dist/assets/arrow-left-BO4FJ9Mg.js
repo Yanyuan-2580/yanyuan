@@ -1,0 +1,1 @@
+import{c as e}from"./createVueComponent-Dnqu1AVT.js";var r=e("ArrowLeftIcon",[["line",{x1:"19",y1:"12",x2:"5",y2:"12",key:"17g05t"}],["polyline",{points:"12 19 5 12 12 5",key:"1ksm0z"}]]);export{r as A};

@@ -2,7 +2,9 @@ import { Injectable, ConflictException, UnauthorizedException, NotFoundException
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
+import axios from 'axios';
 import { User } from '@/database/entities';
 import { JwtPayload } from '@/types';
 import { RegisterDto } from './dto/register.dto';
@@ -17,7 +19,8 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private jwtService: JwtService,
-    private cacheService: CacheService
+    private cacheService: CacheService,
+    private configService: ConfigService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -121,6 +124,50 @@ export class UserService {
     await this.userRepository.softDelete(userId);
     await this.cacheService.deleteUserToken(userId);
     return { success: true };
+  }
+
+  async wechatLogin(code: string, userInfo?: { nickname?: string; avatarUrl?: string }) {
+    const appId = this.configService.get('WECHAT_APP_ID');
+    const appSecret = this.configService.get('WECHAT_APP_SECRET');
+
+    if (!appId || !appSecret) {
+      throw new UnauthorizedException('微信登录未配置');
+    }
+
+    try {
+      // 调用微信 code2session 接口
+      const { data } = await axios.get('https://api.weixin.qq.com/sns/jscode2session', {
+        params: { appid: appId, secret: appSecret, js_code: code, grant_type: 'authorization_code' },
+      });
+
+      if (data.errcode) {
+        throw new UnauthorizedException(`微信登录失败: ${data.errmsg}`);
+      }
+
+      const { openid, unionid } = data;
+
+      // 查找或创建用户
+      let user = await this.userRepository.findOne({ where: { phone: `wechat_${openid}` } });
+      if (!user) {
+        user = this.userRepository.create({
+          phone: `wechat_${openid}`,
+          passwordHash: await bcrypt.hash(openid, 10),
+          nickname: userInfo?.nickname || `微信用户${Date.now().toString().slice(-6)}`,
+          avatarUrl: userInfo?.avatarUrl || '',
+        });
+        await this.userRepository.save(user);
+      } else if (userInfo?.nickname) {
+        await this.userRepository.update(user.id, {
+          nickname: userInfo.nickname,
+          avatarUrl: userInfo.avatarUrl || user.avatarUrl,
+        });
+      }
+
+      return this.generateToken(user);
+    } catch (error) {
+      if (error instanceof UnauthorizedException) throw error;
+      throw new UnauthorizedException('微信登录失败，请重试');
+    }
   }
 
   private async generateToken(user: User) {

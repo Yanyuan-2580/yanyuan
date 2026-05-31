@@ -68,4 +68,12 @@ export class UserController {
   exportReport(@CurrentUser() user: JwtPayload) {
     return this.exportService.exportUserReport(user.userId);
   }
+
+  @Post('wechat-login')
+  wechatLogin(@Body() body: { code: string; nickname?: string; avatarUrl?: string }) {
+    return this.userService.wechatLogin(body.code, {
+      nickname: body.nickname,
+      avatarUrl: body.avatarUrl,
+    });
+  }
 }

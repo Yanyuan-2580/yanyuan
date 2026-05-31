@@ -21,7 +21,4 @@ export class CreateArticleDto {
   @IsArray()
   @IsString({ each: true })
   tags?: string[];
-
-  @IsInt()
-  authorId: number;
 }

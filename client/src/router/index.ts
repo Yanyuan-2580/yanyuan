@@ -44,6 +44,11 @@ const router = createRouter({
       component: () => import('@/pages/knowledge/KnowledgePage.vue')
     },
     {
+      path: '/knowledge/new',
+      name: 'ArticleCreate',
+      component: () => import('@/pages/knowledge/ArticleCreatePage.vue')
+    },
+    {
       path: '/knowledge/:id',
       name: 'ArticleDetail',
       component: () => import('@/pages/knowledge/ArticleDetailPage.vue')

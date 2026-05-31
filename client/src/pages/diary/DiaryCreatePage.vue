@@ -2,7 +2,7 @@
 import { useRouter } from 'vue-router';
 import { diaryApi } from '@/api';
 import type { CreateDiaryData } from '@/api/modules/diary';
-import { ArrowLeft, Save, Moon, CloudRain, Sun, Coffee, Brain } from 'lucide-vue-next';
+import { ArrowLeft, Save, Moon, CloudRain, Sun, Coffee, Smile } from 'lucide-vue-next';
 const router = useRouter();
 const moodScore = ref<number>(3);
 const moodTags = ref<string[]>([]);
@@ -43,7 +43,7 @@ const handleSubmit = async () => {
  moodTags: moodTags.value.length > 0 ? moodTags.value : undefined,
  triggerEvent: triggerEvent.value || undefined,
  bodyFeeling: bodyFeeling.value || undefined,
- sleepHours: sleepHours.value ? parseFloat(sleepHours.value) : undefined,
+ sleepHours: sleepHours.value ? parseInt(sleepHours.value) : undefined,
  content: content.value || undefined,
  isPublic: isPublic.value
  };
@@ -138,7 +138,7 @@ const handleSubmit = async () => {
           
           <div>
             <label class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-              <Brain class="w-4 h-4" />
+              <Smile class="w-4 h-4" />
               身体感受
             </label>
             <textarea
@@ -159,8 +159,8 @@ const handleSubmit = async () => {
               type="number"
               min="0"
               max="24"
-              step="0.5"
-              placeholder="昨晚睡了几个小时"
+              step="1"
+              placeholder="昨晚睡了几个小时（整数）"
               class="input-field"
             />
           </div>

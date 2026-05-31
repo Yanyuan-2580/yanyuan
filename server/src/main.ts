@@ -20,8 +20,9 @@ async function bootstrap() {
     forbidNonWhitelisted: true
   }));
 
+  const allowedOrigins = configService.get('ALLOWED_ORIGINS', '*');
   app.enableCors({
-    origin: '*',
+    origin: allowedOrigins === '*' ? '*' : allowedOrigins.split(',').map(s => s.trim()),
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true
   });

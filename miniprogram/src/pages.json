@@ -8,7 +8,8 @@
     { "path": "pages/knowledge/detail", "style": { "navigationBarTitleText": "文章详情" } },
     { "path": "pages/mood/index", "style": { "navigationBarTitleText": "心情记录" } },
     { "path": "pages/user/index", "style": { "navigationBarTitleText": "我的" } },
-    { "path": "pages/user/settings", "style": { "navigationBarTitleText": "设置" } }
+    { "path": "pages/user/settings", "style": { "navigationBarTitleText": "设置" } },
+    { "path": "pages/login/index", "style": { "navigationBarTitleText": "登录" } }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

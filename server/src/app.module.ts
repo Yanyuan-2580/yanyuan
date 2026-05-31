@@ -2,11 +2,12 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MongooseModule } from '@nestjs/mongoose';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { getTypeOrmConfig, getMongoConfig } from '@/config/database.config';
 import { HttpExceptionFilter } from '@/common';
 import { ResponseInterceptor, LoggingInterceptor } from '@/common';
-import { UserModule, ChatModule, DiaryModule, KnowledgeModule, AdminModule, MoodModule, MeditationModule, NotificationModule as UserNotificationModule, CommentModule, QuestionnaireModule, VideoModule, ReminderModule, UploadModule } from '@/modules';
+import { UserModule, ChatModule, DiaryModule, KnowledgeModule, AdminModule, MoodModule, MeditationModule, NotificationModule as UserNotificationModule, CommentModule, QuestionnaireModule, VideoModule, ReminderModule, UploadModule, HealthModule } from '@/modules';
 import { AiModule, CacheModule, RiskControlModule, NotificationModule, ExportModule } from '@/shared';
 
 @Module({
@@ -15,6 +16,10 @@ import { AiModule, CacheModule, RiskControlModule, NotificationModule, ExportMod
       isGlobal: true,
       envFilePath: '.env'
     }),
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 100,
+    }]),
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService) => getTypeOrmConfig(configService),
       inject: [ConfigService]
@@ -22,12 +27,18 @@ import { AiModule, CacheModule, RiskControlModule, NotificationModule, ExportMod
     MongooseModule.forRootAsync({
       useFactory: (configService: ConfigService) => {
         const mongoUri = getMongoConfig(configService);
-        if (!mongoUri) {
-          console.warn('MongoDB URI not configured, skipping MongoDB connection');
-        }
+        const uri = mongoUri || 'mongodb://localhost:27017/mental_health';
         return {
-          uri: mongoUri || 'mongodb://localhost:27017/mental_health',
-          retryAttempts: 0
+          uri,
+          retryAttempts: 2,
+          retryDelay: 3000,
+          serverSelectionTimeoutMS: 5000,
+          connectionFactory: (connection) => {
+            connection.on('error', (err) => {
+              console.warn(`MongoDB connection error: ${err.message}`);
+            });
+            return connection;
+          },
         };
       },
       inject: [ConfigService]
@@ -49,7 +60,8 @@ import { AiModule, CacheModule, RiskControlModule, NotificationModule, ExportMod
     VideoModule,
     ExportModule,
     ReminderModule,
-    UploadModule
+    UploadModule,
+    HealthModule
   ],
   providers: [
     {
@@ -63,6 +75,10 @@ import { AiModule, CacheModule, RiskControlModule, NotificationModule, ExportMod
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     }
   ]
 })

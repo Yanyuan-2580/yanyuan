@@ -1,14 +1,15 @@
 import { Controller, Post, Get, Put, Delete, Body, Query, Param, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { KnowledgeService } from '@/modules/knowledge/knowledge.service';
-import { JwtAuthGuard } from '@/common';
-import { CurrentUser } from '@/common';
+import { JwtAuthGuard, CurrentUser, RolesGuard, Roles, Public } from '@/common';
 import { JwtPayload } from '@/types';
 import { AdminLoginDto } from './dto/login.dto';
 import { AdminRegisterDto } from './dto/register.dto';
 import { CreateArticleDto } from '@/modules/knowledge/dto/create-article.dto';
 
 @Controller('admin')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin')
 export class AdminController {
   constructor(
     private adminService: AdminService,
@@ -17,18 +18,19 @@ export class AdminController {
 
   // ==================== Auth ====================
 
+  @Public()
   @Post('register')
   register(@Body() dto: AdminRegisterDto) {
     return this.adminService.register(dto);
   }
 
+  @Public()
   @Post('login')
   login(@Body() dto: AdminLoginDto) {
     return this.adminService.login(dto);
   }
 
   @Post('logout')
-  @UseGuards(JwtAuthGuard)
   logout(@CurrentUser() payload: JwtPayload) {
     return this.adminService.logout(payload.userId);
   }
@@ -36,7 +38,6 @@ export class AdminController {
   // ==================== User Management ====================
 
   @Get('users')
-  @UseGuards(JwtAuthGuard)
   getUsers(
     @Query('page') page: string = '1',
     @Query('pageSize') pageSize: string = '20',
@@ -54,19 +55,16 @@ export class AdminController {
   }
 
   @Get('users/:id')
-  @UseGuards(JwtAuthGuard)
   getUser(@Param('id') id: string) {
     return this.adminService.getUser(parseInt(id));
   }
 
   @Post('users')
-  @UseGuards(JwtAuthGuard)
   createUser(@Body() body: { phone: string; password: string; nickname?: string }) {
     return this.adminService.createUser(body);
   }
 
   @Put('users/:id/status')
-  @UseGuards(JwtAuthGuard)
   updateUserStatus(
     @Param('id') id: string,
     @Body() body: { status: number },
@@ -76,7 +74,6 @@ export class AdminController {
   }
 
   @Put('users/:id/risk-level')
-  @UseGuards(JwtAuthGuard)
   updateUserRiskLevel(
     @Param('id') id: string,
     @Body() body: { riskLevel: number },
@@ -86,7 +83,6 @@ export class AdminController {
   }
 
   @Delete('users/:id')
-  @UseGuards(JwtAuthGuard)
   deleteUser(@Param('id') id: string) {
     return this.adminService.deleteUser(parseInt(id));
   }
@@ -94,7 +90,6 @@ export class AdminController {
   // ==================== Article Management ====================
 
   @Get('articles')
-  @UseGuards(JwtAuthGuard)
   getArticles(
     @Query('page') page: string = '1',
     @Query('pageSize') pageSize: string = '20',
@@ -111,38 +106,53 @@ export class AdminController {
     );
   }
 
+  // 待审核文章列表 (必须放在 :id 之前)
+  @Get('articles/pending')
+  getPendingArticles(
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '20'
+  ) {
+    return this.knowledgeService.getPendingArticles(parseInt(page), parseInt(pageSize));
+  }
+
   @Get('articles/:id')
-  @UseGuards(JwtAuthGuard)
   getArticle(@Param('id') id: string) {
     return this.adminService.getArticleDetail(parseInt(id));
   }
 
   @Post('articles')
-  @UseGuards(JwtAuthGuard)
   createArticle(@Body() dto: CreateArticleDto, @CurrentUser() admin: JwtPayload) {
     return this.adminService.adminCreateArticle(dto, admin.userId);
   }
 
   @Put('articles/:id')
-  @UseGuards(JwtAuthGuard)
   updateArticle(@Param('id') id: string, @Body() dto: Partial<CreateArticleDto>) {
     return this.knowledgeService.updateArticle(parseInt(id), dto);
   }
 
   @Delete('articles/:id')
-  @UseGuards(JwtAuthGuard)
   deleteArticle(@Param('id') id: string) {
     return this.knowledgeService.deleteArticle(parseInt(id));
   }
 
   @Put('articles/:id/status')
-  @UseGuards(JwtAuthGuard)
   updateArticleStatus(@Param('id') id: string, @Body() body: { status: number }) {
     return this.adminService.updateArticleStatus(parseInt(id), body.status);
   }
 
+  // 审核通过
+  @Put('articles/:id/approve')
+  approveArticle(@Param('id') id: string) {
+    return this.knowledgeService.approveArticle(parseInt(id));
+  }
+
+  // 驳回文章
+  @Put('articles/:id/reject')
+  rejectArticle(@Param('id') id: string) {
+    return this.knowledgeService.rejectArticle(parseInt(id));
+  }
+
   @Put('articles/:id/publish')
-  @UseGuards(JwtAuthGuard)
   publishArticle(@Param('id') id: string) {
     return this.knowledgeService.publishArticle(parseInt(id));
   }
@@ -150,25 +160,21 @@ export class AdminController {
   // ==================== Category Management ====================
 
   @Get('categories')
-  @UseGuards(JwtAuthGuard)
   getCategories() {
     return this.knowledgeService.getCategories();
   }
 
   @Post('categories')
-  @UseGuards(JwtAuthGuard)
   createCategory(@Body() body: { name: string; description?: string }) {
     return this.knowledgeService.createCategory(body.name, body.description);
   }
 
   @Put('categories/:id')
-  @UseGuards(JwtAuthGuard)
   updateCategory(@Param('id') id: string, @Body() body: { name?: string; description?: string }) {
     return this.knowledgeService.updateCategory(parseInt(id), body);
   }
 
   @Delete('categories/:id')
-  @UseGuards(JwtAuthGuard)
   deleteCategory(@Param('id') id: string) {
     return this.knowledgeService.deleteCategory(parseInt(id));
   }
@@ -176,7 +182,6 @@ export class AdminController {
   // ==================== Chat Sessions ====================
 
   @Get('chat/sessions')
-  @UseGuards(JwtAuthGuard)
   getSessions(
     @Query('page') page: string = '1',
     @Query('pageSize') pageSize: string = '20',
@@ -192,7 +197,6 @@ export class AdminController {
   // ==================== Diary Management ====================
 
   @Get('diaries')
-  @UseGuards(JwtAuthGuard)
   getDiaries(
     @Query('page') page: string = '1',
     @Query('pageSize') pageSize: string = '20'
@@ -203,19 +207,16 @@ export class AdminController {
   // ==================== Analytics ====================
 
   @Get('analytics/dashboard')
-  @UseGuards(JwtAuthGuard)
   getDashboard() {
     return this.adminService.getDashboardData();
   }
 
   @Get('statistics')
-  @UseGuards(JwtAuthGuard)
   getStatistics() {
     return this.adminService.getDashboardData();
   }
 
   @Get('analytics/weekly-trend')
-  @UseGuards(JwtAuthGuard)
   getWeeklyTrend() {
     return this.adminService.getWeeklyTrend();
   }
@@ -223,7 +224,6 @@ export class AdminController {
   // ==================== Risk Management ====================
 
   @Get('risk-records')
-  @UseGuards(JwtAuthGuard)
   getRiskRecords(
     @Query('page') page: string = '1',
     @Query('pageSize') pageSize: string = '10',
@@ -239,7 +239,6 @@ export class AdminController {
   }
 
   @Put('risk-records/:type/:id/resolve')
-  @UseGuards(JwtAuthGuard)
   resolveRiskRecord(
     @Param('type') type: string,
     @Param('id') id: string,
@@ -252,7 +251,6 @@ export class AdminController {
   // ==================== Audit Logs ====================
 
   @Get('audit-logs')
-  @UseGuards(JwtAuthGuard)
   getAuditLogs(
     @Query('page') page: string = '1',
     @Query('pageSize') pageSize: string = '20',

@@ -22,6 +22,55 @@ export class KnowledgeService {
     return this.articleRepository.save(article);
   }
 
+  // 用户投稿（待审核）
+  async submitArticle(userId: number, data: { title: string; content: string; categoryId: number; tags?: string[]; coverUrl?: string }): Promise<KnowledgeArticle> {
+    const article = this.articleRepository.create({
+      ...data,
+      authorId: userId,
+      status: 0, // 待审核
+    });
+    return this.articleRepository.save(article);
+  }
+
+  // 用户查看自己的文章
+  async getMyArticles(userId: number, page: number, pageSize: number): Promise<{ list: KnowledgeArticle[]; total: number }> {
+    const [list, total] = await this.articleRepository
+      .createQueryBuilder('article')
+      .where('article.authorId = :userId', { userId })
+      .orderBy('article.createdAt', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
+    return { list, total };
+  }
+
+  // 管理员审核通过
+  async approveArticle(id: number): Promise<KnowledgeArticle> {
+    await this.articleRepository.update(id, {
+      status: 2,
+      publishedAt: new Date(),
+    });
+    return this.articleRepository.findOne({ where: { id } });
+  }
+
+  // 管理员驳回
+  async rejectArticle(id: number): Promise<KnowledgeArticle> {
+    await this.articleRepository.update(id, { status: 1 });
+    return this.articleRepository.findOne({ where: { id } });
+  }
+
+  // 管理员获取待审核文章
+  async getPendingArticles(page: number, pageSize: number): Promise<{ list: KnowledgeArticle[]; total: number }> {
+    const [list, total] = await this.articleRepository
+      .createQueryBuilder('article')
+      .where('article.status = 0')
+      .orderBy('article.createdAt', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
+    return { list, total };
+  }
+
   async getArticles(page: number, pageSize: number, categoryId?: number): Promise<{ list: KnowledgeArticle[]; total: number }> {
     const query = this.articleRepository
       .createQueryBuilder('article')
@@ -80,35 +129,43 @@ export class KnowledgeService {
   }
 
   async likeArticle(userId: number, articleId: number): Promise<{ liked: boolean; count: number }> {
-    const existing = await this.articleLikeRepository.findOne({ where: { userId, articleId } });
-    
-    if (existing) {
-      await this.articleLikeRepository.delete(existing.id);
-      await this.articleRepository.update(articleId, { likeCount: () => 'likeCount - 1' });
-      const article = await this.articleRepository.findOne({ where: { id: articleId } });
-      return { liked: false, count: article.likeCount };
-    }
-    
-    await this.articleLikeRepository.save({ userId, articleId });
-    await this.articleRepository.update(articleId, { likeCount: () => 'likeCount + 1' });
-    const article = await this.articleRepository.findOne({ where: { id: articleId } });
-    return { liked: true, count: article.likeCount };
+    return this.articleRepository.manager.transaction(async (manager) => {
+      const likeRepo = manager.getRepository(ArticleLike);
+      const articleRepo = manager.getRepository(KnowledgeArticle);
+      const existing = await likeRepo.findOne({ where: { userId, articleId } });
+
+      if (existing) {
+        await likeRepo.delete(existing.id);
+        await articleRepo.update(articleId, { likeCount: () => 'likeCount - 1' });
+        const article = await articleRepo.findOne({ where: { id: articleId } });
+        return { liked: false, count: article.likeCount };
+      }
+
+      await likeRepo.save({ userId, articleId });
+      await articleRepo.update(articleId, { likeCount: () => 'likeCount + 1' });
+      const article = await articleRepo.findOne({ where: { id: articleId } });
+      return { liked: true, count: article.likeCount };
+    });
   }
 
   async collectArticle(userId: number, articleId: number): Promise<{ collected: boolean; count: number }> {
-    const existing = await this.articleCollectRepository.findOne({ where: { userId, articleId } });
-    
-    if (existing) {
-      await this.articleCollectRepository.delete(existing.id);
-      await this.articleRepository.update(articleId, { collectCount: () => 'collectCount - 1' });
-      const article = await this.articleRepository.findOne({ where: { id: articleId } });
-      return { collected: false, count: article.collectCount };
-    }
-    
-    await this.articleCollectRepository.save({ userId, articleId });
-    await this.articleRepository.update(articleId, { collectCount: () => 'collectCount + 1' });
-    const article = await this.articleRepository.findOne({ where: { id: articleId } });
-    return { collected: true, count: article.collectCount };
+    return this.articleRepository.manager.transaction(async (manager) => {
+      const collectRepo = manager.getRepository(ArticleCollect);
+      const articleRepo = manager.getRepository(KnowledgeArticle);
+      const existing = await collectRepo.findOne({ where: { userId, articleId } });
+
+      if (existing) {
+        await collectRepo.delete(existing.id);
+        await articleRepo.update(articleId, { collectCount: () => 'collectCount - 1' });
+        const article = await articleRepo.findOne({ where: { id: articleId } });
+        return { collected: false, count: article.collectCount };
+      }
+
+      await collectRepo.save({ userId, articleId });
+      await articleRepo.update(articleId, { collectCount: () => 'collectCount + 1' });
+      const article = await articleRepo.findOne({ where: { id: articleId } });
+      return { collected: true, count: article.collectCount };
+    });
   }
 
   async isLiked(userId: number, articleId: number): Promise<boolean> {

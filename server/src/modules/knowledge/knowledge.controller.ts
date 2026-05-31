@@ -10,6 +10,27 @@ export class KnowledgeController {
 
   // Static routes FIRST (before dynamic :id)
 
+  // 用户投稿
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  submitArticle(
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { title: string; content: string; categoryId: number; tags?: string[]; coverUrl?: string }
+  ) {
+    return this.knowledgeService.submitArticle(user.userId, body);
+  }
+
+  // 用户查看自己的文章
+  @Get('my')
+  @UseGuards(JwtAuthGuard)
+  getMyArticles(
+    @CurrentUser() user: JwtPayload,
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '20'
+  ) {
+    return this.knowledgeService.getMyArticles(user.userId, parseInt(page), parseInt(pageSize));
+  }
+
   @Get('search')
   searchArticles(
     @Query('q') q: string,

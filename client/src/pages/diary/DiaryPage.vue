@@ -9,6 +9,8 @@ const page = ref(1);
 const pageSize = 10;
 const total = ref(0);
 const loading = ref(false);
+const initialLoading = ref(true);
+const loadError = ref(false);
 const moodOptions = [
  { score: 1, emoji: '😢', label: '非常难过', color: 'bg-blue-100' },
  { score: 2, emoji: '😔', label: '有点低落', color: 'bg-gray-100' },
@@ -18,13 +20,21 @@ const moodOptions = [
 ];
 const loadDiaries = async (pageNum: number = 1) => {
  loading.value = true;
+ loadError.value = false;
+ try {
  const res = await diaryApi.list(pageNum, pageSize);
  if (res.code === 200) {
  diaries.value = pageNum === 1 ? res.data.list : [...diaries.value, ...res.data.list];
  total.value = res.data.total;
  page.value = pageNum;
  }
+ } catch (e) {
+ loadError.value = true;
+ console.error('Failed to load diaries:', e);
+ } finally {
  loading.value = false;
+ initialLoading.value = false;
+ }
 };
 const loadMore = () => {
  if (loading.value)
@@ -46,7 +56,7 @@ onMounted(() => {
           <h1 class="text-2xl font-bold">情绪日记</h1>
           <p class="text-white/80 mt-1">记录每一天的心情变化</p>
         </div>
-        <button 
+        <button
           class="btn-primary"
           @click="router.push('/diary/new')"
         >
@@ -54,7 +64,7 @@ onMounted(() => {
           写日记
         </button>
       </div>
-      
+
       <div class="glass-card bg-white/10 backdrop-blur-sm rounded-2xl p-4">
         <div class="flex items-center justify-around">
           <div class="text-center">
@@ -84,9 +94,35 @@ onMounted(() => {
         </div>
       </div>
     </header>
-    
+
     <main class="p-6">
-      <div v-if="diaries.length === 0" class="card text-center py-12">
+      <!-- 初始加载中 -->
+      <div v-if="initialLoading" class="space-y-4">
+        <div v-for="i in 3" :key="i" class="card animate-pulse">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-gray-200" />
+              <div class="space-y-2">
+                <div class="h-4 w-20 bg-gray-200 rounded" />
+                <div class="h-3 w-32 bg-gray-200 rounded" />
+              </div>
+            </div>
+          </div>
+          <div class="h-4 w-3/4 bg-gray-200 rounded mb-2" />
+          <div class="h-4 w-full bg-gray-200 rounded" />
+        </div>
+      </div>
+
+      <!-- 加载错误 -->
+      <div v-else-if="loadError" class="card text-center py-12">
+        <span class="text-4xl mb-3 block">😵</span>
+        <h2 class="text-lg font-semibold text-gray-800 mb-2">加载失败</h2>
+        <p class="text-gray-500 mb-6">请检查网络后重试</p>
+        <button class="btn-primary" @click="loadDiaries()">重新加载</button>
+      </div>
+
+      <!-- 空状态 -->
+      <div v-else-if="diaries.length === 0" class="card text-center py-12">
         <Calendar class="w-16 h-16 mx-auto mb-4 text-gray-300" />
         <h2 class="text-lg font-semibold text-gray-800 mb-2">还没有日记记录</h2>
         <p class="text-gray-500 mb-6">开始记录你的第一篇情绪日记吧</p>
@@ -95,7 +131,7 @@ onMounted(() => {
           写第一篇日记
         </button>
       </div>
-      
+
       <div v-else class="space-y-4">
         <article
           v-for="diary in diaries"
@@ -110,9 +146,9 @@ onMounted(() => {
               </span>
               <div>
                 <p class="font-medium text-gray-800">{{ moodOptions[diary.moodScore - 1]?.label }}</p>
-                <p class="text-sm text-gray-500">{{ new Date(diary.createdAt).toLocaleDateString('zh-CN', { 
-                  year: 'numeric', 
-                  month: 'long', 
+                <p class="text-sm text-gray-500">{{ new Date(diary.createdAt).toLocaleDateString('zh-CN', {
+                  year: 'numeric',
+                  month: 'long',
                   day: 'numeric',
                   weekday: 'short'
                 }) }}</p>
@@ -120,26 +156,26 @@ onMounted(() => {
             </div>
             <ChevronRight class="w-5 h-5 text-gray-400" />
           </div>
-          
+
           <p v-if="diary.content" class="text-gray-600 mb-3 line-clamp-2">{{ diary.content }}</p>
-          
+
           <div v-if="diary.tags && diary.tags.length > 0" class="flex flex-wrap gap-2 mb-3">
-            <span 
-              v-for="tag in diary.tags" 
+            <span
+              v-for="tag in diary.tags"
               :key="tag"
               class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
             >
               #{{ tag }}
             </span>
           </div>
-          
+
           <div v-if="diary.aiInsight" class="p-3 bg-calm-50 rounded-xl">
             <p class="text-sm text-calm-800 line-clamp-2">💡 {{ diary.aiInsight }}</p>
           </div>
         </article>
-        
+
         <div v-if="page * pageSize < total" class="text-center py-4">
-          <button 
+          <button
             class="btn-outline"
             :disabled="loading"
             @click="loadMore"
@@ -150,10 +186,10 @@ onMounted(() => {
         </div>
       </div>
     </main>
-    
+
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 shadow-lg">
       <div class="max-w-lg mx-auto flex justify-around">
-        <button 
+        <button
           class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
           :class="{ 'text-primary-500': router.currentRoute.value.path === '/' }"
           @click="router.push('/')"
@@ -161,7 +197,7 @@ onMounted(() => {
           <Heart class="w-6 h-6" />
           <span class="text-xs">首页</span>
         </button>
-        <button 
+        <button
           class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
           :class="{ 'text-primary-500': router.currentRoute.value.path.startsWith('/chat') }"
           @click="router.push('/chat')"
@@ -169,7 +205,7 @@ onMounted(() => {
           <MessageCircle class="w-6 h-6" />
           <span class="text-xs">咨询</span>
         </button>
-        <button 
+        <button
           class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
           :class="{ 'text-primary-500': router.currentRoute.value.path.startsWith('/diary') }"
           @click="router.push('/diary')"
@@ -177,7 +213,7 @@ onMounted(() => {
           <Calendar class="w-6 h-6" />
           <span class="text-xs">日记</span>
         </button>
-        <button 
+        <button
           class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
           :class="{ 'text-primary-500': router.currentRoute.value.path.startsWith('/knowledge') }"
           @click="router.push('/knowledge')"
@@ -185,7 +221,7 @@ onMounted(() => {
           <BookOpen class="w-6 h-6" />
           <span class="text-xs">知识</span>
         </button>
-        <button 
+        <button
           class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
           :class="{ 'text-primary-500': router.currentRoute.value.path.startsWith('/user') }"
           @click="router.push('/user')"
