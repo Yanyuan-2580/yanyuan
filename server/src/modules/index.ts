@@ -7,3 +7,5 @@ export { MoodModule } from './mood/mood.module';
 export { MeditationModule } from './meditation/meditation.module';
 export { NotificationModule } from './notification/notification.module';
 export { CommentModule } from './comment/comment.module';
+export { QuestionnaireModule } from './questionnaire/questionnaire.module';
+export { VideoModule } from './video/video.module';

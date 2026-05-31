@@ -1,5 +1,7 @@
-import { Controller, Post, Get, Put, Delete, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Body, UseGuards, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { UserService } from './user.service';
+import { ExportService } from '@/shared';
 import { JwtAuthGuard } from '@/common';
 import { CurrentUser } from '@/common';
 import { JwtPayload } from '@/types';
@@ -10,7 +12,10 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('users')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private exportService: ExportService
+  ) {}
 
   @Post('register')
   register(@Body() dto: RegisterDto) {
@@ -56,5 +61,11 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   deleteAccount(@CurrentUser() user: JwtPayload) {
     return this.userService.deleteAccount(user.userId);
+  }
+
+  @Get('report')
+  @UseGuards(JwtAuthGuard)
+  exportReport(@CurrentUser() user: JwtPayload) {
+    return this.exportService.exportUserReport(user.userId);
   }
 }

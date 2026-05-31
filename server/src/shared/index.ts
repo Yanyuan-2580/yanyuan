@@ -6,3 +6,5 @@ export { AiService } from './ai/ai.service';
 export { CacheService } from './cache/cache.service';
 export { RiskControlService } from './risk-control/risk-control.service';
 export { NotificationService } from './notification/notification.service';
+export { ExportModule } from './export/export.module';
+export { ExportService } from './export/export.service';

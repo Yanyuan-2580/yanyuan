@@ -12,3 +12,6 @@ export { Meditation } from './Meditation.entity';
 export { MeditationHistory } from './MeditationHistory.entity';
 export { Notification } from './Notification.entity';
 export { Comment } from './Comment.entity';
+export { Questionnaire } from './Questionnaire.entity';
+export { QuestionnaireResult } from './QuestionnaireResult.entity';
+export { VideoSession } from './VideoSession.entity';
