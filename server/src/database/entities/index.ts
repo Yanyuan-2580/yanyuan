@@ -15,3 +15,4 @@ export { Comment } from './Comment.entity';
 export { Questionnaire } from './Questionnaire.entity';
 export { QuestionnaireResult } from './QuestionnaireResult.entity';
 export { VideoSession } from './VideoSession.entity';
+export { Reminder } from './Reminder.entity';

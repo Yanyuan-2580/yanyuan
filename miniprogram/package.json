@@ -1,0 +1,23 @@
+{
+  "name": "mental-health-miniprogram",
+  "version": "1.0.0",
+  "description": "心理健康助手微信小程序",
+  "scripts": {
+    "dev:mp-weixin": "uni -p mp-weixin",
+    "build:mp-weixin": "uni build -p mp-weixin"
+  },
+  "dependencies": {
+    "@dcloudio/uni-app": "^3.0.0",
+    "@dcloudio/uni-mp-weixin": "^3.0.0",
+    "vue": "^3.4.0",
+    "pinia": "^2.1.0"
+  },
+  "devDependencies": {
+    "@dcloudio/types": "^3.0.0",
+    "@dcloudio/uni-automator": "^3.0.0",
+    "@dcloudio/uni-cli-shared": "^3.0.0",
+    "@dcloudio/vite-plugin-uni": "^3.0.0",
+    "typescript": "^5.2.0",
+    "vite": "^5.0.0"
+  }
+}

@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { User, MoodDiary, AiSession, KnowledgeArticle, KnowledgeCategory, Admin, AdminOperationLog, ArticleLike, ArticleCollect, MoodRecord, Meditation, MeditationHistory, Notification, Comment, Questionnaire, QuestionnaireResult, VideoSession } from '@/database/entities';
+import { User, MoodDiary, AiSession, KnowledgeArticle, KnowledgeCategory, Admin, AdminOperationLog, ArticleLike, ArticleCollect, MoodRecord, Meditation, MeditationHistory, Notification, Comment, Questionnaire, QuestionnaireResult, VideoSession, Reminder } from '@/database/entities';
 
 export const getTypeOrmConfig = (configService: ConfigService): TypeOrmModuleOptions => ({
   type: 'mysql',
@@ -9,7 +9,7 @@ export const getTypeOrmConfig = (configService: ConfigService): TypeOrmModuleOpt
   username: configService.get('MYSQL_USERNAME'),
   password: configService.get('MYSQL_PASSWORD'),
   database: configService.get('MYSQL_DATABASE'),
-  entities: [User, MoodDiary, AiSession, KnowledgeArticle, KnowledgeCategory, Admin, AdminOperationLog, ArticleLike, ArticleCollect, MoodRecord, Meditation, MeditationHistory, Notification, Comment, Questionnaire, QuestionnaireResult, VideoSession],
+  entities: [User, MoodDiary, AiSession, KnowledgeArticle, KnowledgeCategory, Admin, AdminOperationLog, ArticleLike, ArticleCollect, MoodRecord, Meditation, MeditationHistory, Notification, Comment, Questionnaire, QuestionnaireResult, VideoSession, Reminder],
   synchronize: configService.get('NODE_ENV') === 'development',
   logging: configService.get('NODE_ENV') === 'development',
   timezone: '+08:00'

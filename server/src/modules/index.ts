@@ -9,3 +9,5 @@ export { NotificationModule } from './notification/notification.module';
 export { CommentModule } from './comment/comment.module';
 export { QuestionnaireModule } from './questionnaire/questionnaire.module';
 export { VideoModule } from './video/video.module';
+export { ReminderModule } from './reminder/reminder.module';
+export { UploadModule } from './upload/upload.module';

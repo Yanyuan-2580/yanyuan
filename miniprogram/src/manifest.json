@@ -1,0 +1,23 @@
+{
+  "name": "心理健康助手",
+  "appid": "",
+  "description": "AI心理健康陪伴助手",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "mp-weixin": {
+    "appid": "your_appid_here",
+    "setting": {
+      "urlCheck": true,
+      "es6": true,
+      "postcss": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "permission": {
+      "scope.userLocation": {
+        "desc": "用于提供本地化服务"
+      }
+    }
+  }
+}
