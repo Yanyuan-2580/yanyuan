@@ -24,7 +24,7 @@ const loadCategories = async () => {
 };
 
 const loadArticles = async (resetPage = false) => {
-  if (!hasMore.value) return;
+  if (!hasMore.value && !resetPage) return;
   if (resetPage) {
     page.value = 1;
     articles.value = [];

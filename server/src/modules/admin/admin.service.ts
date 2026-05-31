@@ -181,7 +181,7 @@ export class AdminService {
   }
 
   async adminCreateArticle(dto: CreateArticleDto, adminId: number): Promise<KnowledgeArticle> {
-    const article = this.articleRepository.create(dto);
+    const article = this.articleRepository.create({ ...dto, authorId: adminId });
     const saved = await this.articleRepository.save(article);
     await this.logOperation(adminId, 'createArticle', 'article', saved.id, { title: dto.title });
     return saved;
