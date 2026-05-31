@@ -8,6 +8,8 @@ const diaries = ref<MoodDiary[]>([]);
 const page = ref(1);
 const pageSize = 10;
 const total = ref(0);
+const weekCount = ref(0);
+const monthCount = ref(0);
 const loading = ref(false);
 const initialLoading = ref(true);
 const loadError = ref(false);
@@ -43,8 +45,23 @@ const loadMore = () => {
  loadDiaries(page.value + 1);
  }
 };
+const loadStats = async () => {
+ try {
+ const [weekRes, monthRes] = await Promise.allSettled([
+ diaryApi.stats('week'),
+ diaryApi.stats('month')
+ ]);
+ if (weekRes.status === 'fulfilled' && weekRes.value.code === 200) {
+ weekCount.value = weekRes.value.data.total;
+ }
+ if (monthRes.status === 'fulfilled' && monthRes.value.code === 200) {
+ monthCount.value = monthRes.value.data.total;
+ }
+ } catch (e) { /* ignore */ }
+};
 onMounted(() => {
  loadDiaries();
+ loadStats();
 });
 </script>
 
@@ -74,22 +91,12 @@ onMounted(() => {
           <div class="w-px h-10 bg-white/20"></div>
           <div class="text-center">
             <p class="text-white/70 text-sm">本周</p>
-            <p class="text-2xl font-bold">{{ diaries.filter(d => {
-              const date = new Date(d.createdAt);
-              const weekAgo = new Date();
-              weekAgo.setDate(weekAgo.getDate() - 7);
-              return date >= weekAgo;
-            }).length }}</p>
+            <p class="text-2xl font-bold">{{ weekCount }}</p>
           </div>
           <div class="w-px h-10 bg-white/20"></div>
           <div class="text-center">
             <p class="text-white/70 text-sm">本月</p>
-            <p class="text-2xl font-bold">{{ diaries.filter(d => {
-              const date = new Date(d.createdAt);
-              const monthAgo = new Date();
-              monthAgo.setMonth(monthAgo.getMonth() - 1);
-              return date >= monthAgo;
-            }).length }}</p>
+            <p class="text-2xl font-bold">{{ monthCount }}</p>
           </div>
         </div>
       </div>

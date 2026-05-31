@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { request } from '@/api/request';
+import { post } from '@/api/request';
 import PageHeader from '@/components/PageHeader.vue';
 import { Save, ArrowLeft } from 'lucide-vue-next';
 import { getToast } from '@/composables/useToast';
@@ -30,7 +30,7 @@ const submit = async () => {
   }
   submitting.value = true;
   try {
-    const res: any = await request.post('/articles', {
+    const res: any = await post('/articles', {
       title: title.value.trim(),
       content: content.value.trim(),
       categoryId: categoryId.value,
