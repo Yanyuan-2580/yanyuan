@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsInt, Min, Max } from 'class-validator';
+import { IsNotEmpty, IsInt, Min, Max, IsOptional, IsString } from 'class-validator';
 
 export class RecordMoodDto {
   @IsNotEmpty()
@@ -10,5 +10,7 @@ export class RecordMoodDto {
   @IsNotEmpty()
   moodType: 'happy' | 'sad' | 'angry' | 'anxious' | 'calm';
 
+  @IsOptional()
+  @IsString()
   reason?: string;
 }
