@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# MongoDB 本地数据库数据目录
+server/data/mongodb/
+*.env
+*env.local
