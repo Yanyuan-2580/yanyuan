@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import { diaryApi, knowledgeApi } from '@/api';
 import type { MoodDiary, KnowledgeArticle } from '@/types';
-import { MessageCircle, BookOpen, Calendar, Heart, Star, ChevronRight, TrendingUp, Smile, Lightbulb, Zap, Phone, Sparkles, Music, ClipboardList } from 'lucide-vue-next';
+import { MessageCircle, BookOpen, Calendar, Heart, Star, ChevronRight, TrendingUp, Smile, Lightbulb, Zap, Phone, Music, ClipboardList } from 'lucide-vue-next';
 import BottomNavBar from '@/components/BottomNavBar.vue';
 import type { DiaryStats } from '@/api/modules/diary';
 
@@ -92,13 +92,13 @@ const recommendations = computed(() => {
     recs.push(
       { title: '5分钟呼吸放松', desc: '帮助缓解焦虑和压力', path: '/meditation', icon: Music, bg: 'bg-gradient-to-br from-calm-400 to-calm-500' },
       { title: '情绪管理自评量表', desc: '了解当前情绪状态', path: '/questionnaire', icon: ClipboardList, bg: 'bg-gradient-to-br from-primary-400 to-warm-400' },
-      { title: '与AI聊聊你的感受', desc: '24小时倾听，无评判的陪伴', path: '/chat', icon: Sparkles, bg: 'bg-gradient-to-br from-amber-400 to-orange-400' }
+      { title: '与AI聊聊你的感受', desc: '24小时倾听，无评判的陪伴', path: '/chat', icon: Zap, bg: 'bg-gradient-to-br from-amber-400 to-orange-400' }
     );
   } else {
     recs.push(
       { title: '正念冥想练习', desc: '提升专注力和幸福感', path: '/meditation', icon: Music, bg: 'bg-gradient-to-br from-calm-400 to-calm-500' },
       { title: '性格优势测评', desc: '发现你的内在力量', path: '/questionnaire', icon: ClipboardList, bg: 'bg-gradient-to-br from-primary-400 to-warm-400' },
-      { title: '保持你的好心情', desc: '与AI分享今天的快乐', path: '/chat', icon: Sparkles, bg: 'bg-gradient-to-br from-amber-400 to-orange-400' }
+      { title: '保持你的好心情', desc: '与AI分享今天的快乐', path: '/chat', icon: Zap, bg: 'bg-gradient-to-br from-amber-400 to-orange-400' }
     );
   }
   return recs;
@@ -220,7 +220,7 @@ onMounted(async () => {
       <section v-if="diaryStats?.avgScore" class="mb-6">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-base font-semibold text-gray-800 flex items-center gap-2">
-            <Sparkles class="w-4 h-4 text-purple-500" />
+            <Zap class="w-4 h-4 text-purple-500" />
             为你推荐
           </h2>
           <span class="text-xs text-gray-400">基于你的情绪状态</span>

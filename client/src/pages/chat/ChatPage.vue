@@ -3,7 +3,7 @@ import { ref, onMounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { chatApi } from '@/api';
 import type { AiSession, ChatMessage } from '@/types';
-import { Send, Plus, X, MessageCircle, BookOpen, Calendar, Heart, MoreVertical, Square, Sparkles } from 'lucide-vue-next';
+import { Send, Plus, X, MessageCircle, BookOpen, Calendar, Heart, MoreVertical, Square } from 'lucide-vue-next';
 import BottomNavBar from '@/components/BottomNavBar.vue';
 
 const route = useRoute();

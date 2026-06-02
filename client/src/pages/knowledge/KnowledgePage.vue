@@ -3,7 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { knowledgeApi } from '@/api';
 import type { KnowledgeArticle, KnowledgeCategory } from '@/types';
-import { BookOpen, Search, ChevronRight, Eye, Heart, Bookmark, Filter, Sparkles } from 'lucide-vue-next';
+import { BookOpen, Search, ChevronRight, Eye, Heart, Bookmark, Filter, Zap } from 'lucide-vue-next';
 import BottomNavBar from '@/components/BottomNavBar.vue';
 
 const router = useRouter();
@@ -137,7 +137,7 @@ onMounted(async () => {
       <!-- Personalized recommendation banner -->
       <section v-if="!searchQuery && recommendedArticles.length > 0" class="mb-6">
         <h2 class="text-sm font-semibold text-gray-800 flex items-center gap-2 mb-3">
-          <Sparkles class="w-4 h-4 text-warm-500" />
+          <Zap class="w-4 h-4 text-warm-500" />
           为你推荐
         </h2>
         <div class="space-y-3">
