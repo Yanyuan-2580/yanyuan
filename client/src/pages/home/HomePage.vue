@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import { diaryApi, knowledgeApi } from '@/api';
 import type { MoodDiary, KnowledgeArticle } from '@/types';
-import { MessageCircle, BookOpen, Calendar, Heart, Star, ChevronRight, TrendingUp, Smile, Lightbulb, Zap } from 'lucide-vue-next';
+import { MessageCircle, BookOpen, Calendar, Heart, Star, ChevronRight, TrendingUp, Smile, Lightbulb, Zap, Phone, Sparkles, Music, ClipboardList } from 'lucide-vue-next';
 import BottomNavBar from '@/components/BottomNavBar.vue';
 import type { DiaryStats } from '@/api/modules/diary';
 
@@ -33,6 +33,7 @@ const moodOptions = [
 ];
 
 const showMoodModal = ref(false);
+const showAssessmentCta = ref(!localStorage.getItem('assessment_completed'));
 
 const selectMood = async (score: number) => {
   todayMood.value = score;
@@ -83,6 +84,26 @@ const loadDiaryData = async () => {
   } catch (e) { /* ignore */ }
 };
 
+const recommendations = computed(() => {
+  const avgScore = diaryStats.value?.avgScore ? Number(diaryStats.value.avgScore) : 3;
+  const recs: { title: string; desc: string; path: string; icon: any; bg: string }[] = [];
+
+  if (avgScore <= 2.5) {
+    recs.push(
+      { title: '5分钟呼吸放松', desc: '帮助缓解焦虑和压力', path: '/meditation', icon: Music, bg: 'bg-gradient-to-br from-calm-400 to-calm-500' },
+      { title: '情绪管理自评量表', desc: '了解当前情绪状态', path: '/questionnaire', icon: ClipboardList, bg: 'bg-gradient-to-br from-primary-400 to-warm-400' },
+      { title: '与AI聊聊你的感受', desc: '24小时倾听，无评判的陪伴', path: '/chat', icon: Sparkles, bg: 'bg-gradient-to-br from-amber-400 to-orange-400' }
+    );
+  } else {
+    recs.push(
+      { title: '正念冥想练习', desc: '提升专注力和幸福感', path: '/meditation', icon: Music, bg: 'bg-gradient-to-br from-calm-400 to-calm-500' },
+      { title: '性格优势测评', desc: '发现你的内在力量', path: '/questionnaire', icon: ClipboardList, bg: 'bg-gradient-to-br from-primary-400 to-warm-400' },
+      { title: '保持你的好心情', desc: '与AI分享今天的快乐', path: '/chat', icon: Sparkles, bg: 'bg-gradient-to-br from-amber-400 to-orange-400' }
+    );
+  }
+  return recs;
+});
+
 onMounted(async () => {
   await loadArticles();
   await loadDiaryData();
@@ -132,6 +153,25 @@ onMounted(async () => {
           ✨ 记录今日心情
         </button>
       </div>
+
+      <!-- Quick Help Banner -->
+      <div class="mt-3 bg-gradient-to-r from-rose-100 via-amber-50 to-orange-50 rounded-2xl p-4 border border-rose-100/50 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+          <Heart class="w-5 h-5 text-white" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-gray-800">需要即时帮助？</p>
+          <p class="text-xs text-gray-400 mt-0.5">点击与AI助手对话，或查看心理援助热线</p>
+        </div>
+        <div class="flex gap-2">
+          <button
+            class="px-4 py-2 bg-white rounded-xl text-sm font-medium text-rose-600 shadow-sm hover:shadow-md transition-all active:scale-95 whitespace-nowrap"
+            @click="router.push('/chat')"
+          >
+            立即倾诉
+          </button>
+        </div>
+      </div>
     </header>
 
     <main class="px-6 -mt-2">
@@ -149,6 +189,49 @@ onMounted(async () => {
             </div>
             <span class="text-xs font-medium text-gray-600">{{ action.label }}</span>
           </button>
+        </div>
+      </section>
+
+      <!-- Assessment CTA (new users) -->
+      <section v-if="showAssessmentCta" class="mb-6">
+        <div class="bg-gradient-to-br from-violet-400 via-purple-400 to-indigo-500 rounded-2xl p-5 text-white shadow-soft">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold">了解你的心理状态</h2>
+              <p class="text-sm text-white/80 mt-1">完成首次心理评估，获取个性化建议</p>
+            </div>
+            <button
+              class="px-5 py-2.5 bg-white/20 backdrop-blur rounded-xl text-sm font-semibold hover:bg-white/30 transition-all active:scale-95 flex-shrink-0"
+              @click="router.push('/questionnaire')"
+            >
+              开始评估
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI Recommendations -->
+      <section v-if="diaryStats?.avgScore" class="mb-6">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-base font-semibold text-gray-800 flex items-center gap-2">
+            <Sparkles class="w-4 h-4 text-purple-500" />
+            为你推荐
+          </h2>
+          <span class="text-xs text-gray-400">基于你的情绪状态</span>
+        </div>
+        <div class="space-y-3">
+          <div v-for="rec in recommendations" :key="rec.label"
+               class="bg-white rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:shadow-card-hover transition-all hover-lift"
+               @click="router.push(rec.path)">
+            <div :class="[rec.bg, 'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0']">
+              <component :is="rec.icon" class="w-6 h-6 text-white" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-medium text-gray-800 text-sm">{{ rec.title }}</h3>
+              <p class="text-xs text-gray-400 mt-0.5">{{ rec.desc }}</p>
+            </div>
+            <ChevronRight class="w-4 h-4 text-gray-300 flex-shrink-0" />
+          </div>
         </div>
       </section>
 
