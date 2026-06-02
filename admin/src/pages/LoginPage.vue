@@ -16,6 +16,14 @@ const handleLogin = async () => {
     ElMessage.error('请填写用户名和密码');
     return;
   }
+  if (username.value.length < 2) {
+    ElMessage.error('用户名长度至少2位');
+    return;
+  }
+  if (password.value.length < 4) {
+    ElMessage.error('密码长度至少4位');
+    return;
+  }
 
   isLoading.value = true;
   try {
@@ -31,10 +39,14 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-700 p-4">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-calm-500 to-emerald-700 p-4 relative overflow-hidden">
+    <!-- Decorative blobs -->
+    <div class="absolute -top-20 -right-20 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
+    <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
+
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative z-10 animate-fade-in">
       <div class="text-center mb-8">
-        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-calm-400 to-emerald-500 flex items-center justify-center shadow-lg transform -rotate-6 hover:rotate-0 transition-transform duration-500">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 15v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4" />
             <path d="M18 9h-5a4 4 0 0 0-4 4v2" />
@@ -43,32 +55,32 @@ const handleLogin = async () => {
           </svg>
         </div>
         <h1 class="text-2xl font-bold text-gray-800">管理后台</h1>
-        <p class="text-gray-500 mt-2">心理健康AI助手</p>
+        <p class="text-gray-400 text-sm mt-1">心理健康AI助手</p>
       </div>
 
-      <div class="space-y-4">
+      <div class="space-y-5">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">用户名</label>
+          <label class="block text-[13px] font-medium text-gray-600 mb-1.5 ml-1">用户名</label>
           <input
             v-model="username"
             type="text"
-            placeholder="请输入用户名"
-            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all"
+            placeholder="请输入管理员用户名"
+            class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">密码</label>
+          <label class="block text-[13px] font-medium text-gray-600 mb-1.5 ml-1">密码</label>
           <input
             v-model="password"
             type="password"
-            placeholder="请输入密码"
-            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all"
+            placeholder="请输入管理员密码"
+            class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
           />
         </div>
 
         <button
-          class="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all shadow-lg hover:shadow-xl"
+          class="w-full py-3.5 bg-gradient-to-r from-calm-500 to-emerald-500 text-white text-[15px] font-semibold rounded-2xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
           :disabled="isLoading"
           @click="handleLogin"
         >
@@ -79,7 +91,7 @@ const handleLogin = async () => {
             </svg>
             登录中...
           </span>
-          <span v-else>登录</span>
+          <span v-else>登 录</span>
         </button>
       </div>
     </div>
