@@ -162,7 +162,7 @@ router.beforeEach((to, from, next) => {
 
   // Protected routes
   if (!isLoggedIn) {
-    next('/login');
+    next('/nav');
     return;
   }
 
