@@ -3,7 +3,7 @@ import { ref, onMounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { chatApi } from '@/api';
 import type { AiSession, ChatMessage } from '@/types';
-import { Send, Plus, X, MessageCircle, BookOpen, Calendar, Heart, MoreVertical, Square } from 'lucide-vue-next';
+import { Send, Plus, X, MessageCircle, BookOpen, Calendar, Heart, MoreVertical, Square, Sparkles } from 'lucide-vue-next';
 import BottomNavBar from '@/components/BottomNavBar.vue';
 
 const route = useRoute();
@@ -223,6 +223,18 @@ watch(() => route.params.sessionId, async (newSessionId) => {
   }
 });
 
+// Categorized quick prompts
+const emotionPrompts = ['我最近压力很大', '总是感到焦虑怎么办', '心情低落提不起劲', '最近容易发脾气'];
+const lifePrompts = ['如何改善睡眠质量', '和家人的关系紧张', '工作倦怠没有动力', '社交中感到不自在'];
+const growthPrompts = ['想了解自己的性格', '如何提升自信心', '想聊聊人际关系', '面对未来的迷茫'];
+
+const getMoodEmoji = (tag: string) => {
+  const map: Record<string, string> = {
+    '焦虑': '😰', '抑郁': '😢', '压力': '😤', '平静': '😌', '开心': '😊', '愤怒': '😡', '悲伤': '😔'
+  };
+  return map[tag] || '💭';
+};
+
 onMounted(async () => {
   await loadSessions();
   if (route.params.sessionId) {
@@ -318,21 +330,25 @@ onMounted(async () => {
     <!-- Messages -->
     <main ref="messagesContainer" class="flex-1 overflow-y-auto px-4 py-6 space-y-4">
       <!-- Welcome Screen -->
-      <div v-if="messages.length === 0 && !isStreaming" class="text-center py-16 px-4">
+      <div v-if="messages.length === 0 && !isStreaming" class="text-center py-8 px-4">
         <div class="w-24 h-24 rounded-full bg-gradient-to-br from-amber-100 via-orange-100 to-rose-100 flex items-center justify-center mx-auto mb-6 shadow-soft animate-float">
           <span class="text-5xl">🧘</span>
         </div>
         <h2 class="text-xl font-bold text-gray-800 mb-2">你好，我是你的心理陪伴助手</h2>
-        <p class="text-gray-400 mb-8 text-sm">我在这里倾听你，陪伴你</p>
-        <div class="grid grid-cols-2 gap-3 max-w-sm mx-auto">
-          <button
-            v-for="prompt in ['我最近压力很大', '总是感到焦虑怎么办', '如何改善睡眠质量', '想聊聊人际关系']"
-            :key="prompt"
-            class="text-left p-3.5 rounded-2xl bg-white border border-gray-100 text-sm text-gray-600 hover:border-amber-200 hover:shadow-card transition-all text-left"
-            @click="inputMessage = prompt; sendMessage()"
-          >
-            {{ prompt }}
-          </button>
+        <p class="text-gray-400 mb-6 text-sm">我在这里倾听你，陪伴你。你可以：</p>
+        <div class="space-y-3 max-w-sm mx-auto text-left">
+          <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1">情绪支持</div>
+          <div class="grid grid-cols-2 gap-2">
+            <button v-for="p in emotionPrompts" :key="p" class="p-3 rounded-xl bg-white border border-gray-100 text-sm text-gray-600 hover:border-amber-200 hover:shadow-card transition-all" @click="inputMessage = p; sendMessage()">{{ p }}</button>
+          </div>
+          <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1 mt-3">日常困扰</div>
+          <div class="grid grid-cols-2 gap-2">
+            <button v-for="p in lifePrompts" :key="p" class="p-3 rounded-xl bg-white border border-gray-100 text-sm text-gray-600 hover:border-amber-200 hover:shadow-card transition-all" @click="inputMessage = p; sendMessage()">{{ p }}</button>
+          </div>
+          <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1 mt-3">自我探索</div>
+          <div class="grid grid-cols-2 gap-2">
+            <button v-for="p in growthPrompts" :key="p" class="p-3 rounded-xl bg-white border border-gray-100 text-sm text-gray-600 hover:border-amber-200 hover:shadow-card transition-all" @click="inputMessage = p; sendMessage()">{{ p }}</button>
+          </div>
         </div>
       </div>
 
@@ -356,6 +372,13 @@ onMounted(async () => {
             : 'bg-white text-gray-700 rounded-bl-md shadow-card border border-gray-50'"
         >
           {{ msg.content }}
+          <!-- Mood tag -->
+          <div v-if="msg.moodTag" class="mt-2">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700 border border-amber-200">
+              <span>{{ getMoodEmoji(msg.moodTag) }}</span>
+              {{ msg.moodTag }}
+            </span>
+          </div>
         </div>
       </div>
 
