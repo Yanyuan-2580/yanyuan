@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { request } from '@/api/request';
 import PageHeader from '@/components/PageHeader.vue';
@@ -18,6 +18,12 @@ interface Questionnaire {
 const router = useRouter();
 const questionnaires = ref<Questionnaire[]>([]);
 const isLoading = ref(true);
+const showGuide = ref(!localStorage.getItem('assessment_guide_dismissed'));
+
+const dismissGuide = () => {
+  showGuide.value = false;
+  localStorage.setItem('assessment_guide_dismissed', '1');
+};
 
 onMounted(async () => {
   isLoading.value = true;
@@ -42,6 +48,42 @@ onMounted(async () => {
       <LoadingSpinner v-if="isLoading" message="加载问卷..." />
 
       <div v-else class="space-y-3">
+        <!-- First-time Assessment Guide -->
+        <div v-if="showGuide" class="bg-gradient-to-br from-violet-400 via-purple-500 to-indigo-500 text-white p-6 rounded-2xl mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                <ClipboardList class="w-5 h-5" />
+              </div>
+              <div>
+                <h2 class="font-bold text-lg">首次心理评估</h2>
+                <p class="text-xs text-white/70">了解自己，是改变的第一步</p>
+              </div>
+            </div>
+            <button class="text-white/60 hover:text-white text-2xl leading-none" @click="dismissGuide">&times;</button>
+          </div>
+          <div class="grid grid-cols-3 gap-3 mt-4">
+            <div class="text-center">
+              <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-1">
+                <span class="text-sm font-bold">1</span>
+              </div>
+              <p class="text-xs text-white/80">选择测评</p>
+            </div>
+            <div class="text-center">
+              <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-1">
+                <span class="text-sm font-bold">2</span>
+              </div>
+              <p class="text-xs text-white/80">完成答题</p>
+            </div>
+            <div class="text-center">
+              <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-1">
+                <span class="text-sm font-bold">3</span>
+              </div>
+              <p class="text-xs text-white/80">获取建议</p>
+            </div>
+          </div>
+        </div>
+
         <div
           v-for="q in questionnaires"
           :key="q.id"

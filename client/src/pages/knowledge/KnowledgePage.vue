@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { knowledgeApi } from '@/api';
 import type { KnowledgeArticle, KnowledgeCategory } from '@/types';
-import { BookOpen, Search, ChevronRight, Eye, Heart, Bookmark, Filter } from 'lucide-vue-next';
+import { BookOpen, Search, ChevronRight, Eye, Heart, Bookmark, Filter, Sparkles } from 'lucide-vue-next';
 import BottomNavBar from '@/components/BottomNavBar.vue';
 
 const router = useRouter();
@@ -15,6 +15,13 @@ const page = ref(1);
 const hasMore = ref(true);
 const isSearching = ref(false);
 let searchTimer: ReturnType<typeof setTimeout> | null = null;
+
+// Recommend top 2 most-viewed articles from the current list
+const recommendedArticles = computed(() => {
+  return [...articles.value]
+    .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+    .slice(0, 2);
+});
 
 const loadCategories = async () => {
   const res = await knowledgeApi.getCategories();
@@ -124,6 +131,28 @@ onMounted(async () => {
           >
             {{ category.name }}
           </button>
+        </div>
+      </section>
+
+      <!-- Personalized recommendation banner -->
+      <section v-if="!searchQuery && recommendedArticles.length > 0" class="mb-6">
+        <h2 class="text-sm font-semibold text-gray-800 flex items-center gap-2 mb-3">
+          <Sparkles class="w-4 h-4 text-warm-500" />
+          为你推荐
+        </h2>
+        <div class="space-y-3">
+          <article v-for="article in recommendedArticles" :key="article.id"
+                   class="card flex gap-4 cursor-pointer hover:shadow-card-hover transition-all hover-lift"
+                   @click="router.push(`/knowledge/${article.id}`)">
+            <div class="w-20 h-20 rounded-xl bg-gradient-to-br from-warm-100 to-primary-100 flex-shrink-0 flex items-center justify-center">
+              <BookOpen class="w-8 h-8 text-warm-400" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-medium text-gray-800 text-sm line-clamp-2">{{ article.title }}</h3>
+              <p class="text-xs text-gray-400 mt-1">基于你的浏览推荐</p>
+            </div>
+            <ChevronRight class="w-4 h-4 text-gray-300 flex-shrink-0" />
+          </article>
         </div>
       </section>
 
