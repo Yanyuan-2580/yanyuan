@@ -74,9 +74,10 @@ onMounted(() => {
           <VideoOff class="w-16 h-16 mx-auto mb-3 opacity-50" />
           <p class="text-sm">摄像头已关闭</p>
         </div>
-        <div v-else class="text-center text-gray-400">
-          <p class="text-sm">视频画面区域</p>
-          <small>(需集成 TRTC SDK)</small>
+        <div v-else class="text-center text-gray-400 px-4">
+          <p class="text-sm font-medium text-gray-300 mb-2">视频通话中...</p>
+          <p class="text-xs text-gray-500">双方已连接，请保持良好的通话环境</p>
+          <p class="text-xs text-gray-600 mt-2">💡 提示：集成腾讯TRTC SDK后可实现实时音视频通话</p>
         </div>
       </div>
 

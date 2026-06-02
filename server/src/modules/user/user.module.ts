@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { User } from '@/database/entities';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
-import { CacheModule, ExportModule } from '@/shared';
+import { CacheModule, ExportModule, NotificationModule } from '@/shared';
 
 @Module({
   imports: [
@@ -18,7 +18,8 @@ import { CacheModule, ExportModule } from '@/shared';
       inject: [ConfigService]
     }),
     CacheModule,
-    ExportModule
+    ExportModule,
+    NotificationModule
   ],
   providers: [UserService],
   controllers: [UserController],

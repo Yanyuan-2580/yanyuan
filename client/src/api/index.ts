@@ -2,3 +2,5 @@ export { userApi } from './modules/user';
 export { chatApi } from './modules/chat';
 export { diaryApi } from './modules/diary';
 export { knowledgeApi } from './modules/knowledge';
+export { moodApi } from './modules/mood';
+export { meditationApi } from './modules/meditation';

@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, UnauthorizedException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -11,7 +11,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { CacheService } from '@/shared';
+import { CacheService, NotificationService } from '@/shared';
 
 @Injectable()
 export class UserService {
@@ -21,6 +21,7 @@ export class UserService {
     private jwtService: JwtService,
     private cacheService: CacheService,
     private configService: ConfigService,
+    private notificationService: NotificationService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -168,6 +169,68 @@ export class UserService {
       if (error instanceof UnauthorizedException) throw error;
       throw new UnauthorizedException('微信登录失败，请重试');
     }
+  }
+
+  /**
+   * 发送短信验证码（通用）
+   */
+  async sendCode(phone: string): Promise<{ success: boolean }> {
+    // 生成6位随机验证码
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    // 存入 Redis，5分钟有效
+    await this.cacheService.set(`sms_code:${phone}`, code, 300);
+    // 发送短信
+    await this.notificationService.sendVerificationCode(phone, code);
+    return { success: true };
+  }
+
+  /**
+   * 忘记密码 - 发送重置验证码
+   */
+  async forgotPassword(phone: string): Promise<{ success: boolean }> {
+    const user = await this.userRepository.findOne({ where: { phone } });
+    if (!user) {
+      throw new NotFoundException('该手机号未注册');
+    }
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    await this.cacheService.set(`reset_code:${phone}`, code, 300);
+    await this.notificationService.sendPasswordResetCode(phone, code);
+    return { success: true };
+  }
+
+  /**
+   * 重置密码
+   */
+  async resetPassword(phone: string, code: string, newPassword: string): Promise<{ success: boolean }> {
+    const storedCode = await this.cacheService.get(`reset_code:${phone}`);
+    if (!storedCode || storedCode !== code) {
+      throw new BadRequestException('验证码错误或已过期');
+    }
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.update({ phone }, { passwordHash });
+    // 删除验证码
+    await this.cacheService.del(`reset_code:${phone}`);
+    return { success: true };
+  }
+
+  /**
+   * 验证码登录
+   */
+  async codeLogin(phone: string, code: string) {
+    const storedCode = await this.cacheService.get(`sms_code:${phone}`);
+    if (!storedCode || storedCode !== code) {
+      throw new UnauthorizedException('验证码错误或已过期');
+    }
+    const user = await this.userRepository.findOne({ where: { phone } });
+    if (!user) {
+      throw new UnauthorizedException('手机号未注册');
+    }
+    if (user.status === 0) {
+      throw new ForbiddenException('账号已被封禁');
+    }
+    // 删除验证码
+    await this.cacheService.del(`sms_code:${phone}`);
+    return this.generateToken(user);
   }
 
   private async generateToken(user: User) {

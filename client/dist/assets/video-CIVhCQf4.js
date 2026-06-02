@@ -1,1 +1,0 @@
-import{c as o}from"./createVueComponent-5o3KeGae.js";var t=o("VideoIcon",[["polygon",{points:"23 7 16 12 23 17 23 7",key:"1uwpto"}],["rect",{x:"1",y:"5",width:"15",height:"14",rx:"2",ry:"2",key:"1dasyj"}]]);export{t as V};

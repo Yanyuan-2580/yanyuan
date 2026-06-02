@@ -1,1 +1,0 @@
-import{k as t,j as s,u as a,t as i}from"./index-BqkimaIg.js";const u={create:r=>i("/diaries",r),list:(r,e)=>t("/diaries",{page:r,pageSize:e}),get:r=>t(`/diaries/${r}`),update:(r,e)=>a(`/diaries/${r}`,e),delete:r=>s(`/diaries/${r}`),stats:r=>t(`/diaries/stats/${r}`)};export{u as d};

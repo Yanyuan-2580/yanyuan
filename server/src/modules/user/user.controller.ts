@@ -9,6 +9,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordDto, ResetPasswordDto, SendCodeDto, CodeLoginDto } from './dto/forgot-password.dto';
 
 @Controller('users')
 export class UserController {
@@ -67,6 +68,26 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   exportReport(@CurrentUser() user: JwtPayload) {
     return this.exportService.exportUserReport(user.userId);
+  }
+
+  @Post('send-code')
+  sendCode(@Body() dto: SendCodeDto) {
+    return this.userService.sendCode(dto.phone);
+  }
+
+  @Post('code-login')
+  codeLogin(@Body() dto: CodeLoginDto) {
+    return this.userService.codeLogin(dto.phone, dto.code);
+  }
+
+  @Post('forgot-password')
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.userService.forgotPassword(dto.phone);
+  }
+
+  @Post('reset-password')
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.userService.resetPassword(dto.phone, dto.code, dto.newPassword);
   }
 
   @Post('wechat-login')
