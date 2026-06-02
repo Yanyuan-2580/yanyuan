@@ -1,27 +1,27 @@
 <template>
-  <div class="min-h-screen bg-[#faf8f5] py-8 px-4">
+  <div class="min-h-screen py-8 px-4 animate-page-enter">
     <div class="max-w-4xl mx-auto">
       <!-- 标题 -->
       <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-[#1E293B] mb-2">冥想疗愈</h1>
-        <p class="text-[#64748B]">静下心来，找回内心的平静</p>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">冥想疗愈</h1>
+        <p class="text-gray-500">静下心来，找回内心的平静</p>
       </div>
 
       <!-- 加载骨架 -->
       <template v-if="isLoading">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div v-for="i in 4" :key="i" class="bg-white rounded-xl shadow-sm p-4 text-center animate-pulse">
+          <div v-for="i in 4" :key="i" class="bg-white rounded-xl shadow-card p-4 text-center animate-pulse">
             <div class="h-8 w-16 bg-gray-200 rounded mx-auto mb-1" />
             <div class="h-4 w-12 bg-gray-200 rounded mx-auto" />
           </div>
         </div>
-        <div class="bg-white rounded-xl shadow-sm p-4 mb-6 animate-pulse">
+        <div class="bg-white rounded-xl shadow-card p-4 mb-6 animate-pulse">
           <div class="flex gap-2">
             <div v-for="i in 5" :key="i" class="h-9 w-16 bg-gray-200 rounded-lg" />
           </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div v-for="i in 4" :key="i" class="bg-white rounded-xl shadow-sm p-6 animate-pulse">
+          <div v-for="i in 4" :key="i" class="bg-white rounded-xl shadow-card p-6 animate-pulse">
             <div class="flex items-start gap-4">
               <div class="w-16 h-16 bg-gray-200 rounded-xl flex-shrink-0" />
               <div class="flex-1 space-y-2">
@@ -40,34 +40,34 @@
       <template v-else>
       <!-- 统计卡片 -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white rounded-xl shadow-sm p-4 text-center">
-          <div class="text-2xl font-bold text-[#4ECDC4]">{{ stats.totalSessions || 0 }}</div>
-          <div class="text-sm text-[#64748B]">练习次数</div>
+        <div class="bg-white rounded-xl shadow-card p-4 text-center">
+          <div class="text-2xl font-bold text-calm-500">{{ stats.totalSessions || 0 }}</div>
+          <div class="text-sm text-gray-500">练习次数</div>
         </div>
-        <div class="bg-white rounded-xl shadow-sm p-4 text-center">
-          <div class="text-2xl font-bold text-[#F59E0B]">{{ formatDuration(stats.totalDuration) }}</div>
-          <div class="text-sm text-[#64748B]">总时长</div>
+        <div class="bg-white rounded-xl shadow-card p-4 text-center">
+          <div class="text-2xl font-bold text-warm-500">{{ formatDuration(stats.totalDuration) }}</div>
+          <div class="text-sm text-gray-500">总时长</div>
         </div>
-        <div class="bg-white rounded-xl shadow-sm p-4 text-center">
-          <div class="text-2xl font-bold text-[#10B981]">{{ stats.completedCount || 0 }}</div>
-          <div class="text-sm text-[#64748B]">完成次数</div>
+        <div class="bg-white rounded-xl shadow-card p-4 text-center">
+          <div class="text-2xl font-bold text-emerald-500">{{ stats.completedCount || 0 }}</div>
+          <div class="text-sm text-gray-500">完成次数</div>
         </div>
-        <div class="bg-white rounded-xl shadow-sm p-4 text-center">
-          <div class="text-2xl font-bold text-[#8B5CF6]">{{ stats.avgDuration || '0' }}分钟</div>
-          <div class="text-sm text-[#64748B]">平均时长</div>
+        <div class="bg-white rounded-xl shadow-card p-4 text-center">
+          <div class="text-2xl font-bold text-violet-500">{{ stats.avgDuration || '0' }}分钟</div>
+          <div class="text-sm text-gray-500">平均时长</div>
         </div>
       </div>
 
       <!-- 分类筛选 -->
-      <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+      <div class="bg-white rounded-xl shadow-card p-4 mb-6">
         <div class="flex gap-2 overflow-x-auto pb-2">
           <button
             @click="selectedCategory = ''"
             :class="[
               'px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-300',
               selectedCategory === ''
-                ? 'bg-[#4ECDC4] text-white'
-                : 'bg-[#F1F5F9] text-[#64748B] hover:bg-[#E2E8F0]'
+                ? 'bg-calm-500 text-white'
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
             ]"
           >
             全部
@@ -79,8 +79,8 @@
             :class="[
               'px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-300',
               selectedCategory === cat
-                ? 'bg-[#4ECDC4] text-white'
-                : 'bg-[#F1F5F9] text-[#64748B] hover:bg-[#E2E8F0]'
+                ? 'bg-calm-500 text-white'
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
             ]"
           >
             {{ cat }}
@@ -91,25 +91,25 @@
       <!-- 冥想课程列表 -->
       <div v-if="filteredMeditations.length === 0" class="text-center py-16">
         <span class="text-5xl block mb-4">🧘</span>
-        <p class="text-[#64748B]">该分类暂无冥想课程</p>
+        <p class="text-gray-500">该分类暂无冥想课程</p>
       </div>
       <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div
           v-for="meditation in filteredMeditations"
           :key="meditation.id"
           @click="playMeditation(meditation)"
-          class="bg-white rounded-xl shadow-sm p-6 cursor-pointer hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+          class="bg-white rounded-xl shadow-card p-6 cursor-pointer hover:shadow-md transition-all duration-300 hover:-translate-y-1"
         >
           <div class="flex items-start gap-4">
-            <div class="w-16 h-16 bg-gradient-to-br from-[#4ECDC4] to-[#45B7AA] rounded-xl flex items-center justify-center text-3xl flex-shrink-0">
+            <div class="w-16 h-16 bg-gradient-to-br from-calm-400 to-calm-500 rounded-xl flex items-center justify-center text-3xl flex-shrink-0">
               🧘
             </div>
             <div class="flex-1 min-w-0">
-              <h3 class="font-semibold text-[#1E293B] truncate">{{ meditation.title }}</h3>
-              <p class="text-sm text-[#64748B] mt-1">{{ meditation.description }}</p>
+              <h3 class="font-semibold text-gray-800 truncate">{{ meditation.title }}</h3>
+              <p class="text-sm text-gray-500 mt-1">{{ meditation.description }}</p>
               <div class="flex items-center gap-4 mt-3">
-                <span class="text-sm text-[#94A3B8]">⏱️ {{ meditation.duration }}分钟</span>
-                <span class="text-sm px-2 py-1 bg-[#F1F5F9] rounded-full text-[#64748B]">{{ meditation.category }}</span>
+                <span class="text-sm text-gray-400">⏱️ {{ meditation.duration }}分钟</span>
+                <span class="text-sm px-2 py-1 bg-gray-100 rounded-full text-gray-500">{{ meditation.category }}</span>
               </div>
             </div>
           </div>
@@ -126,21 +126,21 @@
       >
         <div class="bg-white rounded-2xl p-6 max-w-md w-full">
           <div class="text-center">
-            <div class="w-24 h-24 bg-gradient-to-br from-[#4ECDC4] to-[#45B7AA] rounded-full flex items-center justify-center text-5xl mx-auto mb-4">
+            <div class="w-24 h-24 bg-gradient-to-br from-calm-400 to-calm-500 rounded-full flex items-center justify-center text-5xl mx-auto mb-4">
               🧘
             </div>
-            <h3 class="text-xl font-bold text-[#1E293B] mb-2">{{ playingMeditation.title }}</h3>
-            <p class="text-[#64748B] mb-6">{{ playingMeditation.description }}</p>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">{{ playingMeditation.title }}</h3>
+            <p class="text-gray-500 mb-6">{{ playingMeditation.description }}</p>
             
             <!-- 进度条 -->
             <div class="mb-4">
-              <div class="flex justify-between text-sm text-[#64748B] mb-2">
+              <div class="flex justify-between text-sm text-gray-500 mb-2">
                 <span>{{ formatTime(elapsedTime) }}</span>
                 <span>{{ formatTime(playingMeditation.duration * 60) }}</span>
               </div>
-              <div class="h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
+              <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
-                  class="h-full bg-gradient-to-r from-[#4ECDC4] to-[#45B7AA] transition-all duration-300"
+                  class="h-full bg-gradient-to-r from-calm-400 to-calm-500 transition-all duration-300"
                   :style="{ width: `${(elapsedTime / (playingMeditation.duration * 60)) * 100}%` }"
                 ></div>
               </div>
@@ -150,7 +150,7 @@
             <div class="flex justify-center gap-4">
               <button
                 @click="togglePlay"
-                class="w-14 h-14 rounded-full bg-gradient-to-r from-[#4ECDC4] to-[#45B7AA] text-white flex items-center justify-center text-2xl hover:shadow-lg transition-all duration-300"
+                class="w-14 h-14 rounded-full bg-gradient-to-r from-calm-400 to-calm-500 text-white flex items-center justify-center text-2xl hover:shadow-lg transition-all duration-300"
               >
                 {{ isPlaying ? '⏸️' : '▶️' }}
               </button>
@@ -158,7 +158,7 @@
 
             <button
               @click="exitMeditation"
-              class="mt-6 text-sm text-[#64748B] hover:text-[#1E293B] transition-colors"
+              class="mt-6 text-sm text-gray-500 hover:text-gray-800 transition-colors"
             >
               退出
             </button>
