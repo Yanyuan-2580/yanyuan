@@ -17,8 +17,8 @@ const createRoom = async () => {
   isConnecting.value = true;
   try {
     const res = await request.post('/video/rooms');
-    if (res.data?.code === 200) {
-      roomId.value = res.data.data.roomId;
+    if (res.code === 200) {
+      roomId.value = res.data.roomId;
       isInCall.value = true;
     }
   } catch (e) {

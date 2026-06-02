@@ -1,15 +1,15 @@
-import request from '@/api/request';
+import { post, get } from '../request';
 
 export const moodApi = {
   recordMood(data: { moodScore: number; moodType: string; reason?: string }) {
-    return request.post('/mood/record', data);
+    return post('/mood/record', data);
   },
 
   getMoodHistory(period: 'week' | 'month' | 'year' = 'week') {
-    return request.get('/mood/history', { params: { period } });
+    return get('/mood/history', { period });
   },
 
   getMoodStats() {
-    return request.get('/mood/stats');
+    return get('/mood/stats');
   }
 };

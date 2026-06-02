@@ -101,9 +101,9 @@ instance.interceptors.response.use(
   }
 );
 
-export const request = <T = any>(config: AxiosRequestConfig): Promise<T> => {
-  return instance(config);
-};
+// Export axios instance directly so that request.get/post/put/delete work
+// The instance is callable: request({ method: 'get', url: '/foo' }) also works
+export const request = instance;
 
 export const get = <T = any>(url: string, params?: Record<string, any>): Promise<T> => {
   return instance.get(url, { params });

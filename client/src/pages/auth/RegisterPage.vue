@@ -53,7 +53,7 @@ const handleRegister = async () => {
   <div class="min-h-screen flex items-center justify-center p-4">
     <div class="w-full max-w-md animate-fadeIn">
       <div class="glass-card text-center mb-8">
-        <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary-400 to-warm-400 flex items-center justify-center">
+        <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 flex items-center justify-center shadow-soft">
           <MessageCircle class="w-10 h-10 text-white" />
         </div>
         <h1 class="text-2xl font-bold text-gray-800 mb-2">心理健康AI助手</h1>

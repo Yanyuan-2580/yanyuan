@@ -2,7 +2,8 @@
 import { useRouter } from 'vue-router';
 import { diaryApi } from '@/api';
 import type { MoodDiary, PageResult } from '@/types';
-import { Calendar, Plus, MessageCircle, BookOpen, Heart, ChevronRight, TrendingUp } from 'lucide-vue-next';
+import { Calendar, Plus, ChevronRight, TrendingUp } from 'lucide-vue-next';
+import BottomNavBar from '@/components/BottomNavBar.vue';
 const router = useRouter();
 const diaries = ref<MoodDiary[]>([]);
 const page = ref(1);
@@ -67,7 +68,7 @@ onMounted(() => {
 
 <template>
   <div class="min-h-screen pb-24">
-    <header class="bg-gradient-to-br from-warm-500 via-warm-600 to-primary-500 text-white p-6 rounded-b-3xl">
+    <header class="bg-gradient-to-br from-rose-300 via-pink-400 to-orange-300 text-white p-6 rounded-b-3xl">
       <div class="flex items-center justify-between mb-6">
         <div>
           <h1 class="text-2xl font-bold">情绪日记</h1>
@@ -194,49 +195,6 @@ onMounted(() => {
       </div>
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 shadow-lg">
-      <div class="max-w-lg mx-auto flex justify-around">
-        <button
-          class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
-          :class="{ 'text-primary-500': router.currentRoute.value.path === '/' }"
-          @click="router.push('/')"
-        >
-          <Heart class="w-6 h-6" />
-          <span class="text-xs">首页</span>
-        </button>
-        <button
-          class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
-          :class="{ 'text-primary-500': router.currentRoute.value.path.startsWith('/chat') }"
-          @click="router.push('/chat')"
-        >
-          <MessageCircle class="w-6 h-6" />
-          <span class="text-xs">咨询</span>
-        </button>
-        <button
-          class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
-          :class="{ 'text-primary-500': router.currentRoute.value.path.startsWith('/diary') }"
-          @click="router.push('/diary')"
-        >
-          <Calendar class="w-6 h-6" />
-          <span class="text-xs">日记</span>
-        </button>
-        <button
-          class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
-          :class="{ 'text-primary-500': router.currentRoute.value.path.startsWith('/knowledge') }"
-          @click="router.push('/knowledge')"
-        >
-          <BookOpen class="w-6 h-6" />
-          <span class="text-xs">知识</span>
-        </button>
-        <button
-          class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
-          :class="{ 'text-primary-500': router.currentRoute.value.path.startsWith('/user') }"
-          @click="router.push('/user')"
-        >
-          <span class="text-lg">👤</span>
-          <span class="text-xs">我的</span>
-        </button>
-      </div>
-    </nav>
+    <BottomNavBar active-tab="diary" />
   </div>
 </template>

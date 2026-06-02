@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-[#F8FAFC] to-[#F1F5F9] py-8 px-4">
+  <div class="min-h-screen bg-[#faf8f5] py-8 px-4">
     <div class="max-w-4xl mx-auto">
       <!-- 标题 -->
       <div class="text-center mb-8">
@@ -141,6 +141,7 @@
         </div>
       </div>
     </div>
+    <BottomNavBar active-tab="user" />
   </div>
 </template>
 
@@ -148,6 +149,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { moodApi } from '@/api/modules/mood';
 import { getToast } from '@/composables/useToast';
+import BottomNavBar from '@/components/BottomNavBar.vue';
 
 const toast = getToast();
 
@@ -204,17 +206,19 @@ const submitMood = async () => {
 
   isSubmitting.value = true;
   try {
-    await moodApi.recordMood({
+    const res = await moodApi.recordMood({
       moodScore: moodScore.value,
       moodType: selectedMood.value.type as any,
       reason: reason.value || undefined
     });
 
-    toast.success('心情记录成功！');
-    selectedMood.value = null;
-    moodScore.value = 3;
-    reason.value = '';
-    await loadData();
+    if (res.code === 200) {
+      toast.success('心情记录成功！');
+      selectedMood.value = null;
+      moodScore.value = 3;
+      reason.value = '';
+      await loadData();
+    }
   } catch (error: any) {
     toast.error(error?.message || '记录失败，请重试');
   } finally {
@@ -225,8 +229,16 @@ const submitMood = async () => {
 const loadData = async () => {
   isLoading.value = true;
   try {
-    stats.value = await moodApi.getMoodStats();
-    moodHistory.value = await moodApi.getMoodHistory();
+    const [statsRes, historyRes] = await Promise.all([
+      moodApi.getMoodStats(),
+      moodApi.getMoodHistory()
+    ]);
+    if (statsRes.code === 200) {
+      stats.value = statsRes.data || {};
+    }
+    if (historyRes.code === 200) {
+      moodHistory.value = historyRes.data || [];
+    }
   } catch (error) {
     console.error('加载数据失败:', error);
   } finally {

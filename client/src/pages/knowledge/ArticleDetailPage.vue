@@ -54,8 +54,8 @@ const loadComments = async (resetPage = false) => {
     const res = await request.get(`/articles/${articleId()}/comments`, {
       params: { page: commentsPage.value, pageSize: 20 }
     });
-    if (res.data?.code === 200) {
-      const data = res.data.data;
+    if (res.code === 200) {
+      const data = res.data;
       if (resetPage) {
         comments.value = data.list || [];
       } else {
@@ -113,7 +113,7 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen pb-24">
-    <header class="bg-gradient-to-br from-calm-400 via-primary-500 to-warm-500 text-white p-6">
+    <header class="bg-gradient-to-br from-emerald-300 via-teal-400 to-sky-400 text-white p-6">
       <div class="flex items-center gap-4">
         <button
           class="w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center hover:bg-white/30 transition-all"

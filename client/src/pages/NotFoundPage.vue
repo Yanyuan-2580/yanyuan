@@ -7,7 +7,7 @@ const router = useRouter();
 <template>
   <div class="min-h-screen flex flex-col items-center justify-center p-6">
     <div class="text-center">
-      <div class="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary-400 to-warm-400 flex items-center justify-center">
+      <div class="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
         <span class="text-6xl">404</span>
       </div>
       

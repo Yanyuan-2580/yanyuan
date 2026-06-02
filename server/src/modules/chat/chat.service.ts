@@ -33,7 +33,7 @@ export class ChatService {
     private riskControlService: RiskControlService,
     private cacheService: CacheService,
     private notificationService: NotificationService,
-    @Optional() @Inject('ChatMessageModel')
+    @Optional() @Inject('ChatMessage')
     private chatMessageModel?: mongoose.Model<ChatMessageDocument>,
     @Optional() private userNotificationService?: UserNotificationService
   ) {}

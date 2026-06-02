@@ -74,6 +74,7 @@ const selectSession = async (session: AiSession) => {
     isStreaming.value = false;
   }
   currentSession.value = session;
+  // Keep session list visible so user can navigate history
   showSessionList.value = false;
   await loadMessages(session.id);
   router.push(`/chat/${session.id}`);
@@ -84,6 +85,8 @@ const createNewSession = async () => {
   if (res.code === 200) {
     await loadSessions();
     await selectSession(res.data);
+    // Auto-open session list so user can see existing history
+    showSessionList.value = true;
   }
 };
 
@@ -237,16 +240,17 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen pb-24 flex flex-col bg-gray-50">
+  <div class="min-h-screen pb-24 flex flex-col bg-[#faf8f5]">
     <!-- Header -->
     <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
       <div class="flex items-center gap-3">
         <button
           v-if="currentSession"
-          class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+          class="flex items-center gap-1 px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm text-gray-600 transition-colors"
           @click="showSessionList = !showSessionList"
         >
-          <MessageCircle class="w-5 h-5 text-gray-600" />
+          <MessageCircle class="w-4 h-4" />
+          <span class="text-xs font-medium">历史</span>
         </button>
         <div class="flex items-center gap-2">
           <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-warm-400 flex items-center justify-center">
@@ -282,19 +286,19 @@ onMounted(async () => {
       class="fixed inset-0 z-40"
       @click.self="showSessionList = false"
     >
-      <div class="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-xl p-6 overflow-y-auto">
+      <div class="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-xl rounded-r-2xl p-6 overflow-y-auto">
         <div class="flex items-center justify-between mb-6">
-          <h2 class="font-semibold text-gray-800">会话历史</h2>
-          <button @click="showSessionList = false">
-            <X class="w-5 h-5 text-gray-400" />
+          <h2 class="font-semibold text-gray-800 text-lg">会话历史</h2>
+          <button @click="showSessionList = false" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center">
+            <X class="w-4 h-4 text-gray-400" />
           </button>
         </div>
         <div class="space-y-2">
           <button
             v-for="session in sessions"
             :key="session.id"
-            class="w-full text-left p-3 rounded-xl hover:bg-gray-50 transition-colors"
-            :class="{ 'bg-primary-50 border border-primary-200': currentSession?.id === session.id }"
+            class="w-full text-left p-3 rounded-xl hover:bg-amber-50 transition-colors"
+            :class="{ 'bg-amber-50 border border-amber-200': currentSession?.id === session.id }"
             @click="selectSession(session)"
           >
             <p class="font-medium text-sm text-gray-800 truncate">{{ session.title || '未命名会话' }}</p>
@@ -314,17 +318,17 @@ onMounted(async () => {
     <!-- Messages -->
     <main ref="messagesContainer" class="flex-1 overflow-y-auto px-4 py-6 space-y-4">
       <!-- Welcome Screen -->
-      <div v-if="messages.length === 0 && !isStreaming" class="text-center py-20">
-        <div class="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-warm-400 flex items-center justify-center mx-auto mb-6">
-          <Heart class="w-10 h-10 text-white" />
+      <div v-if="messages.length === 0 && !isStreaming" class="text-center py-16 px-4">
+        <div class="w-24 h-24 rounded-full bg-gradient-to-br from-amber-100 via-orange-100 to-rose-100 flex items-center justify-center mx-auto mb-6 shadow-soft animate-float">
+          <span class="text-5xl">🧘</span>
         </div>
-        <h2 class="text-xl font-semibold text-gray-800 mb-2">你好，我是你的心理陪伴助手</h2>
-        <p class="text-gray-500 mb-8">我在这里倾听你，陪伴你</p>
+        <h2 class="text-xl font-bold text-gray-800 mb-2">你好，我是你的心理陪伴助手</h2>
+        <p class="text-gray-400 mb-8 text-sm">我在这里倾听你，陪伴你</p>
         <div class="grid grid-cols-2 gap-3 max-w-sm mx-auto">
           <button
             v-for="prompt in ['我最近压力很大', '总是感到焦虑怎么办', '如何改善睡眠质量', '想聊聊人际关系']"
             :key="prompt"
-            class="text-left p-3 rounded-xl bg-white border border-gray-200 text-sm text-gray-600 hover:border-primary-300 hover:text-primary-600 transition-colors"
+            class="text-left p-3.5 rounded-2xl bg-white border border-gray-100 text-sm text-gray-600 hover:border-amber-200 hover:shadow-card transition-all text-left"
             @click="inputMessage = prompt; sendMessage()"
           >
             {{ prompt }}
@@ -340,16 +344,16 @@ onMounted(async () => {
         :class="msg.role === 'user' ? 'flex-row-reverse' : ''"
       >
         <div
-          class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs"
-          :class="msg.role === 'user' ? 'bg-primary-500' : 'bg-gradient-to-br from-primary-400 to-warm-400'"
+          class="w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-medium shadow-sm"
+          :class="msg.role === 'user' ? 'bg-gradient-to-br from-amber-400 to-orange-500' : 'bg-gradient-to-br from-emerald-400 to-teal-500'"
         >
           {{ msg.role === 'user' ? '我' : 'AI' }}
         </div>
         <div
-          class="max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed"
+          class="max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed animate-message-in"
           :class="msg.role === 'user'
-            ? 'bg-primary-500 text-white rounded-tr-sm'
-            : 'bg-white text-gray-700 rounded-tl-sm shadow-sm border border-gray-100'"
+            ? 'bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-br-md'
+            : 'bg-white text-gray-700 rounded-bl-md shadow-card border border-gray-50'"
         >
           {{ msg.content }}
         </div>
@@ -357,11 +361,11 @@ onMounted(async () => {
 
       <!-- Streaming message (typing indicator) -->
       <div v-if="isStreaming" class="flex gap-3">
-        <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs bg-gradient-to-br from-primary-400 to-warm-400">
+        <div class="w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-medium bg-gradient-to-br from-emerald-400 to-teal-500 shadow-sm">
           AI
         </div>
         <div
-          class="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm text-sm leading-relaxed bg-white text-gray-700 shadow-sm border border-gray-100"
+          class="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-bl-md text-sm leading-relaxed bg-white text-gray-700 shadow-card border border-gray-50"
         >
           {{ streamingContent || '' }}<span class="inline-block w-1.5 h-4 bg-primary-500 animate-pulse ml-0.5 align-middle"></span>
         </div>
@@ -369,20 +373,20 @@ onMounted(async () => {
     </main>
 
     <!-- Input Area -->
-    <footer class="bg-white border-t border-gray-100 p-4">
+    <footer class="bg-white/90 backdrop-blur border-t border-gray-50 p-4">
       <div class="max-w-lg mx-auto flex items-end gap-3">
         <textarea
           v-model="inputMessage"
           rows="1"
-          class="flex-1 resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 max-h-32"
+          class="flex-1 resize-none rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-300 max-h-32 transition-all placeholder:text-gray-400"
           placeholder="说说你的感受..."
           :disabled="isStreaming"
           @keydown="handleKeydown"
           @input="(e: any) => { e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px'; }"
         ></textarea>
         <button
-          class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors"
-          :class="inputMessage.trim() && !isStreaming ? 'bg-primary-500 text-white hover:bg-primary-600' : 'bg-gray-100 text-gray-400 cursor-not-allowed'"
+          class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all active:scale-95"
+          :class="inputMessage.trim() && !isStreaming ? 'bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-soft hover:shadow-md' : 'bg-gray-100 text-gray-400 cursor-not-allowed'"
           :disabled="!inputMessage.trim() || isStreaming"
           @click="sendMessage"
         >

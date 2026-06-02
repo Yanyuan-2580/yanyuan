@@ -29,8 +29,8 @@ const isSubmitting = ref(false);
 onMounted(async () => {
   try {
     const res = await request.get(`/questionnaires/${route.params.id}`);
-    if (res.data?.code === 200) {
-      questionnaire.value = res.data.data;
+    if (res.code === 200) {
+      questionnaire.value = res.data;
     }
   } catch (e) {
     console.error('Failed to load questionnaire:', e);
@@ -61,8 +61,8 @@ const submit = async () => {
   try {
     const answerData = Object.entries(answers.value).map(([qid, val]) => ({ questionId: parseInt(qid), selectedValue: val }));
     const res = await request.post(`/questionnaires/${route.params.id}/submit`, { answers: answerData });
-    if (res.data?.code === 200) {
-      router.push(`/questionnaire/${route.params.id}/result?resultId=${res.data.data.id}`);
+    if (res.code === 200) {
+      router.push(`/questionnaire/${route.params.id}/result?resultId=${res.data.id}`);
     }
   } catch (e) {
     console.error('Failed to submit:', e);

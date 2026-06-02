@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-[#F8FAFC] to-[#F1F5F9] py-8 px-4">
+  <div class="min-h-screen bg-[#faf8f5] py-8 px-4">
     <div class="max-w-4xl mx-auto">
       <!-- 标题 -->
       <div class="text-center mb-8">
@@ -157,7 +157,7 @@
             </div>
 
             <button
-              @click="playingMeditation = null"
+              @click="exitMeditation"
               class="mt-6 text-sm text-[#64748B] hover:text-[#1E293B] transition-colors"
             >
               退出
@@ -166,12 +166,14 @@
         </div>
       </div>
     </div>
+    <BottomNavBar active-tab="user" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { meditationApi } from '@/api/modules/meditation';
+import BottomNavBar from '@/components/BottomNavBar.vue';
 
 const categories = ['放松', '睡眠', '专注', '情绪调节'];
 const selectedCategory = ref('');
@@ -190,15 +192,18 @@ const filteredMeditations = computed(() => {
   return meditations.value.filter(m => m.category === selectedCategory.value);
 });
 
-const formatDuration = (seconds: number) => {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
+// 服务端存储的 duration 单位是分钟
+const formatDuration = (totalMinutes: number) => {
+  if (!totalMinutes || totalMinutes <= 0) return '0分钟';
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
   if (hours > 0) {
     return `${hours}小时${minutes}分钟`;
   }
   return `${minutes}分钟`;
 };
 
+// elapsedTime 单位是秒，用于播放进度显示
 const formatTime = (seconds: number) => {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
@@ -206,10 +211,15 @@ const formatTime = (seconds: number) => {
 };
 
 const playMeditation = (meditation: any) => {
+  // Clear existing timer
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
   playingMeditation.value = meditation;
   isPlaying.value = true;
   elapsedTime.value = 0;
-  
+
   timer = window.setInterval(() => {
     if (isPlaying.value && elapsedTime.value < meditation.duration * 60) {
       elapsedTime.value++;
@@ -229,20 +239,34 @@ const stopPlayback = () => {
     timer = null;
   }
   isPlaying.value = false;
-  
-  if (playingMeditation.value) {
-    meditationApi.recordMeditation(playingMeditation.value.id, elapsedTime.value);
+
+  if (playingMeditation.value && elapsedTime.value > 0) {
+    // Convert seconds to minutes for the API
+    const durationMinutes = Math.round(elapsedTime.value / 60);
+    meditationApi.recordMeditation(playingMeditation.value.id, durationMinutes);
   }
-  
+
   playingMeditation.value = null;
   elapsedTime.value = 0;
+};
+
+const exitMeditation = () => {
+  stopPlayback();
 };
 
 const loadData = async () => {
   isLoading.value = true;
   try {
-    meditations.value = await meditationApi.getAllMeditations();
-    stats.value = await meditationApi.getMeditationStats();
+    const [medRes, statsRes] = await Promise.all([
+      meditationApi.getAllMeditations(),
+      meditationApi.getMeditationStats()
+    ]);
+    if (medRes.code === 200) {
+      meditations.value = medRes.data || [];
+    }
+    if (statsRes.code === 200) {
+      stats.value = statsRes.data || {};
+    }
   } catch (error) {
     console.error('加载数据失败:', error);
   } finally {
@@ -255,8 +279,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  if (timer) {
-    clearInterval(timer);
-  }
+  stopPlayback();
 });
 </script>

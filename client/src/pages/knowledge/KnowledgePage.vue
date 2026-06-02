@@ -81,7 +81,7 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen pb-24">
-    <header class="bg-gradient-to-br from-calm-400 via-primary-500 to-warm-500 text-white p-6 rounded-b-3xl">
+    <header class="bg-gradient-to-br from-emerald-300 via-teal-400 to-sky-400 text-white p-6 rounded-b-3xl">
       <div class="flex items-center justify-between mb-2">
         <h1 class="text-2xl font-bold">心理健康知识库</h1>
         <button
@@ -147,7 +147,7 @@ onMounted(async () => {
             </div>
             <div class="flex-1">
               <h3 class="font-medium text-gray-800 line-clamp-2">{{ article.title }}</h3>
-              <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ article.summary }}</p>
+              <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ article.content?.replace(/<[^>]*>/g, '').slice(0, 80) || '阅读文章详情' }}</p>
               <div class="flex items-center gap-4 mt-3 text-sm text-gray-500">
                 <span class="flex items-center gap-1">
                   <Eye class="w-4 h-4" />

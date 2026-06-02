@@ -56,7 +56,7 @@ const handleSubmit = async () => {
       content: content.value.trim(),
       parentId: props.parentId || undefined
     });
-    if (res.data?.code === 200) {
+    if (res.code === 200) {
       content.value = '';
       emit('submitted');
     }

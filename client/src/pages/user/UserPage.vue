@@ -4,6 +4,7 @@ import { useUserStore } from '@/stores/user';
 import { diaryApi, chatApi } from '@/api';
 import type { User } from '@/types';
 import { Calendar, BookOpen, MessageCircle, Settings, Shield, HelpCircle, LogOut, ChevronRight, Edit, Lock, User as UserIcon, Heart, Award } from 'lucide-vue-next';
+import BottomNavBar from '@/components/BottomNavBar.vue';
 import type { DiaryStats } from '@/api/modules/diary';
 import type { WeeklyChatCount } from '@/api/modules/chat';
 const router = useRouter();
@@ -90,7 +91,7 @@ watch(() => route.fullPath, async () => {
 
 <template>
   <div class="min-h-screen pb-24">
-    <header class="bg-gradient-to-br from-primary-500 via-purple-500 to-warm-500 text-white p-6 rounded-b-3xl">
+    <header class="bg-gradient-to-br from-amber-400 via-orange-400 to-rose-400 text-white p-6 rounded-b-3xl">
       <h1 class="text-xl font-semibold mb-6">我的</h1>
       
       <div class="flex items-center gap-4">
@@ -196,69 +197,8 @@ watch(() => route.fullPath, async () => {
       </section>
     </main>
     
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 shadow-lg">
-      <div class="max-w-lg mx-auto flex justify-around">
-        <button 
-          class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
-          :class="{ 'text-primary-500': router.currentRoute.value.path === '/' }"
-          @click="router.push('/')"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 9v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9" />
-            <path d="M9 22V12h6v10" />
-            <path d="M16 2H8a2 2 0 0 0-2 2v3" />
-            <path d="M16 2h2a2 2 0 0 1 2 2v3" />
-            <path d="M8 22h1" />
-            <path d="M12 22h1" />
-            <path d="M16 22h1" />
-          </svg>
-          <span class="text-xs">首页</span>
-        </button>
-        <button 
-          class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
-          :class="{ 'text-primary-500': router.currentRoute.value.path.startsWith('/chat') }"
-          @click="router.push('/chat')"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-          <span class="text-xs">咨询</span>
-        </button>
-        <button 
-          class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
-          :class="{ 'text-primary-500': router.currentRoute.value.path.startsWith('/diary') }"
-          @click="router.push('/diary')"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-          <span class="text-xs">日记</span>
-        </button>
-        <button 
-          class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
-          :class="{ 'text-primary-500': router.currentRoute.value.path.startsWith('/knowledge') }"
-          @click="router.push('/knowledge')"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-          </svg>
-          <span class="text-xs">知识</span>
-        </button>
-        <button 
-          class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
-          :class="{ 'text-primary-500': router.currentRoute.value.path.startsWith('/user') }"
-          @click="router.push('/user')"
-        >
-          <span class="text-lg">👤</span>
-          <span class="text-xs">我的</span>
-        </button>
-      </div>
-    </nav>
-    
+    <BottomNavBar active-tab="user" />
+
     <Teleport to="body">
       <div 
         v-if="showEditModal" 

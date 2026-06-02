@@ -23,8 +23,8 @@ onMounted(async () => {
   isLoading.value = true;
   try {
     const res = await request.get('/questionnaires');
-    if (res.data?.code === 200) {
-      questionnaires.value = res.data.data.list || res.data.data || [];
+    if (res.code === 200) {
+      questionnaires.value = res.data.list || res.data || [];
     }
   } catch (e) {
     console.error('Failed to load questionnaires:', e);

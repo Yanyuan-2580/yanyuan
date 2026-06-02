@@ -49,7 +49,7 @@ const submit = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen pb-24 bg-gray-50">
+  <div class="min-h-screen bg-gray-50">
     <PageHeader title="发布文章" :show-back="true" />
 
     <div class="max-w-2xl mx-auto px-4 py-6 space-y-4">

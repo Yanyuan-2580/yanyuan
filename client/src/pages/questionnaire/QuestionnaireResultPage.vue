@@ -22,8 +22,8 @@ onMounted(async () => {
   const resultId = route.query.resultId;
   try {
     const res = await request.get(`/questionnaires/results/${resultId}`);
-    if (res.data?.code === 200) {
-      result.value = res.data.data;
+    if (res.code === 200) {
+      result.value = res.data;
     }
   } catch (e) {
     console.error('Failed to load result:', e);

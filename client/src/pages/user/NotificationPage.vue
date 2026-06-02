@@ -30,8 +30,8 @@ const loadNotifications = async () => {
     const res = await request.get('/notifications', {
       params: { page: 1, pageSize: 50, unreadOnly: unreadOnly.value }
     });
-    if (res.data?.code === 200) {
-      notifications.value = res.data.data.list || [];
+    if (res.code === 200) {
+      notifications.value = res.data.list || [];
     }
   } catch (e) {
     console.error('Failed to load notifications:', e);

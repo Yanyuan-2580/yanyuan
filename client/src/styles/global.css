@@ -11,62 +11,107 @@
 html, body {
   height: 100%;
   font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #app {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #fff7ed 100%);
+  background: #faf8f5;
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
+  background: #d1cec9;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
+  background: #b0aca5;
 }
 
 @layer components {
+  /* 主按钮 */
   .btn-primary {
-    @apply px-6 py-2.5 bg-primary-500 text-white font-medium rounded-xl hover:bg-primary-600 transition-all duration-200 shadow-md hover:shadow-lg;
+    @apply px-6 py-3 bg-primary-500 text-white font-medium rounded-xl
+           hover:bg-primary-600 active:scale-[0.98]
+           transition-all duration-200;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
   }
-  
+
+  /* 次按钮 */
   .btn-secondary {
-    @apply px-6 py-2.5 bg-white text-primary-500 font-medium rounded-xl border-2 border-primary-200 hover:border-primary-400 transition-all duration-200;
+    @apply px-6 py-3 bg-white text-primary-600 font-medium rounded-xl
+           border border-primary-200 hover:border-primary-400 hover:bg-primary-50
+           transition-all duration-200;
   }
-  
+
+  /* 描边按钮 */
   .btn-outline {
-    @apply px-6 py-2.5 bg-transparent text-gray-600 font-medium rounded-xl border-2 border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200;
+    @apply px-6 py-3 bg-transparent text-gray-600 font-medium rounded-xl
+           border border-gray-200 hover:border-gray-300 hover:bg-gray-50
+           transition-all duration-200;
   }
-  
+
+  /* 输入框 */
   .input-field {
-    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all duration-200;
+    @apply w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl
+           focus:bg-white focus:border-primary-300 focus:ring-4 focus:ring-primary-50
+           outline-none transition-all duration-200 placeholder:text-gray-400;
   }
-  
+
+  /* 基础卡片 */
   .card {
-    @apply bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300;
+    @apply bg-white rounded-2xl p-5 transition-all duration-300;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03);
   }
-  
+  .card:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  /* 毛玻璃卡片 */
   .glass-card {
-    @apply bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg p-6;
+    @apply bg-white/70 backdrop-blur-xl rounded-2xl p-5 border border-white/50;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03);
+  }
+
+  /* 渐变卡片 */
+  .gradient-card {
+    @apply rounded-2xl p-5 text-white;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  }
+
+  /* 页面头部 */
+  .page-header-gradient {
+    @apply bg-gradient-to-br from-primary-400 via-primary-500 to-warm-400
+           text-white;
+  }
+
+  /* 标签 */
+  .tag {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
+           bg-primary-50 text-primary-600;
+  }
+
+  .tag-outline {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
+           border border-gray-200 text-gray-500;
   }
 }
 
-@keyframes fadeIn {
+/* 页面进入动画 */
+@keyframes pageEnter {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -74,21 +119,31 @@ html, body {
   }
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
+.animate-page-enter {
+  animation: pageEnter 0.4s ease-out;
 }
 
-@keyframes slideIn {
+/* 卡片悬停效果 */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+}
+
+/* 消息气泡动画 */
+@keyframes messageIn {
   from {
     opacity: 0;
-    transform: translateX(-20px);
+    transform: translateY(8px) scale(0.96);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0) scale(1);
   }
 }
 
-.animate-slideIn {
-  animation: slideIn 0.3s ease-out;
+.animate-message-in {
+  animation: messageIn 0.3s ease-out;
 }

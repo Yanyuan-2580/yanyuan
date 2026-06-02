@@ -64,9 +64,9 @@ export class DiaryService {
     await this.moodDiaryRepository.delete(id);
   }
 
-  async getStats(userId: number, period: 'week' | 'month' | 'year'): Promise<any> {
+  async getStats(userId: number, period: 'week' | 'month' | 'year' | 'all'): Promise<any> {
     const now = new Date();
-    let startDate: Date;
+    let startDate: Date | null = null;
 
     switch (period) {
       case 'week':
@@ -78,10 +78,19 @@ export class DiaryService {
       case 'year':
         startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
         break;
+      case 'all':
+      default:
+        // No date filter for 'all' - return all diaries
+        break;
+    }
+
+    const whereCondition: any = { userId };
+    if (startDate) {
+      whereCondition.createdAt = MoreThanOrEqual(startDate);
     }
 
     const diaries = await this.moodDiaryRepository.find({
-      where: { userId, createdAt: MoreThanOrEqual(startDate) },
+      where: whereCondition,
       select: ['moodScore', 'createdAt']
     });
 
