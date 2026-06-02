@@ -170,6 +170,12 @@ onMounted(async () => {
           >
             立即倾诉
           </button>
+          <button
+            class="px-4 py-2 bg-white/50 rounded-xl text-sm font-medium text-rose-500 hover:bg-white hover:shadow-md transition-all active:scale-95 whitespace-nowrap"
+            @click="router.push('/user/hotline')"
+          >
+            援助热线
+          </button>
         </div>
       </div>
     </header>

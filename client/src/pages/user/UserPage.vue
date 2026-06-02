@@ -3,7 +3,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import { diaryApi, chatApi } from '@/api';
 import type { User } from '@/types';
-import { Calendar, BookOpen, MessageCircle, Settings, Shield, HelpCircle, LogOut, ChevronRight, Edit, Lock, User as UserIcon, Heart, Award } from 'lucide-vue-next';
+import { Calendar, BookOpen, MessageCircle, Settings, Shield, HelpCircle, LogOut, ChevronRight, Edit, Lock, User as UserIcon, Heart, Award, Phone } from 'lucide-vue-next';
 import BottomNavBar from '@/components/BottomNavBar.vue';
 import type { DiaryStats } from '@/api/modules/diary';
 import type { WeeklyChatCount } from '@/api/modules/chat';
@@ -71,6 +71,7 @@ const menuItems = [
  { icon: MessageCircle, label: '咨询记录', path: '/chat', badge: 'AI对话' },
  { icon: BookOpen, label: '我的收藏', path: '/knowledge', badge: '知识文章' },
  { icon: Shield, label: '隐私设置', path: '/user/settings', badge: '保护隐私' },
+ { icon: Phone, label: '心理援助热线', path: '/user/hotline', badge: '寻求帮助' },
  { icon: HelpCircle, label: '帮助中心', path: '/user/help', badge: '获取帮助' }
 ];
 const settingsItems = [

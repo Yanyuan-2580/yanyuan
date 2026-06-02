@@ -79,6 +79,11 @@ const router = createRouter({
       component: () => import('@/pages/user/ChangePasswordPage.vue')
     },
     {
+      path: '/user/hotline',
+      name: 'Hotline',
+      component: () => import('@/pages/user/HotlinePage.vue')
+    },
+    {
       path: '/user/help',
       name: 'UserHelp',
       component: () => import('@/pages/user/UserHelpPage.vue')
