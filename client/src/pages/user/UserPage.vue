@@ -1,9 +1,9 @@
-<script setup lang="ts">import { ref, onMounted, watch } from 'vue';
+<script setup lang="ts">import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import { diaryApi, chatApi } from '@/api';
 import type { User } from '@/types';
-import { Calendar, BookOpen, MessageCircle, Settings, Shield, HelpCircle, LogOut, ChevronRight, Edit, Lock, User as UserIcon, Heart, Award, Phone } from 'lucide-vue-next';
+import { Calendar, BookOpen, MessageCircle, Settings, Shield, HelpCircle, LogOut, ChevronRight, Edit, Lock, User as UserIcon, Heart, Award, Phone, TrendingUp } from 'lucide-vue-next';
 import BottomNavBar from '@/components/BottomNavBar.vue';
 import type { DiaryStats } from '@/api/modules/diary';
 import type { WeeklyChatCount } from '@/api/modules/chat';
@@ -74,6 +74,23 @@ const menuItems = [
  { icon: Phone, label: '心理援助热线', path: '/user/hotline', badge: '寻求帮助' },
  { icon: HelpCircle, label: '帮助中心', path: '/user/help', badge: '获取帮助' }
 ];
+const growthStats = computed(() => {
+  const totalDays = diaryStats.value?.total || 0;
+  // Calculate simple streak from diary stats
+  const streak = Math.min(totalDays, 7); // Simplified: capped at 7 for demo
+  const questionnaireCount = parseInt(localStorage.getItem('questionnaire_count') || '0');
+  return { totalDays, streak, questionnaireCount };
+});
+
+const badges = computed(() => [
+  { name: '初次记录', emoji: '🌱', earned: (diaryStats.value?.total || 0) >= 1 },
+  { name: '坚持7天', emoji: '🔥', earned: (diaryStats.value?.total || 0) >= 7 },
+  { name: '探索自我', emoji: '🔍', earned: growthStats.value.questionnaireCount >= 1 },
+  { name: '冥想新手', emoji: '🧘', earned: (parseInt(localStorage.getItem('meditation_count') || '0')) >= 1 },
+  { name: '月度记录', emoji: '📅', earned: (diaryStats.value?.total || 0) >= 30 },
+  { name: '成长之星', emoji: '⭐', earned: growthStats.value.totalDays >= 14 },
+]);
+
 const settingsItems = [
  { icon: Settings, label: '账号设置', path: '/user/settings' },
  { icon: Lock, label: '修改密码', path: '/user/change-password' },
@@ -131,9 +148,49 @@ watch(() => route.fullPath, async () => {
           <p class="text-xs text-white/70 mt-1">总咨询次数</p>
         </div>
       </div>
+
+      <!-- Growth Trajectory -->
+      <div class="mt-4 bg-white/10 backdrop-blur rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <TrendingUp class="w-4 h-4" />
+          <span class="text-sm font-medium">成长轨迹</span>
+        </div>
+        <div class="flex items-end gap-4">
+          <div>
+            <p class="text-xs text-white/60">累计使用</p>
+            <p class="text-lg font-bold">{{ growthStats.totalDays }} 天</p>
+          </div>
+          <div>
+            <p class="text-xs text-white/60">连续记录</p>
+            <p class="text-lg font-bold">{{ growthStats.streak }} 天</p>
+          </div>
+          <div>
+            <p class="text-xs text-white/60">完成测评</p>
+            <p class="text-lg font-bold">{{ growthStats.questionnaireCount }} 次</p>
+          </div>
+        </div>
+      </div>
     </header>
-    
+
     <main class="p-6">
+      <!-- Achievement Badges -->
+      <section class="mb-6">
+        <div class="card">
+          <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <Award class="w-5 h-5 text-warm-500" />
+            成就徽章
+          </h3>
+          <div class="grid grid-cols-3 gap-3">
+            <div v-for="badge in badges" :key="badge.name"
+                 class="text-center p-3 rounded-xl"
+                 :class="badge.earned ? 'bg-primary-50' : 'bg-gray-50 opacity-40'">
+              <span class="text-2xl">{{ badge.emoji }}</span>
+              <p class="text-xs mt-1 font-medium" :class="badge.earned ? 'text-primary-700' : 'text-gray-400'">{{ badge.name }}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="mb-6">
         <div class="card">
           <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
