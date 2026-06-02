@@ -1,14 +1,18 @@
 <template>
-  <div class="min-h-screen py-8 px-4 animate-page-enter">
-    <div class="max-w-4xl mx-auto">
+  <div class="bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30 min-h-screen py-8 px-4 animate-page-enter">
+    <!-- Decorative blobs -->
+    <div class="absolute top-0 right-0 w-64 h-64 bg-calm-200/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-80 h-80 bg-soft-200/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none"></div>
+    <div class="max-w-4xl mx-auto relative">
       <!-- 标题 -->
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">情绪记录</h1>
-        <p class="text-gray-500">记录你的每一天，了解自己的情绪变化</p>
+      <div class="text-center mb-8 relative">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-12 bg-gradient-to-r from-calm-300/30 to-emerald-300/20 rounded-full blur-xl pointer-events-none"></div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2 relative">情绪记录</h1>
+        <p class="text-gray-500 relative">记录你的每一天，了解自己的情绪变化</p>
       </div>
 
       <!-- 今日情绪记录卡片 -->
-      <div class="bg-white rounded-2xl shadow-card p-6 mb-6">
+      <div class="bg-white rounded-2xl shadow-card border border-gray-50 p-6 mb-6 hover:shadow-card-hover transition-shadow">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">今日心情</h2>
         
         <!-- 情绪选择 -->
@@ -55,7 +59,7 @@
           <textarea
             v-model="reason"
             rows="3"
-            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-calm-400 focus:border-transparent resize-none"
+            class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200 resize-none"
             placeholder="说说今天发生了什么..."
           ></textarea>
         </div>
@@ -67,7 +71,7 @@
           :class="[
             'w-full py-3 rounded-xl font-medium transition-all duration-300',
             selectedMood && !isSubmitting
-              ? 'bg-gradient-to-r from-calm-400 to-calm-500 text-white hover:shadow-lg hover:scale-[1.02]'
+              ? 'bg-gradient-to-r from-calm-500 to-emerald-500 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           ]"
         >
@@ -76,19 +80,19 @@
       </div>
 
       <!-- 情绪统计 -->
-      <div class="bg-white rounded-2xl shadow-card p-6 mb-6">
+      <div class="bg-white rounded-2xl shadow-card border border-gray-50 p-6 mb-6 hover:shadow-card-hover transition-shadow">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">本周情绪统计</h2>
-        
+
         <div v-if="stats" class="grid grid-cols-3 gap-4">
-          <div class="text-center p-4 bg-gray-50 rounded-xl">
-            <div class="text-2xl font-bold text-calm-500">{{ stats.total }}</div>
+          <div class="text-center p-4 bg-calm-50 rounded-xl">
+            <div class="text-2xl font-bold text-calm-600">{{ stats.total }}</div>
             <div class="text-sm text-gray-500">记录天数</div>
           </div>
-          <div class="text-center p-4 bg-gray-50 rounded-xl">
-            <div class="text-2xl font-bold text-warm-500">{{ stats.avgScore }}</div>
+          <div class="text-center p-4 bg-calm-50 rounded-xl">
+            <div class="text-2xl font-bold text-calm-600">{{ stats.avgScore }}</div>
             <div class="text-sm text-gray-500">平均评分</div>
           </div>
-          <div class="text-center p-4 bg-gray-50 rounded-xl">
+          <div class="text-center p-4 bg-calm-50 rounded-xl">
             <div class="text-2xl font-bold" :class="trendColor">{{ trendText }}</div>
             <div class="text-sm text-gray-500">趋势</div>
           </div>
@@ -101,7 +105,7 @@
             <div
               v-for="(count, mood) in stats.moodDistribution"
               :key="mood"
-              class="flex-1 bg-gray-100 rounded-lg p-3"
+              class="flex-1 bg-calm-50 rounded-lg p-3"
             >
               <div class="text-center">
                 <span class="text-lg">{{ getMoodIcon(mood as string) }}</span>
@@ -113,14 +117,14 @@
       </div>
 
       <!-- 情绪历史 -->
-      <div class="bg-white rounded-2xl shadow-card p-6">
+      <div class="bg-white rounded-2xl shadow-card border border-gray-50 p-6 hover:shadow-card-hover transition-shadow">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">情绪历史</h2>
-        
+
         <div class="space-y-3">
           <div
             v-for="record in moodHistory"
             :key="record.id"
-            class="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
+            class="flex items-center justify-between p-4 bg-calm-50/50 rounded-xl"
           >
             <div class="flex items-center gap-4">
               <span class="text-2xl">{{ getMoodIcon(record.moodType) }}</span>

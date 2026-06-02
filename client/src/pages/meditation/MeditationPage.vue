@@ -1,10 +1,11 @@
 <template>
-  <div class="min-h-screen py-8 px-4 animate-page-enter">
+  <div class="min-h-screen bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30 py-8 px-4 animate-page-enter">
     <div class="max-w-4xl mx-auto">
       <!-- 标题 -->
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">冥想疗愈</h1>
-        <p class="text-gray-500">静下心来，找回内心的平静</p>
+      <div class="relative text-center mb-8 pt-6">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-gradient-to-br from-calm-200/30 to-emerald-100/20 rounded-full blur-3xl pointer-events-none" />
+        <h1 class="relative text-3xl font-bold text-gray-800 mb-2">冥想疗愈</h1>
+        <p class="relative text-gray-500">静下心来，找回内心的平静</p>
       </div>
 
       <!-- 加载骨架 -->
@@ -40,34 +41,34 @@
       <template v-else>
       <!-- 统计卡片 -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white rounded-xl shadow-card p-4 text-center">
-          <div class="text-2xl font-bold text-calm-500">{{ stats.totalSessions || 0 }}</div>
+        <div class="bg-white rounded-2xl shadow-card border border-gray-50 p-5 text-center hover:shadow-card-hover transition-shadow">
+          <div class="text-2xl font-bold text-calm-600">{{ stats.totalSessions || 0 }}</div>
           <div class="text-sm text-gray-500">练习次数</div>
         </div>
-        <div class="bg-white rounded-xl shadow-card p-4 text-center">
-          <div class="text-2xl font-bold text-warm-500">{{ formatDuration(stats.totalDuration) }}</div>
+        <div class="bg-white rounded-2xl shadow-card border border-gray-50 p-5 text-center hover:shadow-card-hover transition-shadow">
+          <div class="text-2xl font-bold text-calm-600">{{ formatDuration(stats.totalDuration) }}</div>
           <div class="text-sm text-gray-500">总时长</div>
         </div>
-        <div class="bg-white rounded-xl shadow-card p-4 text-center">
+        <div class="bg-white rounded-2xl shadow-card border border-gray-50 p-5 text-center hover:shadow-card-hover transition-shadow">
           <div class="text-2xl font-bold text-emerald-500">{{ stats.completedCount || 0 }}</div>
           <div class="text-sm text-gray-500">完成次数</div>
         </div>
-        <div class="bg-white rounded-xl shadow-card p-4 text-center">
+        <div class="bg-white rounded-2xl shadow-card border border-gray-50 p-5 text-center hover:shadow-card-hover transition-shadow">
           <div class="text-2xl font-bold text-violet-500">{{ stats.avgDuration || '0' }}分钟</div>
           <div class="text-sm text-gray-500">平均时长</div>
         </div>
       </div>
 
       <!-- 分类筛选 -->
-      <div class="bg-white rounded-xl shadow-card p-4 mb-6">
+      <div class="bg-white rounded-2xl shadow-card border border-gray-50 p-5 mb-6">
         <div class="flex gap-2 overflow-x-auto pb-2">
           <button
             @click="selectedCategory = ''"
             :class="[
               'px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-300',
               selectedCategory === ''
-                ? 'bg-calm-500 text-white'
-                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                ? 'bg-gradient-to-r from-calm-500 to-emerald-500 text-white shadow-md'
+                : 'bg-white text-gray-600 border border-gray-200 hover:border-calm-200 hover:text-calm-600'
             ]"
           >
             全部
@@ -79,8 +80,8 @@
             :class="[
               'px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-300',
               selectedCategory === cat
-                ? 'bg-calm-500 text-white'
-                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                ? 'bg-gradient-to-r from-calm-500 to-emerald-500 text-white shadow-md'
+                : 'bg-white text-gray-600 border border-gray-200 hover:border-calm-200 hover:text-calm-600'
             ]"
           >
             {{ cat }}
@@ -98,7 +99,7 @@
           v-for="meditation in filteredMeditations"
           :key="meditation.id"
           @click="playMeditation(meditation)"
-          class="bg-white rounded-xl shadow-card p-6 cursor-pointer hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+          class="bg-white rounded-2xl shadow-card border border-gray-50 p-6 cursor-pointer hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
         >
           <div class="flex items-start gap-4">
             <div class="w-16 h-16 bg-gradient-to-br from-calm-400 to-calm-500 rounded-xl flex items-center justify-center text-3xl flex-shrink-0">
@@ -124,7 +125,7 @@
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="playingMeditation = null"
       >
-        <div class="bg-white rounded-2xl p-6 max-w-md w-full">
+        <div class="bg-white rounded-2xl shadow-card border border-gray-50 p-6 max-w-md w-full">
           <div class="text-center">
             <div class="w-24 h-24 bg-gradient-to-br from-calm-400 to-calm-500 rounded-full flex items-center justify-center text-5xl mx-auto mb-4">
               🧘
@@ -140,7 +141,7 @@
               </div>
               <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
-                  class="h-full bg-gradient-to-r from-calm-400 to-calm-500 transition-all duration-300"
+                  class="h-full bg-gradient-to-r from-calm-500 to-emerald-500 transition-all duration-300"
                   :style="{ width: `${(elapsedTime / (playingMeditation.duration * 60)) * 100}%` }"
                 ></div>
               </div>
@@ -150,7 +151,7 @@
             <div class="flex justify-center gap-4">
               <button
                 @click="togglePlay"
-                class="w-14 h-14 rounded-full bg-gradient-to-r from-calm-400 to-calm-500 text-white flex items-center justify-center text-2xl hover:shadow-lg transition-all duration-300"
+                class="w-14 h-14 rounded-full bg-gradient-to-r from-calm-500 to-emerald-500 text-white shadow-md flex items-center justify-center text-2xl hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
               >
                 {{ isPlaying ? '⏸️' : '▶️' }}
               </button>

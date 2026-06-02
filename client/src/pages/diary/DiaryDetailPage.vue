@@ -35,8 +35,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen pb-24">
-    <header class="bg-gradient-to-br from-rose-300 via-pink-400 to-orange-300 text-white p-6">
+  <div class="min-h-screen pb-24 bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30">
+    <header class="bg-gradient-to-br from-calm-400 via-emerald-400 to-calm-300 text-white p-6 relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+        <div class="absolute -bottom-8 -left-8 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
           <button 
@@ -68,7 +70,7 @@ onMounted(async () => {
     </header>
     
     <main v-if="diary" class="p-6">
-      <div class="card mb-6">
+      <div class="bg-white rounded-2xl shadow-card border border-gray-50 p-5 hover:shadow-card-hover transition-shadow mb-6">
         <div class="flex items-start justify-between mb-6">
           <div class="flex items-center gap-4">
             <span class="text-5xl">{{ moodOptions[diary.moodScore - 1]?.emoji }}</span>
@@ -85,9 +87,9 @@ onMounted(async () => {
         </div>
         
         <div class="grid grid-cols-2 gap-4 mb-6">
-          <div v-if="diary.triggerEvent" class="p-4 bg-warm-50 rounded-xl">
+          <div v-if="diary.triggerEvent" class="p-4 bg-calm-50 rounded-xl">
             <div class="flex items-center gap-2 mb-2">
-              <Tag class="w-4 h-4 text-warm-500" />
+              <Tag class="w-4 h-4 text-calm-600" />
               <span class="text-sm font-medium text-gray-600">触发因素</span>
             </div>
             <p class="text-sm text-gray-700">{{ diary.triggerEvent }}</p>
@@ -103,9 +105,9 @@ onMounted(async () => {
         </div>
 
         <div class="mb-6">
-          <div class="p-4 bg-yellow-50 rounded-xl">
+          <div class="p-4 bg-calm-50 rounded-xl">
             <div class="flex items-center gap-2 mb-2">
-              <Sun class="w-4 h-4 text-yellow-500" />
+              <Sun class="w-4 h-4 text-calm-600" />
               <span class="text-sm font-medium text-gray-600">睡眠时长</span>
             </div>
             <p class="text-sm text-gray-700">{{ diary.sleepHours ? diary.sleepHours + ' 小时' : '未记录' }}</p>
@@ -118,14 +120,14 @@ onMounted(async () => {
             <span 
               v-for="tag in diary.tags" 
               :key="tag"
-              class="px-3 py-1 bg-primary-100 text-primary-600 text-sm rounded-full"
+              class="px-3 py-1 bg-calm-50 text-calm-600 text-sm rounded-full"
             >
               {{ tag }}
             </span>
           </div>
         </div>
         
-        <div v-if="diary.aiInsight" class="p-4 bg-gradient-to-r from-calm-50 to-primary-50 rounded-xl border border-calm-200">
+        <div v-if="diary.aiInsight" class="p-4 bg-gradient-to-r from-calm-50 to-emerald-50 rounded-xl border border-calm-200">
           <h3 class="text-sm font-medium text-calm-800 mb-2 flex items-center gap-2">
             <span>💡</span>
             AI洞察

@@ -17,7 +17,7 @@ const recentDiary = ref<MoodDiary | null>(null);
 const recentArticles = ref<KnowledgeArticle[]>([]);
 
 const quickActions = [
-  { icon: MessageCircle, label: 'AI咨询', path: '/chat', bg: 'bg-gradient-to-br from-amber-400 to-orange-400', desc: '随时陪伴' },
+  { icon: MessageCircle, label: 'AI咨询', path: '/chat', bg: 'bg-gradient-to-br from-calm-500 to-emerald-500', desc: '随时陪伴' },
   { icon: Calendar, label: '情绪日记', path: '/diary', bg: 'bg-gradient-to-br from-rose-300 to-pink-400', desc: '记录心情' },
   { icon: Lightbulb, label: '冥想疗愈', path: '/meditation', bg: 'bg-gradient-to-br from-emerald-300 to-teal-400', desc: '放松身心' },
   { icon: Zap, label: '心理测评', path: '/questionnaire', bg: 'bg-gradient-to-br from-violet-300 to-purple-400', desc: '了解自己' },
@@ -91,14 +91,14 @@ const recommendations = computed(() => {
   if (avgScore <= 2.5) {
     recs.push(
       { title: '5分钟呼吸放松', desc: '帮助缓解焦虑和压力', path: '/meditation', icon: Music, bg: 'bg-gradient-to-br from-calm-400 to-calm-500' },
-      { title: '情绪管理自评量表', desc: '了解当前情绪状态', path: '/questionnaire', icon: ClipboardList, bg: 'bg-gradient-to-br from-primary-400 to-warm-400' },
-      { title: '与AI聊聊你的感受', desc: '24小时倾听，无评判的陪伴', path: '/chat', icon: Zap, bg: 'bg-gradient-to-br from-amber-400 to-orange-400' }
+      { title: '情绪管理自评量表', desc: '了解当前情绪状态', path: '/questionnaire', icon: ClipboardList, bg: 'bg-gradient-to-br from-calm-500 to-emerald-500' },
+      { title: '与AI聊聊你的感受', desc: '24小时倾听，无评判的陪伴', path: '/chat', icon: Zap, bg: 'bg-gradient-to-br from-calm-500 to-emerald-500' }
     );
   } else {
     recs.push(
       { title: '正念冥想练习', desc: '提升专注力和幸福感', path: '/meditation', icon: Music, bg: 'bg-gradient-to-br from-calm-400 to-calm-500' },
-      { title: '性格优势测评', desc: '发现你的内在力量', path: '/questionnaire', icon: ClipboardList, bg: 'bg-gradient-to-br from-primary-400 to-warm-400' },
-      { title: '保持你的好心情', desc: '与AI分享今天的快乐', path: '/chat', icon: Zap, bg: 'bg-gradient-to-br from-amber-400 to-orange-400' }
+      { title: '性格优势测评', desc: '发现你的内在力量', path: '/questionnaire', icon: ClipboardList, bg: 'bg-gradient-to-br from-calm-500 to-emerald-500' },
+      { title: '保持你的好心情', desc: '与AI分享今天的快乐', path: '/chat', icon: Zap, bg: 'bg-gradient-to-br from-calm-500 to-emerald-500' }
     );
   }
   return recs;
@@ -112,20 +112,23 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen pb-24 animate-page-enter">
+  <div class="min-h-screen pb-24 animate-page-enter bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30">
+    <!-- Decorative blobs -->
+    <div class="fixed top-0 left-0 w-72 h-72 bg-gradient-to-br from-calm-200/15 to-emerald-200/15 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+    <div class="fixed bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-calm-100/10 to-soft-100/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3 pointer-events-none"></div>
     <!-- Header -->
-    <header class="bg-gradient-to-br from-amber-100 via-orange-50 to-rose-50 px-6 pt-10 pb-8 rounded-b-3xl">
+    <header class="bg-gradient-to-br from-calm-100/60 via-white to-soft-50/60 backdrop-blur px-6 pt-10 pb-8 rounded-b-3xl border-b border-calm-50">
       <!-- Top bar -->
       <div class="flex items-center justify-between mb-6">
         <div>
-          <p class="text-amber-700 text-sm font-medium">{{ getGreeting() }} 👋</p>
+          <p class="text-calm-600 text-sm font-medium">{{ getGreeting() }} 👋</p>
           <h1 class="text-2xl font-bold text-gray-800 mt-1">{{ userStore.user?.nickname || '朋友' }}</h1>
         </div>
         <button
           class="w-11 h-11 rounded-2xl bg-white/70 backdrop-blur shadow-sm flex items-center justify-center hover:bg-white transition-all"
           @click="router.push('/user')"
         >
-          <Smile class="w-6 h-6 text-amber-500" />
+          <Smile class="w-6 h-6 text-calm-500" />
         </button>
       </div>
 
@@ -147,7 +150,7 @@ onMounted(async () => {
         </div>
         <!-- Quick mood record -->
         <button
-          class="mt-4 w-full py-2.5 bg-gradient-to-r from-amber-400 to-orange-400 text-white text-sm font-medium rounded-xl hover:shadow-md transition-all active:scale-[0.98]"
+          class="mt-4 w-full py-2.5 bg-gradient-to-r from-calm-500 to-emerald-500 text-white text-sm font-medium rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-[0.98]"
           @click="showMoodModal = true"
         >
           ✨ 记录今日心情
@@ -155,8 +158,8 @@ onMounted(async () => {
       </div>
 
       <!-- Quick Help Banner -->
-      <div class="mt-3 bg-gradient-to-r from-rose-100 via-amber-50 to-orange-50 rounded-2xl p-4 border border-rose-100/50 flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+      <div class="mt-3 bg-gradient-to-r from-calm-50 via-white to-soft-50 rounded-2xl p-4 border border-calm-100/50 flex items-center gap-3 shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-calm-500 to-emerald-500 flex items-center justify-center flex-shrink-0 shadow-sm">
           <Heart class="w-5 h-5 text-white" />
         </div>
         <div class="flex-1 min-w-0">
@@ -165,13 +168,13 @@ onMounted(async () => {
         </div>
         <div class="flex gap-2">
           <button
-            class="px-4 py-2 bg-white rounded-xl text-sm font-medium text-rose-600 shadow-sm hover:shadow-md transition-all active:scale-95 whitespace-nowrap"
+            class="px-4 py-2 bg-gradient-to-r from-calm-500 to-emerald-500 rounded-xl text-sm font-medium text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-95 whitespace-nowrap"
             @click="router.push('/chat')"
           >
             立即倾诉
           </button>
           <button
-            class="px-4 py-2 bg-white/50 rounded-xl text-sm font-medium text-rose-500 hover:bg-white hover:shadow-md transition-all active:scale-95 whitespace-nowrap"
+            class="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-calm-600 hover:border-calm-200 hover:text-calm-600 hover:shadow-md transition-all active:scale-95 whitespace-nowrap"
             @click="router.push('/user/hotline')"
           >
             援助热线
@@ -245,10 +248,10 @@ onMounted(async () => {
       <section class="mb-6">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-base font-semibold text-gray-800 flex items-center gap-2">
-            <Star class="w-4 h-4 text-amber-500" />
+            <Star class="w-4 h-4 text-calm-500" />
             今日推荐
           </h2>
-          <button class="text-amber-600 text-sm flex items-center gap-1 font-medium" @click="router.push('/knowledge')">
+          <button class="text-calm-600 text-sm flex items-center gap-1 font-medium hover:text-calm-700 transition-colors" @click="router.push('/knowledge')">
             更多 <ChevronRight class="w-3.5 h-3.5" />
           </button>
         </div>
@@ -272,8 +275,8 @@ onMounted(async () => {
             class="bg-white rounded-2xl p-4 flex gap-4 cursor-pointer hover:shadow-card-hover transition-all hover-lift"
             @click="router.push(`/knowledge/${article.id}`)"
           >
-            <div class="w-20 h-20 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex-shrink-0 flex items-center justify-center">
-              <BookOpen class="w-8 h-8 text-amber-400" />
+            <div class="w-20 h-20 rounded-xl bg-gradient-to-br from-calm-100 to-calm-200 flex-shrink-0 flex items-center justify-center">
+              <BookOpen class="w-8 h-8 text-calm-400" />
             </div>
             <div class="flex-1 min-w-0">
               <h3 class="font-medium text-gray-800 text-sm line-clamp-2 leading-snug">{{ article.title }}</h3>
@@ -308,7 +311,7 @@ onMounted(async () => {
             <Calendar class="w-4 h-4 text-rose-500" />
             最近记录
           </h2>
-          <button class="text-amber-600 text-sm flex items-center gap-1 font-medium" @click="router.push('/diary')">
+          <button class="text-calm-600 text-sm flex items-center gap-1 font-medium hover:text-calm-700 transition-colors" @click="router.push('/diary')">
             全部 <ChevronRight class="w-3.5 h-3.5" />
           </button>
         </div>
@@ -324,8 +327,8 @@ onMounted(async () => {
             </div>
           </div>
           <p v-if="recentDiary.content" class="text-gray-500 text-sm mb-3 line-clamp-2 leading-relaxed">{{ recentDiary.content }}</p>
-          <div v-if="recentDiary.aiInsight" class="bg-amber-50 rounded-xl p-3 border border-amber-100">
-            <p class="text-xs text-amber-800 leading-relaxed"><span class="font-medium">💡 AI洞察：</span>{{ recentDiary.aiInsight }}</p>
+          <div v-if="recentDiary.aiInsight" class="bg-calm-50 rounded-xl p-3 border border-calm-100">
+            <p class="text-xs text-calm-800 leading-relaxed"><span class="font-medium">💡 AI洞察：</span>{{ recentDiary.aiInsight }}</p>
           </div>
         </div>
       </section>
@@ -333,7 +336,7 @@ onMounted(async () => {
       <!-- Mood Trend -->
       <section>
         <h2 class="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
-          <TrendingUp class="w-4 h-4 text-amber-500" />
+          <TrendingUp class="w-4 h-4 text-calm-500" />
           情绪趋势
         </h2>
         <div class="bg-white rounded-2xl p-5">
@@ -347,7 +350,7 @@ onMounted(async () => {
                 class="w-full rounded-t-lg transition-all duration-500"
                 :class="index === 0 ? 'bg-gradient-to-t from-blue-300 to-blue-200' :
                         index === 1 ? 'bg-gradient-to-t from-indigo-300 to-indigo-200' :
-                        index === 2 ? 'bg-gradient-to-t from-amber-300 to-amber-200' :
+                        index === 2 ? 'bg-gradient-to-t from-calm-300 to-calm-200' :
                         index === 3 ? 'bg-gradient-to-t from-orange-300 to-orange-200' :
                                      'bg-gradient-to-t from-rose-300 to-rose-200'"
                 :style="{ height: `${Math.max((count / (diaryStats?.total || 1)) * 100, 6)}px` }"
@@ -380,7 +383,7 @@ onMounted(async () => {
               v-for="option in moodOptions"
               :key="option.score"
               class="flex flex-col items-center gap-2 p-3 rounded-2xl transition-all hover:bg-gray-50"
-              :class="{ 'bg-amber-50 ring-2 ring-amber-400 scale-110': todayMood === option.score }"
+              :class="{ 'bg-calm-50 ring-2 ring-calm-400 scale-110': todayMood === option.score }"
               @click="selectMood(option.score)"
             >
               <span class="text-3xl">{{ option.emoji }}</span>

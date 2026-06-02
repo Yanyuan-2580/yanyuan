@@ -87,8 +87,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen pb-24">
-    <header class="bg-gradient-to-br from-emerald-300 via-teal-400 to-sky-400 text-white p-6 rounded-b-3xl">
+  <div class="bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30 min-h-screen pb-24">
+    <header class="bg-gradient-to-br from-calm-400 via-calm-500 to-emerald-500 text-white p-6 rounded-b-3xl relative overflow-hidden">
+      <!-- Decorative blob -->
+      <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
+      <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 w-60 h-16 bg-white/5 rounded-full blur-xl"></div>
       <div class="flex items-center justify-between mb-2">
         <h1 class="text-2xl font-bold">心理健康知识库</h1>
         <button
@@ -101,12 +104,12 @@ onMounted(async () => {
       <p class="text-white/80">探索专业的心理健康知识</p>
 
       <div class="mt-4 relative">
-        <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+        <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
           v-model="searchQuery"
           type="text"
           placeholder="搜索文章..."
-          class="w-full pl-12 pr-4 py-3 bg-white/20 backdrop-blur rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/30"
+          class="w-full pl-11 pr-4 py-3.5 bg-white/90 backdrop-blur border border-white/30 rounded-2xl text-sm text-gray-700 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
         />
       </div>
     </header>
@@ -115,8 +118,8 @@ onMounted(async () => {
       <!-- Category filter (hidden when searching) -->
       <section v-if="!searchQuery" class="mb-6">
         <div class="flex items-center gap-2 mb-4">
-          <Filter class="w-5 h-5 text-gray-500" />
-          <span class="text-sm text-gray-600">分类筛选</span>
+          <Filter class="w-4 h-4 text-calm-500" />
+          <span class="text-sm text-gray-500">分类筛选</span>
         </div>
 
         <div class="flex gap-2 overflow-x-auto pb-2">
@@ -125,8 +128,8 @@ onMounted(async () => {
             :key="category.id"
             class="px-4 py-2 rounded-full whitespace-nowrap transition-all"
             :class="currentCategory === (category.id === 0 ? undefined : category.id)
-              ? 'bg-primary-500 text-white'
-              : 'bg-white text-gray-600 hover:bg-gray-50'"
+              ? 'bg-gradient-to-r from-calm-500 to-emerald-500 text-white shadow-md'
+              : 'bg-white text-gray-600 border border-gray-200 hover:border-calm-200 hover:text-calm-600'"
             @click="selectCategory(category.id)"
           >
             {{ category.name }}
@@ -137,15 +140,15 @@ onMounted(async () => {
       <!-- Personalized recommendation banner -->
       <section v-if="!searchQuery && recommendedArticles.length > 0" class="mb-6">
         <h2 class="text-sm font-semibold text-gray-800 flex items-center gap-2 mb-3">
-          <Zap class="w-4 h-4 text-warm-500" />
+          <Zap class="w-4 h-4 text-calm-600" />
           为你推荐
         </h2>
         <div class="space-y-3">
           <article v-for="article in recommendedArticles" :key="article.id"
                    class="card flex gap-4 cursor-pointer hover:shadow-card-hover transition-all hover-lift"
                    @click="router.push(`/knowledge/${article.id}`)">
-            <div class="w-20 h-20 rounded-xl bg-gradient-to-br from-warm-100 to-primary-100 flex-shrink-0 flex items-center justify-center">
-              <BookOpen class="w-8 h-8 text-warm-400" />
+            <div class="w-20 h-20 rounded-xl bg-calm-50 flex-shrink-0 flex items-center justify-center">
+              <BookOpen class="w-8 h-8 text-calm-500" />
             </div>
             <div class="flex-1 min-w-0">
               <h3 class="font-medium text-gray-800 text-sm line-clamp-2">{{ article.title }}</h3>
@@ -159,7 +162,7 @@ onMounted(async () => {
       <section>
         <!-- Loading -->
         <div v-if="isSearching" class="text-center py-12">
-          <div class="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div class="w-8 h-8 border-4 border-calm-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p class="text-sm text-gray-400">搜索中...</p>
         </div>
 
@@ -171,7 +174,7 @@ onMounted(async () => {
             class="card flex gap-4 cursor-pointer hover:shadow-xl transition-shadow"
             @click="router.push(`/knowledge/${article.id}`)"
           >
-            <div class="w-24 h-24 rounded-xl bg-gradient-to-br from-calm-100 to-primary-100 flex-shrink-0 flex items-center justify-center">
+            <div class="w-24 h-24 rounded-xl bg-calm-50 flex-shrink-0 flex items-center justify-center">
               <BookOpen class="w-10 h-10 text-calm-500" />
             </div>
             <div class="flex-1">
@@ -211,7 +214,7 @@ onMounted(async () => {
         </div>
 
         <div v-if="hasMore && !searchQuery" class="text-center mt-6">
-          <button class="btn-outline" @click="loadArticles()">
+          <button class="bg-white text-gray-600 border border-gray-200 hover:border-calm-200 hover:text-calm-600 px-6 py-3 rounded-2xl text-sm font-medium transition-all duration-200" @click="loadArticles()">
             加载更多
           </button>
         </div>

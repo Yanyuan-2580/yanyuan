@@ -36,33 +36,33 @@ const handleSave = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen pb-24 bg-gray-50">
+  <div class="min-h-screen pb-24 bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30">
     <PageHeader title="账号设置" :show-back="true" />
 
-    <div class="max-w-lg mx-auto px-4 py-6 space-y-6">
+    <div class="max-w-lg mx-auto px-4 py-6 space-y-5">
       <!-- Avatar -->
-      <section class="bg-white rounded-2xl p-4 shadow-sm">
+      <section class="card">
         <div class="flex items-center gap-4">
-          <div class="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden">
+          <div class="w-16 h-16 rounded-2xl bg-calm-50 flex items-center justify-center overflow-hidden border border-gray-100">
             <img v-if="avatarUrl" :src="avatarUrl" class="w-full h-full object-cover" />
-            <UserIcon v-else class="w-8 h-8 text-primary-500" />
+            <UserIcon v-else class="w-8 h-8 text-calm-500" />
           </div>
-          <div>
-            <p class="text-sm font-medium text-gray-900">头像</p>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-800 mb-1.5">头像</p>
             <input
               v-model="avatarUrl"
               type="text"
               placeholder="输入头像URL地址"
-              class="input-field mt-1 text-sm"
+              class="input-field"
             />
           </div>
         </div>
       </section>
 
       <!-- Profile -->
-      <section class="bg-white rounded-2xl p-4 shadow-sm space-y-4">
+      <section class="card space-y-4">
         <div>
-          <label class="text-sm font-medium text-gray-500 block mb-1">昵称</label>
+          <label class="text-[13px] font-medium text-gray-600 block mb-1.5 ml-1">昵称</label>
           <input
             v-model="nickname"
             type="text"
@@ -72,49 +72,52 @@ const handleSave = async () => {
           />
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-500 block mb-1">邮箱</label>
-          <div class="flex items-center gap-2">
-            <Mail class="w-4 h-4 text-gray-400" />
+          <label class="text-[13px] font-medium text-gray-600 block mb-1.5 ml-1">邮箱</label>
+          <div class="relative">
+            <div class="absolute left-4 top-1/2 -translate-y-1/2">
+              <Mail class="w-4 h-4 text-gray-300" />
+            </div>
             <input
               v-model="email"
               type="email"
               placeholder="绑定邮箱"
-              class="input-field w-full"
+              class="input-field w-full pl-11"
             />
           </div>
         </div>
       </section>
 
       <!-- Message -->
-      <p v-if="message" class="text-sm text-center" :class="message.includes('成功') ? 'text-green-500' : 'text-red-500'">
+      <p v-if="message" class="text-sm text-center animate-fade-in"
+        :class="message.includes('成功') ? 'text-emerald-500' : 'text-red-500'">
         {{ message }}
       </p>
 
       <!-- Save -->
       <button
-        class="btn-primary w-full py-3 flex items-center justify-center gap-2"
+        class="btn-primary w-full py-3.5 flex items-center justify-center gap-2"
         :disabled="isSaving"
         @click="handleSave"
       >
-        <Save class="w-5 h-5" />
+        <Save class="w-4 h-4" />
         {{ isSaving ? '保存中...' : '保存设置' }}
       </button>
 
       <!-- Navigation -->
-      <div class="space-y-1">
+      <div class="space-y-2">
         <button
-          class="w-full bg-white rounded-2xl p-4 text-left shadow-sm flex items-center justify-between hover:bg-gray-50"
+          class="w-full card flex items-center justify-between hover:border-calm-200 transition-all duration-200"
           @click="router.push('/user/change-password')"
         >
           <span class="text-sm font-medium text-gray-700">修改密码</span>
-          <span class="text-gray-400">›</span>
+          <span class="text-gray-300 text-lg">›</span>
         </button>
         <button
-          class="w-full bg-white rounded-2xl p-4 text-left shadow-sm flex items-center justify-between hover:bg-gray-50"
+          class="w-full card flex items-center justify-between hover:border-calm-200 transition-all duration-200"
           @click="router.push('/user/reminders')"
         >
           <span class="text-sm font-medium text-gray-700">提醒设置</span>
-          <span class="text-gray-400">›</span>
+          <span class="text-gray-300 text-lg">›</span>
         </button>
       </div>
     </div>

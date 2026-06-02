@@ -64,14 +64,14 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
 </script>
 
 <template>
-  <div class="min-h-screen pb-24 bg-gray-50">
+  <div class="min-h-screen pb-24 bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30">
     <PageHeader title="提醒设置" :show-back="true" />
 
     <div class="max-w-lg mx-auto px-4 py-6 space-y-3">
       <div
         v-for="r in reminders"
         :key="r.id"
-        class="bg-white rounded-2xl p-4 shadow-sm flex items-center justify-between"
+        class="bg-white rounded-2xl p-4 shadow-card border border-gray-50 flex items-center justify-between hover:shadow-card-hover transition-shadow"
       >
         <div class="flex-1 min-w-0">
           <h4 class="text-sm font-medium text-gray-800">{{ r.title }}</h4>
@@ -82,7 +82,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
         <div class="flex items-center gap-2 ml-4">
           <button
             class="relative w-11 h-6 rounded-full transition-colors"
-            :class="r.enabled ? 'bg-primary-500' : 'bg-gray-300'"
+            :class="r.enabled ? 'bg-calm-600' : 'bg-gray-300'"
             @click="toggleReminder(r)"
           >
             <span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform" :class="r.enabled ? 'translate-x-5 left-0.5' : 'left-0.5'" />
@@ -101,7 +101,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
       />
 
       <button
-        class="w-full bg-white border-2 border-dashed border-gray-300 rounded-2xl p-4 text-sm text-gray-400 hover:text-primary-500 hover:border-primary-300 flex items-center justify-center gap-2"
+        class="w-full bg-white border-2 border-dashed border-gray-200 rounded-2xl p-4 text-sm text-gray-400 hover:text-calm-600 hover:border-calm-300 flex items-center justify-center gap-2 transition-colors"
         @click="showAddDialog"
       >
         <Plus class="w-5 h-5" />

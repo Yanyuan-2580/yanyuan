@@ -96,7 +96,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen pb-24">
+  <div class="min-h-screen pb-24 bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30">
     <PageHeader title="编辑日记" :show-back="true" />
 
     <LoadingSpinner v-if="isLoading" message="加载日记中..." />
@@ -110,7 +110,7 @@ const handleSubmit = async () => {
             v-for="option in moodOptions"
             :key="option.score"
             class="flex flex-col items-center gap-2 p-3 rounded-xl transition-all"
-            :class="moodScore === option.score ? 'bg-primary-50 ring-2 ring-primary-500 scale-110' : 'hover:bg-gray-50'"
+            :class="moodScore === option.score ? 'bg-calm-50 ring-2 ring-calm-500 scale-110' : 'hover:bg-gray-50'"
             @click="moodScore = option.score"
           >
             <span class="text-3xl">{{ option.emoji }}</span>
@@ -127,7 +127,7 @@ const handleSubmit = async () => {
             v-for="tag in availableTags"
             :key="tag"
             class="px-4 py-2 rounded-full text-sm transition-all"
-            :class="moodTags.includes(tag) ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+            :class="moodTags.includes(tag) ? 'bg-gradient-to-r from-calm-500 to-emerald-500 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
             @click="toggleTag(tag)"
           >
             {{ tag }}
@@ -143,7 +143,7 @@ const handleSubmit = async () => {
             v-model="triggerEvent"
             type="text"
             placeholder="是什么影响了你的心情？"
-            class="input-field w-full"
+            class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
           />
         </div>
         <div>
@@ -152,7 +152,7 @@ const handleSubmit = async () => {
             v-model="bodyFeeling"
             type="text"
             placeholder="身体有什么感受？"
-            class="input-field w-full"
+            class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
           />
         </div>
         <div>
@@ -164,7 +164,7 @@ const handleSubmit = async () => {
             max="24"
             step="1"
             placeholder="昨晚睡了多久？（整数）"
-            class="input-field w-full"
+            class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
           />
         </div>
       </section>
@@ -176,7 +176,7 @@ const handleSubmit = async () => {
           v-model="content"
           rows="6"
           placeholder="写下你想记录的内容..."
-          class="input-field w-full resize-none"
+          class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200 resize-none"
         ></textarea>
       </section>
 
@@ -188,7 +188,7 @@ const handleSubmit = async () => {
         </div>
         <button
           class="relative w-12 h-7 rounded-full transition-colors"
-          :class="isPublic ? 'bg-primary-500' : 'bg-gray-300'"
+          :class="isPublic ? 'bg-gradient-to-r from-calm-500 to-emerald-500' : 'bg-gray-300'"
           @click="isPublic = isPublic ? 0 : 1"
         >
           <span
@@ -200,7 +200,7 @@ const handleSubmit = async () => {
 
       <!-- Submit -->
       <button
-        class="btn-primary w-full py-3 text-base flex items-center justify-center gap-2"
+        class="bg-gradient-to-r from-calm-500 to-emerald-500 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 w-full py-3 text-base font-medium rounded-xl flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98]"
         :disabled="isSaving"
         @click="handleSubmit"
       >

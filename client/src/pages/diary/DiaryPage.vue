@@ -67,15 +67,18 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen pb-24">
-    <header class="bg-gradient-to-br from-rose-300 via-pink-400 to-orange-300 text-white p-6 rounded-b-3xl">
-      <div class="flex items-center justify-between mb-6">
+  <div class="bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30 min-h-screen pb-24">
+    <header class="relative bg-gradient-to-br from-calm-400 via-calm-500 to-emerald-500 text-white p-6 rounded-b-3xl overflow-hidden">
+      <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+      <div class="absolute -bottom-8 -left-8 w-32 h-32 bg-emerald-300/20 rounded-full blur-xl"></div>
+      <div class="relative z-10">
+        <div class="flex items-center justify-between mb-6">
         <div>
           <h1 class="text-2xl font-bold">情绪日记</h1>
           <p class="text-white/80 mt-1">记录每一天的心情变化</p>
         </div>
         <button
-          class="btn-primary"
+          class="px-6 py-3 bg-gradient-to-r from-calm-500 to-emerald-500 text-white font-medium rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
           @click="router.push('/diary/new')"
         >
           <Plus class="w-5 h-5 inline-block mr-1" />
@@ -98,6 +101,7 @@ onMounted(() => {
           <div class="text-center">
             <p class="text-white/70 text-sm">本月</p>
             <p class="text-2xl font-bold">{{ monthCount }}</p>
+          </div>
           </div>
         </div>
       </div>
@@ -122,19 +126,19 @@ onMounted(() => {
       </div>
 
       <!-- 加载错误 -->
-      <div v-else-if="loadError" class="card text-center py-12">
+      <div v-else-if="loadError" class="bg-white rounded-2xl shadow-card border border-gray-50 p-8 text-center py-12">
         <span class="text-4xl mb-3 block">😵</span>
         <h2 class="text-lg font-semibold text-gray-800 mb-2">加载失败</h2>
         <p class="text-gray-500 mb-6">请检查网络后重试</p>
-        <button class="btn-primary" @click="loadDiaries()">重新加载</button>
+        <button class="px-6 py-3 bg-gradient-to-r from-calm-500 to-emerald-500 text-white font-medium rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200" @click="loadDiaries()">重新加载</button>
       </div>
 
       <!-- 空状态 -->
-      <div v-else-if="diaries.length === 0" class="card text-center py-12">
-        <Calendar class="w-16 h-16 mx-auto mb-4 text-gray-300" />
+      <div v-else-if="diaries.length === 0" class="bg-white rounded-2xl shadow-card border border-gray-50 p-8 text-center py-12">
+        <Calendar class="w-16 h-16 mx-auto mb-4 text-calm-300" />
         <h2 class="text-lg font-semibold text-gray-800 mb-2">还没有日记记录</h2>
         <p class="text-gray-500 mb-6">开始记录你的第一篇情绪日记吧</p>
-        <button class="btn-primary" @click="router.push('/diary/new')">
+        <button class="px-6 py-3 bg-gradient-to-r from-calm-500 to-emerald-500 text-white font-medium rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200" @click="router.push('/diary/new')">
           <Plus class="w-5 h-5 inline-block mr-1" />
           写第一篇日记
         </button>
@@ -144,7 +148,7 @@ onMounted(() => {
         <article
           v-for="diary in diaries"
           :key="diary.id"
-          class="card cursor-pointer hover:shadow-xl transition-shadow"
+          class="bg-white rounded-2xl shadow-card border border-gray-50 p-5 cursor-pointer hover:shadow-card-hover transition-shadow"
           @click="router.push(`/diary/${diary.id}`)"
         >
           <div class="flex items-start justify-between mb-3">
@@ -171,7 +175,7 @@ onMounted(() => {
             <span
               v-for="tag in diary.tags"
               :key="tag"
-              class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
+              class="px-2 py-1 bg-calm-50 text-calm-600 text-xs rounded-full"
             >
               #{{ tag }}
             </span>
@@ -184,7 +188,7 @@ onMounted(() => {
 
         <div v-if="page * pageSize < total" class="text-center py-4">
           <button
-            class="btn-outline"
+            class="px-6 py-3 bg-white text-gray-600 font-medium rounded-xl border border-gray-200 hover:border-calm-200 hover:text-calm-600 transition-all duration-200"
             :disabled="loading"
             @click="loadMore"
           >

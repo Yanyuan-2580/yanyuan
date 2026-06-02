@@ -252,20 +252,20 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen pb-24 flex flex-col bg-[#faf8f5]">
+  <div class="min-h-screen pb-24 flex flex-col bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30">
     <!-- Header -->
-    <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+    <header class="bg-white/85 backdrop-blur border-b border-calm-100 px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-sm">
       <div class="flex items-center gap-3">
         <button
           v-if="currentSession"
-          class="flex items-center gap-1 px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm text-gray-600 transition-colors"
+          class="flex items-center gap-1 px-3 py-2 rounded-xl bg-calm-50 hover:bg-calm-100 text-sm text-calm-600 transition-colors"
           @click="showSessionList = !showSessionList"
         >
           <MessageCircle class="w-4 h-4" />
           <span class="text-xs font-medium">历史</span>
         </button>
         <div class="flex items-center gap-2">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-warm-400 flex items-center justify-center">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-calm-500 to-emerald-500 flex items-center justify-center shadow-md">
             <span class="text-white font-semibold">AI</span>
           </div>
           <div>
@@ -284,7 +284,7 @@ onMounted(async () => {
           <Square class="w-4 h-4 text-red-500" />
         </button>
         <button
-          class="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center hover:bg-primary-600"
+          class="w-10 h-10 rounded-full bg-gradient-to-r from-calm-500 to-emerald-500 flex items-center justify-center text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
           @click="createNewSession"
         >
           <Plus class="w-5 h-5 text-white" />
@@ -309,8 +309,8 @@ onMounted(async () => {
           <button
             v-for="session in sessions"
             :key="session.id"
-            class="w-full text-left p-3 rounded-xl hover:bg-amber-50 transition-colors"
-            :class="{ 'bg-amber-50 border border-amber-200': currentSession?.id === session.id }"
+            class="w-full text-left p-3 rounded-xl hover:bg-calm-50 transition-colors"
+            :class="{ 'bg-calm-50 border border-calm-200': currentSession?.id === session.id }"
             @click="selectSession(session)"
           >
             <p class="font-medium text-sm text-gray-800 truncate">{{ session.title || '未命名会话' }}</p>
@@ -331,7 +331,7 @@ onMounted(async () => {
     <main ref="messagesContainer" class="flex-1 overflow-y-auto px-4 py-6 space-y-4">
       <!-- Welcome Screen -->
       <div v-if="messages.length === 0 && !isStreaming" class="text-center py-8 px-4">
-        <div class="w-24 h-24 rounded-full bg-gradient-to-br from-amber-100 via-orange-100 to-rose-100 flex items-center justify-center mx-auto mb-6 shadow-soft animate-float">
+        <div class="w-24 h-24 rounded-full bg-gradient-to-br from-calm-100 via-emerald-100 to-soft-100 flex items-center justify-center mx-auto mb-6 shadow-soft animate-float">
           <span class="text-5xl">🧘</span>
         </div>
         <h2 class="text-xl font-bold text-gray-800 mb-2">你好，我是你的心理陪伴助手</h2>
@@ -339,15 +339,15 @@ onMounted(async () => {
         <div class="space-y-3 max-w-sm mx-auto text-left">
           <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1">情绪支持</div>
           <div class="grid grid-cols-2 gap-2">
-            <button v-for="p in emotionPrompts" :key="p" class="p-3 rounded-xl bg-white border border-gray-100 text-sm text-gray-600 hover:border-amber-200 hover:shadow-card transition-all" @click="inputMessage = p; sendMessage()">{{ p }}</button>
+            <button v-for="p in emotionPrompts" :key="p" class="p-3 rounded-xl bg-white border border-gray-100 text-sm text-gray-600 hover:border-calm-200 hover:shadow-card transition-all" @click="inputMessage = p; sendMessage()">{{ p }}</button>
           </div>
           <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1 mt-3">日常困扰</div>
           <div class="grid grid-cols-2 gap-2">
-            <button v-for="p in lifePrompts" :key="p" class="p-3 rounded-xl bg-white border border-gray-100 text-sm text-gray-600 hover:border-amber-200 hover:shadow-card transition-all" @click="inputMessage = p; sendMessage()">{{ p }}</button>
+            <button v-for="p in lifePrompts" :key="p" class="p-3 rounded-xl bg-white border border-gray-100 text-sm text-gray-600 hover:border-calm-200 hover:shadow-card transition-all" @click="inputMessage = p; sendMessage()">{{ p }}</button>
           </div>
           <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1 mt-3">自我探索</div>
           <div class="grid grid-cols-2 gap-2">
-            <button v-for="p in growthPrompts" :key="p" class="p-3 rounded-xl bg-white border border-gray-100 text-sm text-gray-600 hover:border-amber-200 hover:shadow-card transition-all" @click="inputMessage = p; sendMessage()">{{ p }}</button>
+            <button v-for="p in growthPrompts" :key="p" class="p-3 rounded-xl bg-white border border-gray-100 text-sm text-gray-600 hover:border-calm-200 hover:shadow-card transition-all" @click="inputMessage = p; sendMessage()">{{ p }}</button>
           </div>
         </div>
       </div>
@@ -361,20 +361,20 @@ onMounted(async () => {
       >
         <div
           class="w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-xs font-medium shadow-sm"
-          :class="msg.role === 'user' ? 'bg-gradient-to-br from-amber-400 to-orange-500' : 'bg-gradient-to-br from-emerald-400 to-teal-500'"
+          :class="msg.role === 'user' ? 'bg-gradient-to-br from-calm-500 to-emerald-500' : 'bg-gradient-to-br from-emerald-400 to-teal-500'"
         >
           {{ msg.role === 'user' ? '我' : 'AI' }}
         </div>
         <div
           class="max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed animate-message-in"
           :class="msg.role === 'user'
-            ? 'bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-br-md'
+            ? 'bg-gradient-to-r from-calm-500 to-emerald-500 text-white rounded-br-md'
             : 'bg-white text-gray-700 rounded-bl-md shadow-card border border-gray-50'"
         >
           {{ msg.content }}
           <!-- Mood tag -->
           <div v-if="msg.moodTag" class="mt-2">
-            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700 border border-amber-200">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-calm-50 text-calm-700 border border-calm-200">
               <span>{{ getMoodEmoji(msg.moodTag) }}</span>
               {{ msg.moodTag }}
             </span>
@@ -390,7 +390,7 @@ onMounted(async () => {
         <div
           class="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-bl-md text-sm leading-relaxed bg-white text-gray-700 shadow-card border border-gray-50"
         >
-          {{ streamingContent || '' }}<span class="inline-block w-1.5 h-4 bg-primary-500 animate-pulse ml-0.5 align-middle"></span>
+          {{ streamingContent || '' }}<span class="inline-block w-1.5 h-4 bg-calm-500 animate-pulse ml-0.5 align-middle"></span>
         </div>
       </div>
     </main>
@@ -401,7 +401,7 @@ onMounted(async () => {
         <textarea
           v-model="inputMessage"
           rows="1"
-          class="flex-1 resize-none rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-300 max-h-32 transition-all placeholder:text-gray-400"
+          class="flex-1 resize-none rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 max-h-32 transition-all duration-200 placeholder:text-gray-300"
           placeholder="说说你的感受..."
           :disabled="isStreaming"
           @keydown="handleKeydown"
@@ -409,7 +409,7 @@ onMounted(async () => {
         ></textarea>
         <button
           class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all active:scale-95"
-          :class="inputMessage.trim() && !isStreaming ? 'bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-soft hover:shadow-md' : 'bg-gray-100 text-gray-400 cursor-not-allowed'"
+          :class="inputMessage.trim() && !isStreaming ? 'bg-gradient-to-r from-calm-500 to-emerald-500 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5' : 'bg-gray-100 text-gray-400 cursor-not-allowed'"
           :disabled="!inputMessage.trim() || isStreaming"
           @click="sendMessage"
         >

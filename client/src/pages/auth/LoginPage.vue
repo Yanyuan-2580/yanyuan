@@ -37,10 +37,10 @@ const handleRegister = () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center p-4">
+  <div class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30">
     <div class="w-full max-w-md animate-fadeIn">
       <div class="glass-card text-center mb-8">
-        <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 flex items-center justify-center shadow-soft">
+        <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-calm-400 to-emerald-500 flex items-center justify-center shadow-soft">
           <MessageCircle class="w-10 h-10 text-white" />
         </div>
         <h1 class="text-2xl font-bold text-gray-800 mb-2">心理健康AI助手</h1>
@@ -108,7 +108,7 @@ const handleRegister = () => {
         
         <p class="mt-6 text-center text-gray-500 text-sm">
           还没有账号？
-          <button class="text-primary-500 hover:text-primary-600 font-medium" @click="handleRegister">
+          <button class="text-calm-500 hover:text-calm-600 font-medium" @click="handleRegister">
             立即注册
           </button>
         </p>

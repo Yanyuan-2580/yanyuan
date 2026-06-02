@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-4">
-    <h3 class="text-lg font-semibold text-gray-800">
-      评论 {{ total > 0 ? `(${total})` : '' }}
+    <h3 class="text-lg font-bold text-gray-800 mb-1">
+      评论 <span v-if="total > 0" class="text-calm-500 font-normal">({{ total }})</span>
     </h3>
 
     <!-- Comment Items -->
@@ -9,12 +9,12 @@
       <div
         v-for="comment in comments"
         :key="comment.id"
-        class="bg-white rounded-2xl p-4 shadow-sm border border-gray-50"
+        class="bg-white rounded-2xl p-4 shadow-card border border-gray-50"
       >
         <!-- Top-level comment -->
         <div class="flex gap-3">
-          <div class="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-            <span class="text-primary-600 text-xs font-semibold">
+          <div class="w-9 h-9 rounded-xl bg-calm-50 flex items-center justify-center flex-shrink-0">
+            <span class="text-calm-600 text-xs font-semibold">
               {{ comment.user?.nickname?.[0] || '匿' }}
             </span>
           </div>
@@ -25,7 +25,7 @@
             </div>
             <p class="text-sm text-gray-600 leading-relaxed">{{ comment.content }}</p>
             <button
-              class="text-xs text-gray-400 hover:text-primary-500 mt-2"
+              class="text-xs text-gray-400 hover:text-calm-500 mt-2 transition-colors"
               @click="toggleReply(comment.id)"
             >回复</button>
           </div>
@@ -76,7 +76,7 @@
     <!-- Load More -->
     <div v-if="hasMore" class="text-center">
       <button
-        class="text-sm text-primary-500 hover:underline"
+        class="text-sm text-calm-500 hover:text-calm-600 font-medium transition-colors"
         @click="$emit('loadMore')"
       >加载更多评论</button>
     </div>

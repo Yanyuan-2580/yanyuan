@@ -41,36 +41,36 @@ html, body {
 @layer components {
   /* 主按钮 */
   .btn-primary {
-    @apply px-6 py-3 bg-primary-500 text-white font-medium rounded-xl
-           hover:bg-primary-600 active:scale-[0.98]
+    @apply px-6 py-3 bg-gradient-to-r from-calm-500 to-emerald-500 text-white font-medium rounded-xl
+           hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98]
            transition-all duration-200;
     box-shadow: 0 4px 20px rgba(0,0,0,0.05);
   }
 
   /* 次按钮 */
   .btn-secondary {
-    @apply px-6 py-3 bg-white text-primary-600 font-medium rounded-xl
-           border border-primary-200 hover:border-primary-400 hover:bg-primary-50
+    @apply px-6 py-3 bg-white text-calm-600 font-medium rounded-xl
+           border border-calm-200 hover:border-calm-400 hover:bg-calm-50
            transition-all duration-200;
   }
 
   /* 描边按钮 */
   .btn-outline {
-    @apply px-6 py-3 bg-transparent text-gray-600 font-medium rounded-xl
-           border border-gray-200 hover:border-gray-300 hover:bg-gray-50
+    @apply px-6 py-3 bg-white text-gray-600 font-medium rounded-xl
+           border border-gray-200 hover:border-calm-200 hover:text-calm-600
            transition-all duration-200;
   }
 
   /* 输入框 */
   .input-field {
-    @apply w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl
-           focus:bg-white focus:border-primary-300 focus:ring-4 focus:ring-primary-50
-           outline-none transition-all duration-200 placeholder:text-gray-400;
+    @apply w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl
+           focus:bg-white focus:border-calm-300 focus:ring-2 focus:ring-calm-200/50
+           outline-none transition-all duration-200 placeholder:text-gray-300 text-sm;
   }
 
   /* 基础卡片 */
   .card {
-    @apply bg-white rounded-2xl p-5 transition-all duration-300;
+    @apply bg-white rounded-2xl p-5 transition-all duration-300 border border-gray-50;
     box-shadow: 0 2px 16px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03);
   }
   .card:hover {
@@ -91,14 +91,14 @@ html, body {
 
   /* 页面头部 */
   .page-header-gradient {
-    @apply bg-gradient-to-br from-primary-400 via-primary-500 to-warm-400
+    @apply bg-gradient-to-br from-calm-500 to-emerald-600
            text-white;
   }
 
   /* 标签 */
   .tag {
     @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-           bg-primary-50 text-primary-600;
+           bg-calm-50 text-calm-600;
   }
 
   .tag-outline {

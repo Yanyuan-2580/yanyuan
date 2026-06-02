@@ -63,17 +63,17 @@ onMounted(loadNotifications);
 </script>
 
 <template>
-  <div class="min-h-screen pb-24 bg-gray-50">
+  <div class="min-h-screen pb-24 bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30">
     <PageHeader title="消息通知">
       <template #right>
-        <button class="text-xs text-primary-500" @click="markAllAsRead">全部已读</button>
+        <button class="text-xs text-calm-600 hover:text-calm-700 font-medium" @click="markAllAsRead">全部已读</button>
       </template>
     </PageHeader>
 
     <div class="max-w-lg mx-auto px-4 py-2">
       <button
         class="text-xs px-3 py-1 rounded-full mb-3 transition-colors"
-        :class="unreadOnly ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-600'"
+        :class="unreadOnly ? 'bg-calm-600 text-white' : 'bg-white text-gray-600 border border-gray-200'"
         @click="unreadOnly = !unreadOnly; loadNotifications()"
       >
         {{ unreadOnly ? '仅看未读' : '显示全部' }}
@@ -86,8 +86,8 @@ onMounted(loadNotifications);
       <div
         v-for="n in notifications"
         :key="n.id"
-        class="bg-white rounded-xl p-4 shadow-sm cursor-pointer transition-colors"
-        :class="{ 'border-l-4 border-primary-500 bg-primary-50': !n.isRead }"
+        class="bg-white rounded-2xl p-4 shadow-card border border-gray-50 cursor-pointer transition-all hover:shadow-card-hover"
+        :class="{ 'border-l-4 border-calm-600 bg-calm-50/60': !n.isRead }"
         @click="markAsRead(n.id)"
       >
         <div class="flex items-start gap-3">

@@ -49,54 +49,58 @@ const submit = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30">
+    <!-- Decorative blobs -->
+    <div class="absolute top-0 right-0 w-64 h-64 bg-calm-200/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+    <div class="absolute top-20 left-0 w-48 h-48 bg-soft-200/20 rounded-full blur-3xl -translate-x-1/2 pointer-events-none" />
+
     <PageHeader title="发布文章" :show-back="true" />
 
     <div class="max-w-2xl mx-auto px-4 py-6 space-y-4">
-      <div>
+      <div class="card">
         <label class="text-sm font-medium text-gray-700 mb-2 block">标题</label>
         <input
           v-model="title"
           type="text"
           placeholder="输入文章标题..."
-          class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent"
+          class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
         />
       </div>
 
-      <div>
+      <div class="card">
         <label class="text-sm font-medium text-gray-700 mb-2 block">分类</label>
         <select
           v-model="categoryId"
-          class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400"
+          class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm text-gray-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
         >
           <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
         </select>
       </div>
 
-      <div>
+      <div class="card">
         <label class="text-sm font-medium text-gray-700 mb-2 block">标签（用逗号分隔）</label>
         <input
           v-model="tags"
           type="text"
           placeholder="如：焦虑, 放松, 冥想"
-          class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent"
+          class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
         />
       </div>
 
-      <div>
+      <div class="card">
         <label class="text-sm font-medium text-gray-700 mb-2 block">内容</label>
         <textarea
           v-model="content"
           rows="12"
           placeholder="写下你想分享的内容..."
-          class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent resize-none"
+          class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200 resize-none"
         ></textarea>
       </div>
 
       <button
         @click="submit"
         :disabled="submitting"
-        class="w-full py-3 bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600 transition-colors disabled:opacity-50"
+        class="w-full py-3.5 bg-gradient-to-r from-calm-500 to-emerald-500 text-white rounded-2xl font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:hover:translate-y-0"
       >
         {{ submitting ? '提交中...' : '提交审核' }}
       </button>

@@ -63,8 +63,8 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen">
-    <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-4">
+  <div class="bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30 min-h-screen">
+    <header class="bg-gradient-to-r from-calm-50 via-white to-soft-50 border-b border-gray-100 px-4 py-3 flex items-center gap-4">
       <button 
         class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center"
         @click="router.back()"
@@ -72,8 +72,8 @@ const handleSubmit = async () => {
         <ArrowLeft class="w-5 h-5 text-gray-600" />
       </button>
       <h1 class="text-lg font-semibold text-gray-800">写日记</h1>
-      <button 
-        class="ml-auto btn-primary"
+      <button
+        class="ml-auto px-6 py-3 bg-gradient-to-r from-calm-500 to-emerald-500 text-white font-medium rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 disabled:opacity-60"
         :disabled="isSaving"
         @click="handleSubmit"
       >
@@ -83,7 +83,7 @@ const handleSubmit = async () => {
     </header>
     
     <main class="p-6 space-y-6">
-      <section class="card">
+      <section class="bg-white rounded-2xl shadow-card border border-gray-50 p-5">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">今天的心情</h2>
         <div class="grid grid-cols-5 gap-4">
           <button
@@ -91,7 +91,7 @@ const handleSubmit = async () => {
             :key="option.score"
             class="flex flex-col items-center gap-2 p-3 rounded-2xl transition-all"
             :class="moodScore === option.score 
-              ? 'bg-primary-50 ring-2 ring-primary-400 scale-105' 
+              ? 'bg-calm-50 ring-2 ring-calm-400 scale-105'
               : 'bg-gray-50 hover:bg-gray-100'"
             @click="moodScore = option.score"
           >
@@ -101,7 +101,7 @@ const handleSubmit = async () => {
         </div>
       </section>
       
-      <section class="card">
+      <section class="bg-white rounded-2xl shadow-card border border-gray-50 p-5">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">情绪标签</h2>
         <div class="flex flex-wrap gap-2">
           <button
@@ -109,7 +109,7 @@ const handleSubmit = async () => {
             :key="tag"
             class="px-4 py-2 rounded-full text-sm transition-all"
             :class="moodTags.includes(tag) 
-              ? 'bg-primary-500 text-white' 
+              ? 'bg-calm-500 text-white'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
             @click="toggleTag(tag)"
           >
@@ -119,7 +119,7 @@ const handleSubmit = async () => {
         <p class="text-xs text-gray-500 mt-2">最多选择5个标签</p>
       </section>
       
-      <section class="card">
+      <section class="bg-white rounded-2xl shadow-card border border-gray-50 p-5">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">详细记录</h2>
         
         <div class="space-y-4">
@@ -132,7 +132,7 @@ const handleSubmit = async () => {
               v-model="triggerEvent"
               placeholder="是什么事情让你有这样的感受？"
               rows="3"
-              class="input-field"
+              class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
             ></textarea>
           </div>
           
@@ -145,7 +145,7 @@ const handleSubmit = async () => {
               v-model="bodyFeeling"
               placeholder="身体有什么感觉？比如：头痛、胸闷、放松..."
               rows="3"
-              class="input-field"
+              class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
             ></textarea>
           </div>
           
@@ -161,7 +161,7 @@ const handleSubmit = async () => {
               max="24"
               step="1"
               placeholder="昨晚睡了几个小时（整数）"
-              class="input-field"
+              class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
             />
           </div>
           
@@ -174,13 +174,13 @@ const handleSubmit = async () => {
               v-model="content"
               placeholder="写下今天的心情故事..."
               rows="6"
-              class="input-field"
+              class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
             ></textarea>
           </div>
         </div>
       </section>
       
-      <section class="card">
+      <section class="bg-white rounded-2xl shadow-card border border-gray-50 p-5">
         <label class="flex items-center justify-between cursor-pointer">
           <div>
             <p class="font-medium text-gray-800">设为公开</p>
@@ -188,7 +188,7 @@ const handleSubmit = async () => {
           </div>
           <button
             class="relative w-12 h-6 rounded-full transition-colors"
-            :class="isPublic ? 'bg-primary-500' : 'bg-gray-300'"
+            :class="isPublic ? 'bg-calm-500' : 'bg-gray-300'"
             @click="isPublic = isPublic ? 0 : 1"
           >
             <span

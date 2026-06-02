@@ -108,8 +108,8 @@ watch(() => route.fullPath, async () => {
 </script>
 
 <template>
-  <div class="min-h-screen pb-24">
-    <header class="bg-gradient-to-br from-amber-400 via-orange-400 to-rose-400 text-white p-6 rounded-b-3xl">
+  <div class="min-h-screen pb-24 bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30">
+    <header class="bg-gradient-to-br from-calm-500 via-calm-600 to-emerald-600 text-white p-6 rounded-b-3xl shadow-lg">
       <h1 class="text-xl font-semibold mb-6">我的</h1>
       
       <div class="flex items-center gap-4">
@@ -177,15 +177,15 @@ watch(() => route.fullPath, async () => {
       <section class="mb-6">
         <div class="card">
           <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Award class="w-5 h-5 text-warm-500" />
+            <Award class="w-5 h-5 text-calm-600" />
             成就徽章
           </h3>
           <div class="grid grid-cols-3 gap-3">
             <div v-for="badge in badges" :key="badge.name"
-                 class="text-center p-3 rounded-xl"
-                 :class="badge.earned ? 'bg-primary-50' : 'bg-gray-50 opacity-40'">
+                 class="text-center p-3 rounded-xl transition-all duration-200"
+                 :class="badge.earned ? 'bg-calm-50 hover:bg-calm-100' : 'bg-gray-50 opacity-40'">
               <span class="text-2xl">{{ badge.emoji }}</span>
-              <p class="text-xs mt-1 font-medium" :class="badge.earned ? 'text-primary-700' : 'text-gray-400'">{{ badge.name }}</p>
+              <p class="text-xs mt-1 font-medium" :class="badge.earned ? 'text-calm-600' : 'text-gray-400'">{{ badge.name }}</p>
             </div>
           </div>
         </div>
@@ -194,25 +194,25 @@ watch(() => route.fullPath, async () => {
       <section class="mb-6">
         <div class="card">
           <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Heart class="w-5 h-5 text-primary-500" />
+            <Heart class="w-5 h-5 text-calm-500" />
             快捷入口
           </h3>
-          <div class="space-y-2">
+          <div class="space-y-1">
             <button
               v-for="item in menuItems"
               :key="item.label"
-              class="w-full flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors"
+              class="w-full flex items-center justify-between p-4 hover:bg-calm-50/50 rounded-xl transition-all duration-200"
               @click="router.push(item.path)"
             >
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center">
-                  <component :is="item.icon" class="w-5 h-5 text-primary-500" />
+                <div class="w-10 h-10 rounded-xl bg-calm-50 flex items-center justify-center">
+                  <component :is="item.icon" class="w-5 h-5 text-calm-500" />
                 </div>
                 <span class="font-medium text-gray-800">{{ item.label }}</span>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-xs text-gray-500">{{ item.badge }}</span>
-                <ChevronRight class="w-4 h-4 text-gray-400" />
+                <span class="text-xs text-gray-400">{{ item.badge }}</span>
+                <ChevronRight class="w-4 h-4 text-gray-300" />
               </div>
             </button>
           </div>

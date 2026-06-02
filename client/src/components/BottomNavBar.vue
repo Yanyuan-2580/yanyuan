@@ -1,18 +1,24 @@
 <template>
-  <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t border-gray-50 px-4 py-3 shadow-nav z-50">
+  <nav class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 px-4 pt-2 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)] z-50">
     <div class="max-w-lg mx-auto flex justify-around">
       <button
         v-for="item in navItems"
         :key="item.path"
-        class="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl hover:bg-amber-50 transition-all relative"
-        :class="{ 'text-amber-500': isActive(item) }"
+        class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 relative"
+        :class="isActive(item) ? 'text-calm-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'"
         @click="navigate(item.path)"
       >
-        <component :is="item.icon" class="w-6 h-6" />
-        <span class="text-xs">{{ item.label }}</span>
+        <component :is="item.icon" class="w-[22px] h-[22px] transition-transform duration-200"
+          :class="{ 'scale-110': isActive(item) }" />
+        <span class="text-[11px] font-medium">{{ item.label }}</span>
+        <!-- Active indicator dot -->
+        <span
+          v-if="isActive(item)"
+          class="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-calm-500"
+        />
         <span
           v-if="item.badge && item.badge > 0"
-          class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+          class="absolute -top-0.5 -right-1 bg-red-500 text-white text-[10px] font-semibold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-sm"
         >
           {{ item.badge > 99 ? '99+' : item.badge }}
         </span>

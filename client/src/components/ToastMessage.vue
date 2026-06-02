@@ -14,7 +14,7 @@ const bgMap: Record<string, string> = {
   success: 'bg-emerald-500',
   error: 'bg-red-500',
   warning: 'bg-amber-500',
-  info: 'bg-sky-500',
+  info: 'bg-calm-500',
 };
 </script>
 

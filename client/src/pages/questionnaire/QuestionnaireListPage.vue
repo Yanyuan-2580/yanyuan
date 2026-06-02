@@ -41,7 +41,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen pb-24 bg-gray-50">
+  <div class="min-h-screen pb-24 bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30">
     <PageHeader title="心理测评" :show-back="true" />
 
     <div class="max-w-lg mx-auto px-4 py-6">
@@ -87,12 +87,12 @@ onMounted(async () => {
         <div
           v-for="q in questionnaires"
           :key="q.id"
-          class="bg-white rounded-2xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+          class="bg-white rounded-2xl border border-gray-50 p-5 shadow-card cursor-pointer hover:shadow-card-hover transition-shadow"
           @click="router.push(`/questionnaire/${q.id}`)"
         >
           <div class="flex items-start gap-3">
-            <div class="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
-              <ClipboardList class="w-5 h-5 text-primary-500" />
+            <div class="w-10 h-10 rounded-xl bg-calm-50 flex items-center justify-center flex-shrink-0">
+              <ClipboardList class="w-5 h-5 text-calm-600" />
             </div>
             <div>
               <h4 class="text-sm font-semibold text-gray-800">{{ q.title }}</h4>

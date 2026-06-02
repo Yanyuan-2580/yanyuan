@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen pb-24 animate-page-enter">
+  <div class="min-h-screen pb-24 animate-page-enter bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30">
     <!-- Header -->
-    <header class="bg-gradient-to-br from-rose-400 via-rose-500 to-pink-500 text-white px-6 pt-10 pb-8 rounded-b-3xl">
+    <header class="bg-gradient-to-br from-calm-400 via-calm-500 to-emerald-500 text-white px-6 pt-10 pb-8 rounded-b-3xl">
       <div class="flex items-center gap-3 mb-3">
         <button class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors" @click="router.back()">
           <ArrowLeft class="w-4 h-4" />
@@ -13,9 +13,9 @@
 
     <main class="px-6 py-6 space-y-6">
       <!-- Crisis Helplines -->
-      <section class="card">
+      <section class="bg-white rounded-2xl shadow-card border border-gray-50 p-5 hover:shadow-card-hover transition-shadow">
         <h2 class="text-base font-semibold text-gray-800 flex items-center gap-2 mb-2">
-          <Phone class="w-4 h-4 text-rose-500" />
+          <Phone class="w-4 h-4 text-calm-600" />
           全国心理援助热线
         </h2>
         <p class="text-xs text-gray-400 mb-4">以下热线提供24小时免费、保密的心理支持</p>
@@ -27,7 +27,7 @@
               <p class="text-xs text-gray-400 mt-0.5">{{ hotline.org }}</p>
             </div>
             <a :href="'tel:' + hotline.phone"
-               class="px-4 py-2 bg-rose-500 text-white text-sm font-medium rounded-xl hover:bg-rose-600 transition-colors active:scale-95 whitespace-nowrap flex-shrink-0">
+               class="px-4 py-2 bg-gradient-to-r from-calm-500 to-emerald-500 text-white text-sm font-medium rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-95 whitespace-nowrap flex-shrink-0">
               {{ hotline.phone }}
             </a>
           </div>
@@ -35,21 +35,21 @@
       </section>
 
       <!-- Talk to Someone -->
-      <section class="card">
+      <section class="bg-white rounded-2xl shadow-card border border-gray-50 p-5 hover:shadow-card-hover transition-shadow">
         <h2 class="text-base font-semibold text-gray-800 flex items-center gap-2 mb-4">
-          <MessageCircle class="w-4 h-4 text-primary-500" />
+          <MessageCircle class="w-4 h-4 text-calm-600" />
           倾诉与支持
         </h2>
         <div class="grid grid-cols-2 gap-3">
-          <button class="p-4 rounded-xl bg-gradient-to-br from-amber-400 to-orange-400 text-white text-left hover:shadow-md transition-all active:scale-95"
+          <button class="p-4 rounded-xl bg-gradient-to-r from-calm-500 to-emerald-500 text-white text-left shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-95"
                   @click="router.push('/chat')">
             <MessageCircle class="w-6 h-6 mb-2" />
             <p class="text-sm font-semibold">AI即时倾诉</p>
             <p class="text-xs text-white/70 mt-1">24小时在线</p>
           </button>
-          <button class="p-4 rounded-xl bg-white border border-gray-100 text-left hover:shadow-md transition-all active:scale-95"
+          <button class="p-4 rounded-xl bg-white border border-gray-200 text-left hover:shadow-md hover:border-calm-200 hover:text-calm-600 transition-all active:scale-95"
                   @click="router.push('/diary')">
-            <Calendar class="w-6 h-6 mb-2 text-primary-500" />
+            <Calendar class="w-6 h-6 mb-2 text-calm-600" />
             <p class="text-sm font-semibold text-gray-800">情绪日记</p>
             <p class="text-xs text-gray-400 mt-1">记录与反思</p>
           </button>
@@ -57,7 +57,7 @@
       </section>
 
       <!-- FAQ -->
-      <section class="card">
+      <section class="bg-white rounded-2xl shadow-card border border-gray-50 p-5 hover:shadow-card-hover transition-shadow">
         <h2 class="text-base font-semibold text-gray-800 mb-4">常见问题</h2>
         <div class="space-y-2">
           <div v-for="(faq, i) in faqs" :key="i" class="border border-gray-100 rounded-xl overflow-hidden">
@@ -74,8 +74,8 @@
       </section>
 
       <!-- Disclaimer -->
-      <div class="p-4 rounded-2xl bg-amber-50 border border-amber-100">
-        <p class="text-xs text-amber-700 leading-relaxed">
+      <div class="p-4 rounded-2xl bg-calm-50 border border-calm-100">
+        <p class="text-xs text-calm-700 leading-relaxed">
           <span class="font-medium">⚠️ 重要提示：</span>AI心理支持和心理援助热线不能替代专业的心理诊断和治疗。如果你正在经历严重的心理困扰，请务必寻求专业心理医生或精神科医生的帮助。
         </p>
       </div>

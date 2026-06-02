@@ -44,7 +44,7 @@ const toggleFaq = (index: number) => {
 </script>
 
 <template>
-  <div class="min-h-screen pb-24 bg-gray-50">
+  <div class="min-h-screen pb-24 bg-gradient-to-br from-calm-50/40 via-white to-soft-50/30">
     <PageHeader title="帮助中心" :show-back="true" />
 
     <div class="max-w-lg mx-auto px-4 py-6 space-y-4">
@@ -65,7 +65,7 @@ const toggleFaq = (index: number) => {
         <div
           v-for="(faq, index) in faqs"
           :key="index"
-          class="bg-white rounded-2xl shadow-sm overflow-hidden"
+          class="bg-white rounded-2xl border border-gray-50 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
         >
           <button
             class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50"
@@ -84,7 +84,7 @@ const toggleFaq = (index: number) => {
       </div>
 
       <!-- Contact -->
-      <div class="bg-white rounded-2xl p-4 shadow-sm text-center">
+      <div class="card text-center">
         <p class="text-sm text-gray-600">还有其他问题？</p>
         <p class="text-xs text-gray-400 mt-1">请联系客服邮箱：support@mentalhealth.app</p>
       </div>
