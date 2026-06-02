@@ -126,12 +126,12 @@ const router = createRouter({
     {
       path: '/login',
       name: 'Login',
-      component: () => import('@/pages/auth/LoginPage.vue')
+      component: () => import('@/pages/auth/AuthPage.vue')
     },
     {
       path: '/register',
       name: 'Register',
-      component: () => import('@/pages/auth/RegisterPage.vue')
+      component: () => import('@/pages/auth/AuthPage.vue')
     },
     {
       path: '/:pathMatch(.*)*',
