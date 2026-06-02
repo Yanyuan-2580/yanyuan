@@ -1,1 +1,0 @@
-import{c as e}from"./createVueComponent-BL-QORL4.js";var a=e("UserIcon",[["path",{d:"M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2",key:"1ac58d"}],["circle",{cx:"12",cy:"7",r:"4",key:"17ys0d"}]]);export{a as U};

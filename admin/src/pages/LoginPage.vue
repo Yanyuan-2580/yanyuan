@@ -39,14 +39,14 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-calm-500 to-emerald-700 p-4 relative overflow-hidden">
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-calm-50/40 p-4 relative overflow-hidden">
     <!-- Decorative blobs -->
-    <div class="absolute -top-20 -right-20 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
-    <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
+    <div class="absolute -top-20 -right-20 w-80 h-80 bg-calm-200/20 rounded-full blur-3xl" />
+    <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-emerald-200/15 rounded-full blur-3xl" />
 
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative z-10 animate-fade-in">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative z-10 animate-fade-in border border-gray-100">
       <div class="text-center mb-8">
-        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-calm-400 to-emerald-500 flex items-center justify-center shadow-lg transform -rotate-6 hover:rotate-0 transition-transform duration-500">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shadow-lg transform -rotate-6 hover:rotate-0 transition-transform duration-500">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 15v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4" />
             <path d="M18 9h-5a4 4 0 0 0-4 4v2" />
@@ -65,7 +65,7 @@ const handleLogin = async () => {
             v-model="username"
             type="text"
             placeholder="请输入管理员用户名"
-            class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
+            class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-300/50 focus:border-gray-400 transition-all duration-200"
           />
         </div>
 
@@ -75,12 +75,12 @@ const handleLogin = async () => {
             v-model="password"
             type="password"
             placeholder="请输入管理员密码"
-            class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
+            class="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-300/50 focus:border-gray-400 transition-all duration-200"
           />
         </div>
 
         <button
-          class="w-full py-3.5 bg-gradient-to-r from-calm-500 to-emerald-500 text-white text-[15px] font-semibold rounded-2xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+          class="w-full py-3.5 bg-gray-900 text-white text-[15px] font-semibold rounded-2xl shadow-lg hover:bg-gray-800 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
           :disabled="isLoading"
           @click="handleLogin"
         >

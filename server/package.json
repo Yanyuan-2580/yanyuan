@@ -4,7 +4,7 @@
   "description": "心理健康AI助手后端服务",
   "main": "dist/main.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && tsc-alias",
     "start": "node dist/main.js",
     "start:dev": "ts-node -r tsconfig-paths/register src/main.ts",
     "start:watch": "nodemon --watch src --exec ts-node src/main.ts"
@@ -39,6 +39,7 @@
     "@types/redis": "^4.0.11",
     "nodemon": "^3.0.1",
     "ts-node": "^10.9.1",
+    "tsc-alias": "^1.8.17",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.2.2"
   }
