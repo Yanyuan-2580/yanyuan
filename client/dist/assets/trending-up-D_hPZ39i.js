@@ -1,1 +1,0 @@
-import{c as e}from"./createVueComponent-jj-6X_-m.js";var o=e("TrendingUpIcon",[["polyline",{points:"23 6 13.5 15.5 8.5 10.5 1 18",key:"1koq6b"}],["polyline",{points:"17 6 23 6 23 12",key:"5tkgvh"}]]);export{o as T};

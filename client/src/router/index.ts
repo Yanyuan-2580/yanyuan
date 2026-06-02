@@ -124,6 +124,11 @@ const router = createRouter({
       component: () => import('@/pages/video/VideoCallPage.vue')
     },
     {
+      path: '/nav',
+      name: 'Nav',
+      component: () => import('@/pages/NavPage.vue')
+    },
+    {
       path: '/login',
       name: 'Login',
       component: () => import('@/pages/auth/AuthPage.vue')
@@ -145,7 +150,7 @@ router.beforeEach((to, from, next) => {
   const isLoggedIn = !!localStorage.getItem('accessToken');
 
   // Public routes
-  const publicRoutes = ['/login', '/register'];
+  const publicRoutes = ['/login', '/register', '/nav'];
   if (publicRoutes.includes(to.path)) {
     if (isLoggedIn) {
       next('/');
