@@ -60,7 +60,7 @@ export class AdminController {
   }
 
   @Post('users')
-  createUser(@Body() body: { phone: string; password: string; nickname?: string }) {
+  createUser(@Body() body: { username: string; password: string; phone?: string; nickname?: string }) {
     return this.adminService.createUser(body);
   }
 

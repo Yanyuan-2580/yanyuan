@@ -8,7 +8,8 @@ export type MessageRole = 'user' | 'assistant' | 'system';
 
 export interface JwtPayload {
   userId: number;
-  phone: string;
+  username: string;
+  phone?: string;
   role?: string;
 }
 

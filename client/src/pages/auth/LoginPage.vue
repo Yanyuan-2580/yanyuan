@@ -1,26 +1,26 @@
 <script setup lang="ts">import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
-import { MessageCircle, Phone, Lock, Eye, EyeOff } from 'lucide-vue-next';
+import { MessageCircle, User, Lock, Eye, EyeOff } from 'lucide-vue-next';
 const router = useRouter();
 const userStore = useUserStore();
-const phone = ref('');
+const username = ref('');
 const password = ref('');
 const showPassword = ref(false);
 const isLoading = ref(false);
 const errorMessage = ref('');
 const handleLogin = async () => {
- if (!phone.value || !password.value) {
- errorMessage.value = '请填写手机号和密码';
+ if (!username.value || !password.value) {
+ errorMessage.value = '请填写用户名和密码';
  return;
  }
- if (!/^1[3-9]\d{9}$/.test(phone.value)) {
- errorMessage.value = '请输入正确的手机号';
+ if (username.value.length < 3) {
+ errorMessage.value = '用户名至少3个字符';
  return;
  }
  isLoading.value = true;
  try {
- await userStore.login({ phone: phone.value, password: password.value });
+ await userStore.login({ username: username.value, password: password.value });
  router.push('/');
  }
  catch (error: any) {
@@ -46,29 +46,28 @@ const handleRegister = () => {
         <h1 class="text-2xl font-bold text-gray-800 mb-2">心理健康AI助手</h1>
         <p class="text-gray-500">陪伴你每一天</p>
       </div>
-      
+
       <div class="card">
         <h2 class="text-xl font-semibold text-gray-800 mb-6 text-center">登录</h2>
-        
+
         <div v-if="errorMessage" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
           {{ errorMessage }}
         </div>
-        
+
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">手机号</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">用户名</label>
             <div class="relative">
-              <Phone class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <User class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
-                v-model="phone"
-                type="tel"
-                placeholder="请输入手机号"
+                v-model="username"
+                type="text"
+                placeholder="请输入用户名"
                 class="input-field pl-12"
-                maxlength="11"
               />
             </div>
           </div>
-          
+
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">密码</label>
             <div class="relative">
@@ -89,7 +88,7 @@ const handleRegister = () => {
               </button>
             </div>
           </div>
-          
+
           <button
             class="btn-primary w-full mt-6"
             :disabled="isLoading"
@@ -105,7 +104,7 @@ const handleRegister = () => {
             <span v-else>登录</span>
           </button>
         </div>
-        
+
         <p class="mt-6 text-center text-gray-500 text-sm">
           还没有账号？
           <button class="text-calm-500 hover:text-calm-600 font-medium" @click="handleRegister">

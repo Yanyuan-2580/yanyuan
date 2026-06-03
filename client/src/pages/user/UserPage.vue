@@ -126,7 +126,7 @@ watch(() => route.fullPath, async () => {
               <Edit class="w-3 h-3" />
             </button>
           </div>
-          <p class="text-white/70 text-sm mt-1">{{ user?.phone }}</p>
+          <p class="text-white/70 text-sm mt-1">{{ user?.username }}</p>
         </div>
       </div>
       

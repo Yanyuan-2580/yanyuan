@@ -2,11 +2,14 @@ import { post, get, put, del } from '../request';
 import type { ApiResponse, User } from '@/types';
 
 export interface LoginData {
-  phone: string;
+  username: string;
   password: string;
 }
 
-export interface RegisterData extends LoginData {
+export interface RegisterData {
+  username: string;
+  password: string;
+  phone?: string;
   nickname?: string;
 }
 
@@ -14,6 +17,7 @@ export interface UpdateProfileData {
   nickname?: string;
   avatarUrl?: string;
   email?: string;
+  phone?: string;
 }
 
 export interface ChangePasswordData {

@@ -15,12 +15,13 @@ const activeTab = ref<'login' | 'register' | 'code' | 'reset'>(
 );
 
 // Login fields
-const loginPhone = ref('');
+const loginUsername = ref('');
 const loginPassword = ref('');
 const showLoginPassword = ref(false);
 const loginLoading = ref(false);
 
 // Register fields
+const regUsername = ref('');
 const regPhone = ref('');
 const regPassword = ref('');
 const regConfirmPassword = ref('');
@@ -73,17 +74,17 @@ const switchTab = (tab: 'login' | 'register' | 'code' | 'reset') => {
 // --- Login ---
 const handleLogin = async () => {
   errorMessage.value = '';
-  if (!loginPhone.value || !loginPassword.value) {
-    errorMessage.value = '请填写手机号和密码';
+  if (!loginUsername.value || !loginPassword.value) {
+    errorMessage.value = '请填写用户名和密码';
     return;
   }
-  if (!/^1[3-9]\d{9}$/.test(loginPhone.value)) {
-    errorMessage.value = '请输入正确的手机号';
+  if (loginUsername.value.length < 3) {
+    errorMessage.value = '用户名至少3个字符';
     return;
   }
   loginLoading.value = true;
   try {
-    await userStore.login({ phone: loginPhone.value, password: loginPassword.value });
+    await userStore.login({ username: loginUsername.value, password: loginPassword.value });
     router.push('/');
   } catch (error: any) {
     errorMessage.value = error.message || '登录失败，请重试';
@@ -95,11 +96,15 @@ const handleLogin = async () => {
 // --- Register ---
 const handleRegister = async () => {
   errorMessage.value = '';
-  if (!regPhone.value || !regPassword.value || !regConfirmPassword.value) {
-    errorMessage.value = '请填写完整信息';
+  if (!regUsername.value || !regPassword.value || !regConfirmPassword.value) {
+    errorMessage.value = '请填写用户名和密码';
     return;
   }
-  if (!/^1[3-9]\d{9}$/.test(regPhone.value)) {
+  if (!/^[a-zA-Z0-9_]{3,30}$/.test(regUsername.value)) {
+    errorMessage.value = '用户名由3-30位字母、数字、下划线组成';
+    return;
+  }
+  if (regPhone.value && !/^1[3-9]\d{9}$/.test(regPhone.value)) {
     errorMessage.value = '请输入正确的手机号';
     return;
   }
@@ -114,8 +119,9 @@ const handleRegister = async () => {
   regLoading.value = true;
   try {
     await userStore.register({
-      phone: regPhone.value,
+      username: regUsername.value,
       password: regPassword.value,
+      phone: regPhone.value || undefined,
       nickname: regNickname.value || undefined
     });
     router.push('/');
@@ -223,7 +229,6 @@ const handleResetPassword = async () => {
     successMessage.value = '密码重置成功！请使用新密码登录';
     setTimeout(() => {
       switchTab('login');
-      loginPhone.value = resetPhone.value;
     }, 2000);
   } catch (error: any) {
     errorMessage.value = error.message || '重置失败';
@@ -354,14 +359,13 @@ onMounted(() => {
           <!-- ========= LOGIN FORM ========= -->
           <form v-if="activeTab === 'login'" class="space-y-4" @submit.prevent="handleLogin">
             <div>
-              <label class="block text-[13px] font-medium text-gray-700 mb-1.5 ml-1">手机号</label>
+              <label class="block text-[13px] font-medium text-gray-700 mb-1.5 ml-1">用户名</label>
               <div class="relative group">
                 <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-calm-400 transition-colors">
-                  <Phone class="w-[18px] h-[18px]" />
+                  <User class="w-[18px] h-[18px]" />
                 </div>
-                <input v-model="loginPhone" type="tel" placeholder="请输入手机号"
-                  class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
-                  maxlength="11" />
+                <input v-model="loginUsername" type="text" placeholder="请输入用户名"
+                  class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200" />
               </div>
             </div>
             <div>
@@ -447,19 +451,19 @@ onMounted(() => {
           <!-- ========= REGISTER FORM ========= -->
           <form v-if="activeTab === 'register'" class="space-y-4" @submit.prevent="handleRegister">
             <div>
-              <label class="block text-[13px] font-medium text-gray-700 mb-1.5 ml-1">手机号</label>
+              <label class="block text-[13px] font-medium text-gray-700 mb-1.5 ml-1">用户名</label>
               <div class="relative group">
                 <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-calm-400 transition-colors">
-                  <Phone class="w-[18px] h-[18px]" />
+                  <User class="w-[18px] h-[18px]" />
                 </div>
-                <input v-model="regPhone" type="tel" placeholder="请输入手机号"
+                <input v-model="regUsername" type="text" placeholder="3-30位字母、数字、下划线"
                   class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
-                  maxlength="11" />
+                  maxlength="30" />
               </div>
             </div>
             <div>
               <label class="block text-[13px] font-medium text-gray-700 mb-1.5 ml-1">
-                昵称 <span class="text-gray-300 font-normal text-xs">(可选)</span>
+                昵称 <span class="text-gray-300 font-normal text-xs">(可选，默认同用户名)</span>
               </label>
               <div class="relative group">
                 <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-calm-400 transition-colors">
@@ -468,6 +472,19 @@ onMounted(() => {
                 <input v-model="regNickname" type="text" placeholder="给自己取个温暖的名字"
                   class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
                   maxlength="50" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-[13px] font-medium text-gray-700 mb-1.5 ml-1">
+                手机号 <span class="text-gray-300 font-normal text-xs">(可选)</span>
+              </label>
+              <div class="relative group">
+                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-calm-400 transition-colors">
+                  <Phone class="w-[18px] h-[18px]" />
+                </div>
+                <input v-model="regPhone" type="tel" placeholder="选填，方便找回密码"
+                  class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 transition-all duration-200"
+                  maxlength="11" />
               </div>
             </div>
             <div>

@@ -340,7 +340,7 @@ const stats = [
           </div>
 
           <!-- 冥想疗愈 -->
-          <div class="bg-gradient-to-br from-calm-50 to-blue-50 rounded-3xl p-8 md:p-10">
+          <div id="meditation" class="bg-gradient-to-br from-calm-50 to-blue-50 rounded-3xl p-8 md:p-10">
             <div class="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-5">
               <Music class="w-6 h-6 text-calm-500" />
             </div>

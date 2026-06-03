@@ -25,16 +25,25 @@ export class UserService {
   ) {}
 
   async register(dto: RegisterDto) {
-    const existingUser = await this.userRepository.findOne({ where: { phone: dto.phone } });
+    const existingUser = await this.userRepository.findOne({ where: { username: dto.username } });
     if (existingUser) {
-      throw new ConflictException('手机号已注册');
+      throw new ConflictException('用户名已注册');
+    }
+
+    // 如果提供了手机号，检查唯一性
+    if (dto.phone) {
+      const phoneExists = await this.userRepository.findOne({ where: { phone: dto.phone } });
+      if (phoneExists) {
+        throw new ConflictException('手机号已注册');
+      }
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
     const user = this.userRepository.create({
-      phone: dto.phone,
+      username: dto.username,
+      phone: dto.phone || null,
       passwordHash,
-      nickname: dto.nickname || `用户${Date.now().toString().slice(-6)}`
+      nickname: dto.nickname || dto.username
     });
 
     await this.userRepository.save(user);
@@ -42,14 +51,14 @@ export class UserService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.userRepository.findOne({ where: { phone: dto.phone } });
+    const user = await this.userRepository.findOne({ where: { username: dto.username } });
     if (!user) {
-      throw new UnauthorizedException('手机号或密码错误');
+      throw new UnauthorizedException('用户名或密码错误');
     }
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('手机号或密码错误');
+      throw new UnauthorizedException('用户名或密码错误');
     }
 
     if (user.status === 0) {
@@ -70,7 +79,7 @@ export class UserService {
   async getProfile(userId: number) {
     const user = await this.userRepository.findOne({ 
       where: { id: userId },
-      select: ['id', 'phone', 'email', 'nickname', 'avatarUrl', 'riskLevel', 'createdAt']
+      select: ['id', 'username', 'phone', 'email', 'nickname', 'avatarUrl', 'riskLevel', 'createdAt']
     });
     if (!user) {
       throw new NotFoundException('用户不存在');
@@ -88,6 +97,13 @@ export class UserService {
       const existing = await this.userRepository.findOne({ where: { email: dto.email } });
       if (existing && existing.id !== userId) {
         throw new ConflictException('邮箱已被使用');
+      }
+    }
+
+    if (dto.phone) {
+      const existing = await this.userRepository.findOne({ where: { phone: dto.phone } });
+      if (existing && existing.id !== userId) {
+        throw new ConflictException('手机号已被使用');
       }
     }
 
@@ -147,11 +163,13 @@ export class UserService {
 
       const { openid, unionid } = data;
 
-      // 查找或创建用户
-      let user = await this.userRepository.findOne({ where: { phone: `wechat_${openid}` } });
+      // 查找或创建用户（通过 username 查找，兼容旧 wechat_ 前缀回填的数据）
+      const wxUsername = `wechat_${openid}`;
+      let user = await this.userRepository.findOne({ where: { username: wxUsername } });
       if (!user) {
         user = this.userRepository.create({
-          phone: `wechat_${openid}`,
+          username: wxUsername,
+          phone: wxUsername,
           passwordHash: await bcrypt.hash(openid, 10),
           nickname: userInfo?.nickname || `微信用户${Date.now().toString().slice(-6)}`,
           avatarUrl: userInfo?.avatarUrl || '',
@@ -234,14 +252,15 @@ export class UserService {
   }
 
   private async generateToken(user: User) {
-    const payload: JwtPayload = { userId: user.id, phone: user.phone };
+    const payload: JwtPayload = { userId: user.id, username: user.username, phone: user.phone || undefined };
     const accessToken = await this.jwtService.signAsync(payload);
     await this.cacheService.setUserToken(user.id, accessToken);
-    
+
     return {
       accessToken,
       user: {
         id: user.id,
+        username: user.username,
         phone: user.phone,
         nickname: user.nickname,
         avatarUrl: user.avatarUrl,

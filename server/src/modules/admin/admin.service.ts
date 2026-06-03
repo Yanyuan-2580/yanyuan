@@ -61,7 +61,7 @@ export class AdminService {
       throw new ForbiddenException('账号已被禁用');
     }
 
-    const payload: JwtPayload = { userId: admin.id, phone: admin.username, role: 'admin' };
+    const payload: JwtPayload = { userId: admin.id, username: admin.username, role: 'admin' };
     const accessToken = await this.jwtService.signAsync(payload);
 
     return {
@@ -87,7 +87,7 @@ export class AdminService {
       query.andWhere('user.riskLevel = :riskLevel', { riskLevel });
     }
     if (keyword) {
-      query.andWhere('(user.nickname LIKE :keyword OR user.phone LIKE :keyword)', { keyword: `%${keyword}%` });
+      query.andWhere('(user.nickname LIKE :keyword OR user.username LIKE :keyword OR user.phone LIKE :keyword)', { keyword: `%${keyword}%` });
     }
 
     const [list, total] = await query
@@ -107,16 +107,23 @@ export class AdminService {
     return user;
   }
 
-  async createUser(data: { phone: string; password: string; nickname?: string }): Promise<User> {
-    const existing = await this.userRepository.findOne({ where: { phone: data.phone } });
+  async createUser(data: { username: string; password: string; phone?: string; nickname?: string }): Promise<User> {
+    const existing = await this.userRepository.findOne({ where: { username: data.username } });
     if (existing) {
-      throw new ConflictException('手机号已被注册');
+      throw new ConflictException('用户名已存在');
+    }
+    if (data.phone) {
+      const phoneExists = await this.userRepository.findOne({ where: { phone: data.phone } });
+      if (phoneExists) {
+        throw new ConflictException('手机号已被注册');
+      }
     }
     const passwordHash = await bcrypt.hash(data.password, 10);
     const user = this.userRepository.create({
-      phone: data.phone,
+      username: data.username,
+      phone: data.phone || null,
       passwordHash,
-      nickname: data.nickname || `用户${data.phone.slice(-4)}`,
+      nickname: data.nickname || data.username,
       status: 1 as UserStatus,
       riskLevel: 0 as RiskLevel
     });
@@ -323,10 +330,10 @@ export class AdminService {
       ...userList.map(u => ({
         type: 'user',
         id: u.id,
-        name: u.nickname || u.phone,
+        name: u.nickname || u.username,
         phone: u.phone,
         riskLevel: u.riskLevel,
-        content: u.nickname || u.phone,
+        content: u.nickname || u.username,
         createdAt: u.createdAt
       })),
       ...sessionList.map(s => ({
