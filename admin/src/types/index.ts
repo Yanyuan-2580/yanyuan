@@ -101,3 +101,73 @@ export interface LoginResponse {
   accessToken: string;
   admin: Admin;
 }
+
+// ==================== Analytics Types ====================
+
+export interface WeeklyTrend {
+  trends: Array<{
+    day: string;
+    date: string;
+    newUsers: number;
+    sessions: number;
+    diaries: number;
+  }>;
+}
+
+export interface HourlyHeatmap {
+  days: string[];
+  hours: string[];
+  data: number[][];
+  maxValue: number;
+  sourceTypes: {
+    sessions: number[][];
+    diaries: number[][];
+    moodRecords: number[][];
+    meditation: number[][];
+  };
+}
+
+export interface WeeklyDistribution {
+  labels: string[];
+  datasets: Array<{
+    label: string;
+    color: string;
+    data: number[];
+  }>;
+}
+
+export interface MoodDistribution {
+  scoreDistribution: {
+    labels: string[];
+    counts: number[];
+    percentages: number[];
+  };
+  riskLevelDistribution: {
+    low: number;
+    medium: number;
+    high: number;
+  };
+  moodTypeDistribution: {
+    happy: number;
+    sad: number;
+    angry: number;
+    anxious: number;
+    calm: number;
+  };
+  totalResponses: number;
+}
+
+export interface DashboardOverview extends Statistics {
+  totalMoodRecords: number;
+  totalMeditationSessions: number;
+  totalQuestionnaires: number;
+  averageMoodScore: number;
+  activeUsersToday: number;
+  newUsersToday: number;
+  newUsersThisWeek: number;
+  engagementRate: number;
+  hotModules: Array<{
+    name: string;
+    count: number;
+  }>;
+}

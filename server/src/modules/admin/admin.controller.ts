@@ -64,6 +64,14 @@ export class AdminController {
     return this.adminService.createUser(body);
   }
 
+  @Put('users/:id')
+  updateUser(
+    @Param('id') id: string,
+    @Body() body: { nickname?: string; status?: number; riskLevel?: number }
+  ) {
+    return this.adminService.updateUser(parseInt(id), body);
+  }
+
   @Put('users/:id/status')
   updateUserStatus(
     @Param('id') id: string,
@@ -219,6 +227,26 @@ export class AdminController {
   @Get('analytics/weekly-trend')
   getWeeklyTrend() {
     return this.adminService.getWeeklyTrend();
+  }
+
+  @Get('analytics/hourly-heatmap')
+  getHourlyHeatmap() {
+    return this.adminService.getHourlyHeatmap();
+  }
+
+  @Get('analytics/weekly-distribution')
+  getWeeklyDistribution() {
+    return this.adminService.getWeeklyDistribution();
+  }
+
+  @Get('analytics/mood-distribution')
+  getMoodDistribution() {
+    return this.adminService.getMoodDistribution();
+  }
+
+  @Get('analytics/overview')
+  getDashboardOverview() {
+    return this.adminService.getDashboardOverview();
   }
 
   // ==================== Risk Management ====================

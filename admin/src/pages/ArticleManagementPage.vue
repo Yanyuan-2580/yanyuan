@@ -112,15 +112,21 @@ const toggleStatus = async (article: KnowledgeArticle) => {
 };
 
 const createCategory = async () => {
-  if (!newCategoryName.value) return;
+  if (!newCategoryName.value.trim()) {
+    ElMessage.warning('请输入分类名称');
+    return;
+  }
   try {
-    await knowledgeApi.createCategory({ name: newCategoryName.value, description: newCategoryDesc.value });
-    ElMessage.success('分类创建成功');
-    newCategoryName.value = '';
-    newCategoryDesc.value = '';
-    loadCategories();
+    const res = await knowledgeApi.createCategory({ name: newCategoryName.value.trim(), description: newCategoryDesc.value.trim() });
+    if (res.code === 200) {
+      ElMessage.success('分类创建成功');
+      newCategoryName.value = '';
+      newCategoryDesc.value = '';
+      await loadCategories();
+    }
   } catch (error: any) {
-    ElMessage.error(error.message || '创建失败');
+    const msg = error?.response?.data?.message || error?.message || '创建失败';
+    ElMessage.error(msg);
   }
 };
 

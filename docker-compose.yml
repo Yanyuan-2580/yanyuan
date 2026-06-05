@@ -17,6 +17,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - app_network
 
   mongodb:
     image: mongo:7.0
@@ -31,6 +38,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - app_network
 
   redis:
     image: redis:7-alpine
@@ -46,6 +60,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - app_network
 
   server:
     build:
@@ -53,25 +74,33 @@ services:
       dockerfile: Dockerfile
     container_name: mental_health_server
     restart: unless-stopped
-    ports:
-      - "${SERVER_PORT:-3000}:3000"
+    # Server port NOT exposed to host — only accessible via nginx reverse proxy
+    expose:
+      - "3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
       - API_PREFIX=/api/v1
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - DB_USERNAME=root
-      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD:-root123456}
-      - DB_DATABASE=${MYSQL_DATABASE:-mental_health_db}
-      - MONGO_URI=mongodb://mongodb:27017/mental_health
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USERNAME=root
+      - MYSQL_PASSWORD=${MYSQL_ROOT_PASSWORD:-root123456}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-mental_health_db}
+      - MONGODB_URI=mongodb://mongodb:27017/mental_health
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - JWT_SECRET=${JWT_SECRET:-your_jwt_secret_key}
+      - JWT_SECRET=${JWT_SECRET:-mental_health_jwt_secret_prod_key_min_32}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
-      - AI_PROVIDER=${AI_PROVIDER:-deepseek}
+      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-30d}
+      - AI_MODEL_PROVIDER=${AI_MODEL_PROVIDER:-deepseek}
       - AI_MODEL_API_KEY=${AI_MODEL_API_KEY}
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:5174}
+      - AI_MODEL_NAME=${AI_MODEL_NAME:-deepseek-chat}
+      - AI_MAX_TOKENS=${AI_MAX_TOKENS:-2000}
+      - AI_TEMPERATURE=${AI_TEMPERATURE:-0.7}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://psyaihelp.xin}
+      - RATE_LIMIT_TTL=${RATE_LIMIT_TTL:-60}
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-100}
+      - DAILY_CHAT_LIMIT=${DAILY_CHAT_LIMIT:-50}
     depends_on:
       mysql:
         condition: service_healthy
@@ -79,33 +108,49 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     volumes:
       - uploads_data:/app/uploads
+    networks:
+      - app_network
 
-  client:
+  nginx:
     build:
-      context: ./client
-      dockerfile: Dockerfile
-    container_name: mental_health_client
+      context: .
+      dockerfile: Dockerfile.nginx
+    container_name: mental_health_nginx
     restart: unless-stopped
     ports:
-      - "${CLIENT_PORT:-80}:80"
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN:-psyaihelp.xin}
+      - EMAIL=${EMAIL:-3186551424@qq.com}
     depends_on:
       - server
-
-  admin:
-    build:
-      context: ./admin
-      dockerfile: Dockerfile
-    container_name: mental_health_admin
-    restart: unless-stopped
-    ports:
-      - "${ADMIN_PORT:-81}:80"
-    depends_on:
-      - server
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    volumes:
+      - certbot_data:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    networks:
+      - app_network
 
 volumes:
   mysql_data:
   mongo_data:
   redis_data:
   uploads_data:
+  certbot_data:
+  certbot_www:
+
+networks:
+  app_network:
+    driver: bridge

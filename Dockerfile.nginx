@@ -1,0 +1,46 @@
+# ============================================================
+# Multi-stage build: Client + Admin + Nginx Reverse Proxy
+# ============================================================
+
+# ---- Stage 1: Build Client (User-facing Vue 3 SPA) ----
+FROM node:22-alpine AS client-builder
+WORKDIR /app
+COPY client/package*.json ./
+RUN npm ci
+COPY client/ ./
+RUN npm run build
+
+# ---- Stage 2: Build Admin (Management Vue 3 SPA) ----
+FROM node:22-alpine AS admin-builder
+WORKDIR /app
+COPY admin/package*.json ./
+RUN npm ci
+COPY admin/ ./
+RUN npm run build
+
+# ---- Stage 3: Final Nginx + Certbot ----
+FROM nginx:alpine
+
+# Install certbot for Let's Encrypt SSL, envsubst for config templating, cron for auto-renewal
+RUN apk add --no-cache certbot certbot-nginx openssl dcron bash gettext
+
+# Create directories
+RUN mkdir -p /var/www/certbot /usr/share/nginx/html/client /usr/share/nginx/html/admin
+
+# Copy static builds from previous stages
+COPY --from=client-builder /app/dist /usr/share/nginx/html/client
+COPY --from=admin-builder /app/dist /usr/share/nginx/html/admin
+
+# Copy nginx configuration
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+COPY nginx/conf.d/bootstrap.conf /etc/nginx/conf.d/bootstrap.conf
+COPY nginx/templates/default.conf.template /etc/nginx/templates/default.conf.template
+COPY nginx/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Set up certificate auto-renewal cron (twice daily - Let's Encrypt recommended)
+RUN echo '0 0,12 * * * certbot renew --quiet && nginx -s reload 2>&1 | tee -a /var/log/certbot-renew.log' | crontab -
+
+EXPOSE 80 443
+
+ENTRYPOINT ["/entrypoint.sh"]

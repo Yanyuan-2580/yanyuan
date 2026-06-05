@@ -1,7 +1,7 @@
 import axios, { type InternalAxiosRequestConfig, type AxiosResponse } from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:3000/api/v1/admin',
+  baseURL: '/api/v1/admin',
   timeout: 30000,
 });
 
@@ -26,7 +26,7 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('adminToken');
       localStorage.removeItem('admin');
-      window.location.href = '/login';
+      window.location.href = '/admin/login';
     }
     return Promise.reject(error.response?.data || error.message);
   }
