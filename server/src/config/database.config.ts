@@ -10,8 +10,8 @@ export const getTypeOrmConfig = (configService: ConfigService): TypeOrmModuleOpt
   password: configService.get('MYSQL_PASSWORD'),
   database: configService.get('MYSQL_DATABASE'),
   entities: [User, MoodDiary, AiSession, KnowledgeArticle, KnowledgeCategory, Admin, AdminOperationLog, ArticleLike, ArticleCollect, MoodRecord, Meditation, MeditationHistory, Notification, Comment, Questionnaire, QuestionnaireResult, VideoSession, Reminder],
-  synchronize: configService.get('NODE_ENV') === 'development',
-  logging: configService.get('NODE_ENV') === 'development',
+  synchronize: true,
+  logging: false,
   timezone: '+08:00'
 });
 
