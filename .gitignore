@@ -9,3 +9,7 @@ temp/
 uploads/*
 !uploads/.gitkeep
 *.local
+
+# Database data files (local only, not for deployment)
+server/data/
+
