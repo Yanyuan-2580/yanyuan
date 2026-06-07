@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Query, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Query, Param, UseGuards } from '@nestjs/common';
 import { MeditationService } from './meditation.service';
-import { JwtAuthGuard } from '@/common';
+import { JwtAuthGuard, RolesGuard, Roles } from '@/common';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { JwtPayload } from '@/types';
 
@@ -8,7 +8,7 @@ import { JwtPayload } from '@/types';
 export class MeditationController {
   constructor(private meditationService: MeditationService) {}
 
-  // 静态路由必须在 :id 之前
+  // ========== 用户端 ==========
 
   @Get('stats')
   @UseGuards(JwtAuthGuard)
@@ -21,7 +21,7 @@ export class MeditationController {
   getMeditationHistory(
     @CurrentUser() user: JwtPayload,
     @Query('page') page: number = 1,
-    @Query('pageSize') pageSize: number = 10
+    @Query('pageSize') pageSize: number = 10,
   ) {
     return this.meditationService.getMeditationHistory(user.userId, page, pageSize);
   }
@@ -30,9 +30,16 @@ export class MeditationController {
   @UseGuards(JwtAuthGuard)
   recordMeditation(
     @CurrentUser() user: JwtPayload,
-    @Body() body: { meditationId: number; duration: number }
+    @Body() body: { meditationId: number; duration: number },
   ) {
     return this.meditationService.recordMeditation(user.userId, body.meditationId, body.duration);
+  }
+
+  @Get('admin/list')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  getAllMeditationsAdmin() {
+    return this.meditationService.getAllMeditationsAdmin();
   }
 
   @Get()
@@ -43,9 +50,31 @@ export class MeditationController {
     return this.meditationService.getAllMeditations();
   }
 
-  // 动态路由放在最后
   @Get(':id')
   getMeditationById(@Param('id') id: string) {
     return this.meditationService.getMeditationById(parseInt(id));
+  }
+
+  // ========== 管理端（复用同一路由，通过角色守卫区分）==========
+
+  @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  createMeditation(@Body() body) {
+    return this.meditationService.createMeditation(body);
+  }
+
+  @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  updateMeditation(@Param('id') id: string, @Body() body) {
+    return this.meditationService.updateMeditation(parseInt(id), body);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  deleteMeditation(@Param('id') id: string) {
+    return this.meditationService.deleteMeditation(parseInt(id));
   }
 }

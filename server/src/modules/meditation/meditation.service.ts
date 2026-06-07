@@ -76,4 +76,28 @@ export class MeditationService {
       avgDuration: totalSessions > 0 ? (totalDuration / totalSessions).toFixed(2) : '0'
     };
   }
+
+  // ========== 管理端 ==========
+
+  async createMeditation(data: Partial<Meditation>): Promise<Meditation> {
+    const meditation = this.meditationRepository.create(data);
+    return this.meditationRepository.save(meditation);
+  }
+
+  async updateMeditation(id: number, data: Partial<Meditation>): Promise<Meditation> {
+    const exists = await this.meditationRepository.findOne({ where: { id } });
+    if (!exists) throw new NotFoundException('冥想课程不存在');
+    await this.meditationRepository.update(id, data);
+    return this.meditationRepository.findOne({ where: { id } }) as Promise<Meditation>;
+  }
+
+  async deleteMeditation(id: number): Promise<void> {
+    const exists = await this.meditationRepository.findOne({ where: { id } });
+    if (!exists) throw new NotFoundException('冥想课程不存在');
+    await this.meditationRepository.update(id, { status: 0 });
+  }
+
+  async getAllMeditationsAdmin(): Promise<Meditation[]> {
+    return this.meditationRepository.find({ order: { category: 'ASC', duration: 'ASC' } });
+  }
 }

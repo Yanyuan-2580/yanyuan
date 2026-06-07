@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Put, Delete, Body, Query, Param, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { KnowledgeService } from '@/modules/knowledge/knowledge.service';
+import { ExportService } from '@/shared/export/export.service';
 import { JwtAuthGuard, CurrentUser, RolesGuard, Roles, Public } from '@/common';
 import { JwtPayload } from '@/types';
 import { AdminLoginDto } from './dto/login.dto';
@@ -13,6 +14,7 @@ import { CreateArticleDto } from '@/modules/knowledge/dto/create-article.dto';
 export class AdminController {
   constructor(
     private adminService: AdminService,
+    private exportService: ExportService,
     private knowledgeService: KnowledgeService
   ) {}
 
@@ -284,14 +286,25 @@ export class AdminController {
     @Query('pageSize') pageSize: string = '20',
     @Query('adminId') adminId?: string,
     @Query('action') action?: string,
-    @Query('targetType') targetType?: string
+    @Query('targetType') targetType?: string,
   ) {
     return this.adminService.getAuditLogs(
       parseInt(page),
       parseInt(pageSize),
       adminId ? parseInt(adminId) : undefined,
       action,
-      targetType
+      targetType,
     );
+  }
+
+  // ========== 数据导出 ==========
+
+  @Get('export/:type')
+  exportData(
+    @Param('type') type: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.exportService.exportAdminData(type, { startDate, endDate });
   }
 }

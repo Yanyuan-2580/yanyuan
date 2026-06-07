@@ -6,3 +6,4 @@ export { JwtAuthGuard } from './guards/jwt-auth.guard';
 export { RolesGuard } from './guards/roles.guard';
 export { ResponseInterceptor } from './interceptors/response.interceptor';
 export { LoggingInterceptor } from './interceptors/logging.interceptor';
+export { BehaviorInterceptor } from './interceptors/behavior.interceptor';

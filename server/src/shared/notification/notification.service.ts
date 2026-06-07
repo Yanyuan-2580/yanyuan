@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as nodemailer from 'nodemailer';
+import type { Transporter } from 'nodemailer';
 
 export interface SmsProvider {
   send(phone: string, message: string): Promise<void>;
@@ -14,44 +16,156 @@ export class NotificationService {
   private readonly logger = new Logger(NotificationService.name);
   private smsProvider: SmsProvider | null = null;
   private emailProvider: EmailProvider | null = null;
+  private smtpTransporter: Transporter | null = null;
 
   constructor(private configService: ConfigService) {
     this.initProviders();
   }
 
   private initProviders(): void {
-    // 初始化短信服务商（可根据配置切换）
     const smsProviderType = this.configService.get('SMS_PROVIDER', 'log');
 
     if (smsProviderType === 'aliyun') {
-      // 阿里云短信服务
-      this.smsProvider = {
-        send: async (phone: string, message: string) => {
-          this.logger.log(`[Aliyun SMS] Sending to ${phone}: ${message}`);
-          // TODO: 集成阿里云短信SDK
-          // const Client = require('@alicloud/sms-sdk');
-          // const client = new Client({ accessKeyId, secretAccessKey });
-          // await client.sendSMS({ PhoneNumbers: phone, SignName, TemplateCode, TemplateParam });
-        }
-      };
+      this.initAliyunSms();
     } else if (smsProviderType === 'tencent') {
-      // 腾讯云短信服务
-      this.smsProvider = {
-        send: async (phone: string, message: string) => {
-          this.logger.log(`[Tencent SMS] Sending to ${phone}: ${message}`);
-          // TODO: 集成腾讯云短信SDK
-        }
-      };
+      this.initTencentSms();
     }
 
     const emailProviderType = this.configService.get('EMAIL_PROVIDER', 'log');
     if (emailProviderType === 'smtp') {
+      this.initSmtpEmail();
+    }
+  }
+
+  /**
+   * 初始化阿里云短信服务
+   * 使用 @alicloud/sms-sdk 或 @alicloud/pop-core 发送短信
+   */
+  private initAliyunSms(): void {
+    const accessKeyId = this.configService.get('ALIYUN_ACCESS_KEY_ID', '');
+    const accessKeySecret = this.configService.get('ALIYUN_ACCESS_KEY_SECRET', '');
+    const signName = this.configService.get('ALIYUN_SMS_SIGN_NAME', '');
+    const templateCode = this.configService.get('ALIYUN_SMS_TEMPLATE_CODE', '');
+
+    if (!accessKeyId || !accessKeySecret) {
+      this.logger.warn('阿里云短信配置不完整，降级为日志模式');
+      return;
+    }
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const SMSClient = require('@alicloud/sms-sdk');
+      const client = new SMSClient({ accessKeyId, secretAccessKey: accessKeySecret });
+
+      this.smsProvider = {
+        send: async (phone: string, message: string) => {
+          await client.sendSMS({
+            PhoneNumbers: phone,
+            SignName: signName,
+            TemplateCode: templateCode,
+            TemplateParam: JSON.stringify({ code: message }),
+          });
+          this.logger.log(`[Aliyun SMS] 发送成功 -> ${phone}`);
+        },
+      };
+      this.logger.log('阿里云短信服务初始化成功');
+    } catch (error) {
+      this.logger.error(`阿里云短信初始化失败: ${error.message}，降级为日志模式`);
+    }
+  }
+
+  /**
+   * 初始化腾讯云短信服务
+   * 使用 tencentcloud-sdk-nodejs 的 sms 模块发送短信
+   */
+  private initTencentSms(): void {
+    const secretId = this.configService.get('TENCENT_SMS_SECRET_ID', '');
+    const secretKey = this.configService.get('TENCENT_SMS_SECRET_KEY', '');
+    const appId = this.configService.get('TENCENT_SMS_APP_ID', '');
+    const signName = this.configService.get('TENCENT_SMS_SIGN_NAME', '');
+    const templateId = this.configService.get('TENCENT_SMS_TEMPLATE_ID', '');
+
+    if (!secretId || !secretKey || !appId) {
+      this.logger.warn('腾讯云短信配置不完整，降级为日志模式');
+      return;
+    }
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const tencentcloud = require('tencentcloud-sdk-nodejs');
+      const SmsClient = tencentcloud.sms.v20210111.Client;
+
+      const client = new SmsClient({
+        credential: {
+          secretId,
+          secretKey,
+        },
+        region: 'ap-guangzhou',
+        profile: {
+          httpProfile: {
+            endpoint: 'sms.tencentcloudapi.com',
+          },
+        },
+      });
+
+      this.smsProvider = {
+        send: async (phone: string, message: string) => {
+          // 腾讯云短信需要 E.164 格式：+86 前缀
+          const formattedPhone = phone.startsWith('+') ? phone : `+86${phone}`;
+          await client.SendSms({
+            SmsSdkAppId: appId,
+            SignName: signName,
+            TemplateId: templateId,
+            TemplateParamSet: [message],
+            PhoneNumberSet: [formattedPhone],
+          });
+          this.logger.log(`[Tencent SMS] 发送成功 -> ${phone}`);
+        },
+      };
+      this.logger.log('腾讯云短信服务初始化成功');
+    } catch (error) {
+      this.logger.error(`腾讯云短信初始化失败: ${error.message}，降级为日志模式`);
+    }
+  }
+
+  /**
+   * 初始化 SMTP 邮件服务
+   * 使用 nodemailer 创建可复用的 transporter 连接池
+   */
+  private initSmtpEmail(): void {
+    const host = this.configService.get('SMTP_HOST', '');
+    const port = parseInt(this.configService.get('SMTP_PORT', '587'), 10);
+    const user = this.configService.get('SMTP_USER', '');
+    const pass = this.configService.get('SMTP_PASS', '');
+    const fromName = this.configService.get('SMTP_FROM_NAME', '心理健康助手');
+
+    if (!host || !user || !pass) {
+      this.logger.warn('SMTP邮件配置不完整，降级为日志模式');
+      return;
+    }
+
+    try {
+      this.smtpTransporter = nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465,
+        auth: { user, pass },
+      });
+
       this.emailProvider = {
         send: async (email: string, subject: string, content: string) => {
-          this.logger.log(`[SMTP Email] Sending to ${email}: ${subject}`);
-          // TODO: 集成 nodemailer SMTP 发送
-        }
+          await this.smtpTransporter!.sendMail({
+            from: `"${fromName}" <${user}>`,
+            to: email,
+            subject,
+            html: content,
+          });
+          this.logger.log(`[SMTP Email] 发送成功 -> ${email}: ${subject}`);
+        },
       };
+      this.logger.log('SMTP邮件服务初始化成功');
+    } catch (error) {
+      this.logger.error(`SMTP邮件初始化失败: ${error.message}，降级为日志模式`);
     }
   }
 

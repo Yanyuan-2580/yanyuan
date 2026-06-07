@@ -12,3 +12,4 @@ export { VideoModule } from './video/video.module';
 export { ReminderModule } from './reminder/reminder.module';
 export { UploadModule } from './upload/upload.module';
 export { HealthModule } from './health/health.module';
+export { BehaviorLogModule } from './behavior-log/behavior-log.module';

@@ -139,6 +139,11 @@ const router = createRouter({
       component: () => import('@/pages/auth/AuthPage.vue')
     },
     {
+      path: '/community',
+      name: 'Community',
+      component: () => import('@/pages/community/CommunityPage.vue'),
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'NotFound',
       component: () => import('@/pages/NotFoundPage.vue')

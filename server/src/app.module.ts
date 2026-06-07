@@ -6,8 +6,8 @@ import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { getTypeOrmConfig, getMongoConfig } from '@/config/database.config';
 import { HttpExceptionFilter } from '@/common';
-import { ResponseInterceptor, LoggingInterceptor } from '@/common';
-import { UserModule, ChatModule, DiaryModule, KnowledgeModule, AdminModule, MoodModule, MeditationModule, NotificationModule as UserNotificationModule, CommentModule, QuestionnaireModule, VideoModule, ReminderModule, UploadModule, HealthModule } from '@/modules';
+import { ResponseInterceptor, LoggingInterceptor, BehaviorInterceptor } from '@/common';
+import { UserModule, ChatModule, DiaryModule, KnowledgeModule, AdminModule, MoodModule, MeditationModule, NotificationModule as UserNotificationModule, CommentModule, QuestionnaireModule, VideoModule, ReminderModule, UploadModule, HealthModule, BehaviorLogModule } from '@/modules';
 import { AiModule, CacheModule, RiskControlModule, NotificationModule, ExportModule } from '@/shared';
 
 @Module({
@@ -61,7 +61,8 @@ import { AiModule, CacheModule, RiskControlModule, NotificationModule, ExportMod
     ExportModule,
     ReminderModule,
     UploadModule,
-    HealthModule
+    HealthModule,
+    BehaviorLogModule,
   ],
   providers: [
     {
@@ -75,6 +76,10 @@ import { AiModule, CacheModule, RiskControlModule, NotificationModule, ExportMod
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: BehaviorInterceptor
     },
     {
       provide: APP_GUARD,

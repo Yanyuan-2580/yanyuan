@@ -6,6 +6,7 @@ import { User, Admin, AdminOperationLog, AiSession, MoodDiary, KnowledgeArticle,
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 import { KnowledgeService } from '@/modules/knowledge/knowledge.service';
+import { ExportModule } from '@/shared/export/export.module';
 
 @Module({
   imports: [
@@ -13,12 +14,13 @@ import { KnowledgeService } from '@/modules/knowledge/knowledge.service';
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: configService.get('JWT_EXPIRES_IN') }
+        signOptions: { expiresIn: configService.get('JWT_EXPIRES_IN') },
       }),
-      inject: [ConfigService]
-    })
+      inject: [ConfigService],
+    }),
+    ExportModule,
   ],
   providers: [AdminService, KnowledgeService],
-  controllers: [AdminController]
+  controllers: [AdminController],
 })
 export class AdminModule {}

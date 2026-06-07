@@ -224,6 +224,209 @@ export class AiService {
     }
   }
 
+  /**
+   * 生成 AI 周报
+   * 聚合一周心情 + 日记 + 对话数据，生成结构化周报
+   */
+  async generateWeeklyReport(
+    userId: number,
+    weekData: {
+      moodRecords: Array<{ moodType: string; moodScore: number; createdAt: string | Date }>;
+      diaries: Array<{ moodScore: number; moodTags: string[]; content: string }>;
+      sessions: Array<{ title: string; messageCount: number }>;
+    },
+  ): Promise<{
+    summary: string;
+    moodTrend: string;
+    highlights: string[];
+    suggestions: string;
+  }> {
+    const avgMoodScore =
+      weekData.moodRecords.length > 0
+        ? (weekData.moodRecords.reduce((s, r) => s + r.moodScore, 0) / weekData.moodRecords.length).toFixed(1)
+        : '0';
+
+    const diaryCount = weekData.diaries.length;
+    const sessionCount = weekData.sessions.length;
+    const totalMessages = weekData.sessions.reduce((s, se) => s + se.messageCount, 0);
+
+    const prompt = `请根据以下用户一周的数据生成一份温暖的心理健康周报：
+
+【一周数据】
+- 心情记录数: ${weekData.moodRecords.length} 条
+- 平均心情评分: ${avgMoodScore}/5
+- 日记数: ${diaryCount} 篇
+- AI对话次数: ${sessionCount} 次
+- 总消息数: ${totalMessages} 条
+${weekData.moodRecords.length > 0 ? `- 心情类型分布: ${weekData.moodRecords.map((r) => r.moodType).join(', ')}` : ''}
+
+【输出格式（JSON）】
+{
+  "summary": "一周整体状态概括（50字内，温暖鼓励的语气）",
+  "moodTrend": "心情变化趋势描述（如'稳步向好''有起伏'等）",
+  "highlights": ["本周亮点1", "亮点2"],
+  "suggestions": "下周改善建议（30字内）"
+}`;
+
+    try {
+      const response = await this.callModel([{ role: 'user', content: prompt }]);
+      // Try to parse JSON from response
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      return {
+        summary: response.substring(0, 100),
+        moodTrend: '平稳发展',
+        highlights: ['完成了本周的记录'],
+        suggestions: '继续保持记录习惯，关注情绪变化~',
+      };
+    } catch {
+      return {
+        summary: `本周记录了${diaryCount}篇日记和${weekData.moodRecords.length}次心情，平均心情评分${avgMoodScore}分。继续保持哦！`,
+        moodTrend: parseFloat(avgMoodScore) >= 3.5 ? '状态良好' : '有些波动',
+        highlights: [
+          diaryCount > 0 ? `坚持写了${diaryCount}篇日记` : '',
+          sessionCount > 0 ? `与AI进行了${sessionCount}次对话` : '',
+        ].filter(Boolean),
+        suggestions: '尝试每天花5分钟做深呼吸练习，帮助稳定情绪~',
+      };
+    }
+  }
+
+  /**
+   * 实时危机内容检测
+   * 检测对话内容中是否包含危机信号（自杀/自残/暴力等）
+   */
+  detectCrisisInContent(fullText: string): {
+    isCrisis: boolean;
+    keywords: string[];
+    message: string;
+  } {
+    const crisisPatterns = [
+      { pattern: /自杀|不想活|结束生命|轻生|寻死|去死|活不下去/, level: 'critical' },
+      { pattern: /自残|割腕|伤害自己|自伤/, level: 'critical' },
+      { pattern: /跳楼|上吊|投河|服毒/, level: 'critical' },
+      { pattern: /没有意义|看不到希望|绝望.*死|死.*解脱/, level: 'high' },
+      { pattern: /伤害别人|杀人|报复社会/, level: 'critical' },
+    ];
+
+    const matched: string[] = [];
+    let highestLevel = 'none';
+
+    for (const { pattern, level } of crisisPatterns) {
+      if (pattern.test(fullText)) {
+        const match = fullText.match(pattern);
+        if (match) matched.push(match[0]);
+        if (level === 'critical' || (level === 'high' && highestLevel !== 'critical')) {
+          highestLevel = level;
+        }
+      }
+    }
+
+    if (highestLevel === 'critical' || highestLevel === 'high') {
+      return {
+        isCrisis: true,
+        keywords: matched,
+        message: `我注意到你可能正在经历非常困难的时刻。请记住，你并不孤单，有很多人愿意帮助你：
+
+📞 全国24小时心理援助热线：400-161-9995
+📞 北京心理危机研究与干预中心：010-82951332
+📞 生命热线：400-821-1215
+
+如果你现在处于紧急危险中，请立即拨打 110 或 120。你的生命非常宝贵，请给自己一个被帮助的机会。`,
+      };
+    }
+
+    return { isCrisis: false, keywords: [], message: '' };
+  }
+
+  /**
+   * 个性化推荐
+   * 基于用户近期心情历史推荐知识文章分类和冥想类型
+   */
+  generatePersonalizedRecommendations(
+    moodHistory: Array<{ moodType: string }>,
+  ): {
+    articleCategories: string[];
+    meditationTypes: string[];
+    message: string;
+  } {
+    // Count mood type frequencies
+    const moodCounts: Record<string, number> = {};
+    moodHistory.forEach((m) => {
+      moodCounts[m.moodType] = (moodCounts[m.moodType] || 0) + 1;
+    });
+
+    const dominantMood = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'neutral';
+
+    const recommendations: Record<string, { articles: string[]; meditations: string[]; message: string }> = {
+      anxious: {
+        articles: ['焦虑管理', '放松技巧', '正念练习'],
+        meditations: ['breathing', 'mindfulness', 'relaxation'],
+        message: '最近似乎有些焦虑呢，试试这些放松内容吧~',
+      },
+      sad: {
+        articles: ['情绪调节', '积极心理学', '自我关怀'],
+        meditations: ['body_scan', 'mindfulness', 'breathing'],
+        message: '心情低落的时候，给自己一点温柔的关照很重要~',
+      },
+      angry: {
+        articles: ['情绪管理', '压力应对', '沟通技巧'],
+        meditations: ['breathing', 'relaxation'],
+        message: '情绪波动是正常的，这里有一些帮你平静下来的方法~',
+      },
+      calm: {
+        articles: ['自我成长', '人际关系', '感恩练习'],
+        meditations: ['mindfulness', 'body_scan'],
+        message: '状态不错！趁现在培养一些好习惯吧~',
+      },
+      happy: {
+        articles: ['感恩日记', '积极关系', '目标设定'],
+        meditations: ['mindfulness', 'relaxation'],
+        message: '开心的你闪闪发光！记录下这份美好吧~',
+      },
+      neutral: {
+        articles: ['心理健康科普', '睡眠改善', '情绪认知'],
+        meditations: ['breathing', 'body_scan', 'mindfulness'],
+        message: '来看看这些精选内容，帮助更好地了解自己~',
+      },
+    };
+
+    const rec = recommendations[dominantMood] || recommendations.neutral;
+    return {
+      articleCategories: rec.articles,
+      meditationTypes: rec.meditations,
+      message: rec.message,
+    };
+  }
+
+  /**
+   * 生成每日心情问候语
+   * 根据时间段和近期心情状态个性化问候
+   */
+  generateDailyGreeting(
+    nickname: string,
+    recentMood?: string,
+  ): string {
+    const hour = new Date().getHours();
+    const timeGreeting = hour < 12 ? '早上好' : hour < 18 ? '下午好' : '晚上好';
+
+    const moodGreetings: Record<string, string> = {
+      happy: '看到你最近心情不错，真好！',
+      sad: '无论心情如何，我都在这里陪你~',
+      anxious: '今天也要记得给自己一点放松的时间哦~',
+      angry: '深呼吸，放轻松，一切都会好起来的~',
+      calm: '保持这份宁静，今天也是美好的一天~',
+    };
+
+    const moodPart = recentMood && moodGreetings[recentMood]
+      ? moodGreetings[recentMood]
+      : '今天也要好好照顾自己哦~';
+
+    return `${timeGreeting}，${nickname || '朋友'}！${moodPart}`;
+  }
+
   private buildSystemPrompt(): string {
     return `你是一位专业、温暖、有同理心的心理健康陪伴助手。请遵循以下原则：
 

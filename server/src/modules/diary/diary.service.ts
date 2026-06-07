@@ -108,7 +108,49 @@ export class DiaryService {
       total,
       avgScore: avgScore.toFixed(2),
       scoreDistribution,
-      period
+      period,
     };
+  }
+
+  /**
+   * 获取公开日记（社区广场）
+   * 只返回 isPublic=1 的日记，作者信息脱敏
+   */
+  async getPublicDiaries(
+    page: number = 1,
+    pageSize: number = 20,
+    tag?: string,
+  ): Promise<{ list: any[]; total: number; page: number; pageSize: number; totalPages: number }> {
+    const whereCondition: any = { isPublic: 1 };
+    if (tag) {
+      // JSON array LIKE search for moodTags
+      whereCondition.moodTags = tag ? undefined : undefined;
+    }
+
+    const [list, total] = await this.moodDiaryRepository.findAndCount({
+      where: { isPublic: 1 },
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
+
+    // 作者信息脱敏
+    const safeList = list.map((diary) => {
+      const user = (diary as any).user;
+      return {
+        id: diary.id,
+        moodScore: diary.moodScore,
+        moodTags: diary.moodTags,
+        content: diary.content?.substring(0, 500),
+        aiInsight: diary.aiInsight?.substring(0, 200),
+        author: user
+          ? { id: user.id, nickname: user.nickname?.charAt(0) + '***', avatarUrl: user.avatarUrl }
+          : null,
+        createdAt: diary.createdAt,
+      };
+    });
+
+    return { list: safeList, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
 }

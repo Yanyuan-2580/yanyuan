@@ -2,14 +2,14 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { MoodRecord } from '@/database/entities';
+import { MoodRecord, MoodDiary, AiSession } from '@/database/entities';
 import { MoodController } from './mood.controller';
 import { MoodService } from './mood.service';
 import { AiModule } from '@/shared';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([MoodRecord]),
+    TypeOrmModule.forFeature([MoodRecord, MoodDiary, AiSession]),
     AiModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({

@@ -44,6 +44,15 @@ export class DiaryController {
     return this.diaryService.remove(user.userId, parseInt(id));
   }
 
+  @Get('public/list')
+  getPublicDiaries(
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '20',
+    @Query('tag') tag?: string,
+  ) {
+    return this.diaryService.getPublicDiaries(parseInt(page), parseInt(pageSize), tag);
+  }
+
   @Get('stats/:period')
   @UseGuards(JwtAuthGuard)
   getStats(@CurrentUser() user: JwtPayload, @Param('period') period: 'week' | 'month' | 'year') {

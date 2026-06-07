@@ -100,10 +100,17 @@ export class ChatService {
     }
 
     const riskLevel = this.riskControlService.analyzeRisk(dto.content);
-    
+
+    // AI 辅助危机检测（补充关键词检测，捕捉更细微的危机表达）
+    const aiCrisis = this.aiService.detectCrisisInContent(dto.content);
+    if (aiCrisis.isCrisis && riskLevel < 2) {
+      this.logger.warn(`AI crisis detected for userId=${userId}: keywords=${aiCrisis.keywords.join(', ')}`);
+    }
+
     if (riskLevel === 2) {
       await this.handleHighRisk(userId, session.id, dto.content);
-      const crisisMessage = this.riskControlService.getCrisisInterventionMessage();
+      // 使用 AI 危机消息或默认危机干预消息
+      const crisisMessage = aiCrisis.isCrisis ? aiCrisis.message : this.riskControlService.getCrisisInterventionMessage();
       const message = await this.saveMessage(session.id.toString(), userId, 'assistant', crisisMessage, 'crisis', riskLevel);
       await this.updateSession(session.id, riskLevel);
       return { session, message };

@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { userApi } from '@/api';
 import { useUserStore } from '@/stores/user';
+import { useDarkMode } from '@/composables/useDarkMode';
 import PageHeader from '@/components/PageHeader.vue';
 import BottomNavBar from '@/components/BottomNavBar.vue';
-import { Save, Mail, User as UserIcon } from 'lucide-vue-next';
+import { Save, Mail, User as UserIcon, Moon, Sun } from 'lucide-vue-next';
 
 const router = useRouter();
 const userStore = useUserStore();
+const { isDark, toggle: toggleDarkMode } = useDarkMode();
 
 const nickname = ref(userStore.user?.nickname || '');
 const email = ref(userStore.user?.email || '');
@@ -103,10 +105,36 @@ const handleSave = async () => {
         {{ isSaving ? '保存中...' : '保存设置' }}
       </button>
 
+      <!-- Dark Mode Toggle -->
+      <section class="card">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-soft-100 dark:bg-charcoal-700 flex items-center justify-center">
+              <Moon v-if="isDark" class="w-5 h-5 text-indigo-400" />
+              <Sun v-else class="w-5 h-5 text-warm-400" />
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-800 dark:text-gray-200">深色模式</p>
+              <p class="text-xs text-gray-400">{{ isDark ? '已开启' : '已关闭' }}</p>
+            </div>
+          </div>
+          <button
+            class="relative w-12 h-7 rounded-full transition-colors duration-300"
+            :class="isDark ? 'bg-indigo-500' : 'bg-gray-300'"
+            @click="toggleDarkMode"
+          >
+            <span
+              class="absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow-sm transition-transform duration-300"
+              :class="isDark ? 'translate-x-5' : 'translate-x-0'"
+            />
+          </button>
+        </div>
+      </section>
+
       <!-- Navigation -->
       <div class="space-y-2">
         <button
-          class="w-full card flex items-center justify-between hover:border-calm-200 transition-all duration-200"
+          class="w-full card flex items-center justify-between hover:border-calm-200 transition-all duration-200 dark:bg-charcoal-800 dark:border-charcoal-700 dark:hover:border-charcoal-600"
           @click="router.push('/user/change-password')"
         >
           <span class="text-sm font-medium text-gray-700">修改密码</span>

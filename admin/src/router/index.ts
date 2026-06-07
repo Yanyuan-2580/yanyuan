@@ -39,6 +39,42 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/chat-sessions',
+      name: 'ChatSessions',
+      component: () => import('@/pages/ChatSessionPage.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/diaries',
+      name: 'DiaryManagement',
+      component: () => import('@/pages/DiaryManagementPage.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/questionnaires',
+      name: 'QuestionnaireManagement',
+      component: () => import('@/pages/QuestionnaireManagementPage.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/meditations',
+      name: 'MeditationManagement',
+      component: () => import('@/pages/MeditationManagementPage.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/behavior',
+      name: 'BehaviorAnalytics',
+      component: () => import('@/pages/BehaviorAnalyticsPage.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/export',
+      name: 'DataExport',
+      component: () => import('@/pages/DataExportPage.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'NotFound',
       component: () => import('@/pages/NotFoundPage.vue')

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual } from 'typeorm';
-import { MoodRecord } from '@/database/entities';
+import { MoodRecord, MoodDiary, AiSession } from '@/database/entities';
 import { RecordMoodDto } from './dto/record-mood.dto';
 import { AiService } from '@/shared';
 
@@ -10,7 +10,11 @@ export class MoodService {
   constructor(
     @InjectRepository(MoodRecord)
     private moodRecordRepository: Repository<MoodRecord>,
-    private aiService: AiService
+    @InjectRepository(MoodDiary)
+    private diaryRepository: Repository<MoodDiary>,
+    @InjectRepository(AiSession)
+    private sessionRepository: Repository<AiSession>,
+    private aiService: AiService,
   ) {}
 
   async recordMood(userId: number, dto: RecordMoodDto) {
@@ -82,19 +86,66 @@ export class MoodService {
 
   private calculateTrend(records: { moodScore: number; createdAt: Date }[]) {
     if (records.length < 2) return 'stable';
-    
-    const sortedRecords = [...records].sort((a, b) => 
+
+    const sortedRecords = [...records].sort((a, b) =>
       new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
-    
+
     const firstWeek = sortedRecords.slice(0, Math.floor(sortedRecords.length / 2));
     const lastWeek = sortedRecords.slice(Math.floor(sortedRecords.length / 2));
-    
+
     const firstAvg = firstWeek.reduce((sum, r) => sum + r.moodScore, 0) / firstWeek.length;
     const lastAvg = lastWeek.reduce((sum, r) => sum + r.moodScore, 0) / lastWeek.length;
-    
+
     if (lastAvg > firstAvg + 0.5) return 'up';
     if (lastAvg < firstAvg - 0.5) return 'down';
     return 'stable';
+  }
+
+  // ========== AI 增强辅助方法 ==========
+
+  async getWeeklyData(userId: number) {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+
+    const [moodRecords, diaries, sessions] = await Promise.all([
+      this.moodRecordRepository.find({
+        where: { userId, createdAt: MoreThanOrEqual(weekAgo) },
+        order: { createdAt: 'DESC' },
+      }),
+      this.diaryRepository.find({
+        where: { userId, createdAt: MoreThanOrEqual(weekAgo) },
+        select: ['moodScore', 'moodTags', 'content'],
+      }),
+      this.sessionRepository.find({
+        where: { userId, createdAt: MoreThanOrEqual(weekAgo) },
+        select: ['title', 'messageCount'],
+      }),
+    ]);
+
+    return { moodRecords, diaries, sessions };
+  }
+
+  async getRecentMood(userId: number): Promise<string | undefined> {
+    const recent = await this.moodRecordRepository.findOne({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+      select: ['moodType'],
+    });
+    return recent?.moodType;
+  }
+
+  async getRecentMoodHistory(
+    userId: number,
+    days: number = 14,
+  ): Promise<Array<{ moodType: string }>> {
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+
+    return this.moodRecordRepository.find({
+      where: { userId, createdAt: MoreThanOrEqual(since) },
+      select: ['moodType'],
+      order: { createdAt: 'DESC' },
+    });
   }
 }
