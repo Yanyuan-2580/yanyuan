@@ -14,6 +14,11 @@ export class VideoController {
     return this.videoService.createRoom(user.userId);
   }
 
+  @Post('rooms/:roomId/credentials')
+  getCredentials(@CurrentUser() user: JwtPayload, @Param('roomId') roomId: string) {
+    return this.videoService.getRoomCredentials(user.userId, roomId);
+  }
+
   @Get('rooms/:roomId')
   getRoom(@Param('roomId') roomId: string) {
     return this.videoService.getRoom(roomId);

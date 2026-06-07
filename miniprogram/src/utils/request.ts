@@ -3,8 +3,9 @@
  * Reuses the same /api/v1 server API
  */
 
-// 开发环境使用本地代理，生产环境配置实际域名
+// 开发环境: localhost; 生产环境: 实际域名 (需在小程序后台配置request合法域名)
 const BASE_URL = 'http://localhost:3000/api/v1';
+// const BASE_URL = 'https://psyaihelp.xin/api/v1'; // 生产环境
 
 interface RequestOptions {
   url: string;
