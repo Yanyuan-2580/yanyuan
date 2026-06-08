@@ -4,6 +4,7 @@ import { AiService } from '@/shared/ai/ai.service';
 import { RecordMoodDto } from './dto/record-mood.dto';
 import { JwtAuthGuard } from '@/common';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { JwtPayload } from '@/types';
 
 @Controller('mood')
 @UseGuards(JwtAuthGuard)
@@ -14,43 +15,43 @@ export class MoodController {
   ) {}
 
   @Post('record')
-  recordMood(@CurrentUser('id') userId: number, @Body() dto: RecordMoodDto) {
-    return this.moodService.recordMood(userId, dto);
+  recordMood(@CurrentUser() user: JwtPayload, @Body() dto: RecordMoodDto) {
+    return this.moodService.recordMood(user.userId, dto);
   }
 
   @Get('history')
   getMoodHistory(
-    @CurrentUser('id') userId: number,
+    @CurrentUser() user: JwtPayload,
     @Query('period') period: 'week' | 'month' | 'year' = 'week',
   ) {
-    return this.moodService.getMoodHistory(userId, period);
+    return this.moodService.getMoodHistory(user.userId, period);
   }
 
   @Get('stats')
-  getMoodStats(@CurrentUser('id') userId: number) {
-    return this.moodService.getMoodStats(userId);
+  getMoodStats(@CurrentUser() user: JwtPayload) {
+    return this.moodService.getMoodStats(user.userId);
   }
 
   @Get('weekly-report')
-  async getWeeklyReport(@CurrentUser('id') userId: number) {
-    const weekData = await this.moodService.getWeeklyData(userId);
-    return this.aiService.generateWeeklyReport(userId, weekData);
+  async getWeeklyReport(@CurrentUser() user: JwtPayload) {
+    const weekData = await this.moodService.getWeeklyData(user.userId);
+    return this.aiService.generateWeeklyReport(user.userId, weekData);
   }
 
   @Get('daily-greeting')
   async getDailyGreeting(
-    @CurrentUser('id') userId: number,
+    @CurrentUser() user: JwtPayload,
     @Query('nickname') nickname?: string,
   ) {
-    const recentMood = await this.moodService.getRecentMood(userId);
+    const recentMood = await this.moodService.getRecentMood(user.userId);
     return {
       greeting: this.aiService.generateDailyGreeting(nickname || '朋友', recentMood),
     };
   }
 
   @Get('recommendations')
-  async getRecommendations(@CurrentUser('id') userId: number) {
-    const moodHistory = await this.moodService.getRecentMoodHistory(userId, 14);
+  async getRecommendations(@CurrentUser() user: JwtPayload) {
+    const moodHistory = await this.moodService.getRecentMoodHistory(user.userId, 14);
     return this.aiService.generatePersonalizedRecommendations(moodHistory);
   }
 }

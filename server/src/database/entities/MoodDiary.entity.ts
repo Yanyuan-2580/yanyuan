@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
 import { DiaryStatus } from '@/types';
+import { User } from './User.entity';
 
 @Entity('mood_diaries')
 export class MoodDiary {
@@ -9,6 +10,10 @@ export class MoodDiary {
   @Column()
   @Index()
   userId: number;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
   @Column({ type: 'int' })
   moodScore: number;

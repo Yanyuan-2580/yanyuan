@@ -53,16 +53,26 @@ export class ReminderService {
 
   async getDueReminders(): Promise<Reminder[]> {
     const now = new Date();
-    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     const currentDay = now.getDay();
 
-    return this.reminderRepository.find({
-      where: { enabled: true, time: currentTime }
-    }).then(reminders =>
-      reminders.filter(r => {
-        const days = r.daysOfWeek || [];
-        return days.includes(currentDay);
-      })
-    );
+    // Build a 3-minute tolerance window: HH:MM ± 1 minute
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const timeWindows = [
+      `${pad(now.getHours())}:${pad(Math.max(0, now.getMinutes() - 1))}`,
+      `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+      `${pad(now.getHours())}:${pad(Math.min(59, now.getMinutes() + 1))}`,
+    ];
+
+    // Build unique time strings (handle hour boundary edge case)
+    const uniqueTimes = [...new Set(timeWindows)];
+
+    const reminders = await this.reminderRepository.find({
+      where: { enabled: true }
+    });
+
+    return reminders.filter(r => {
+      const days = r.daysOfWeek || [];
+      return days.includes(currentDay) && uniqueTimes.includes(r.time);
+    });
   }
 }

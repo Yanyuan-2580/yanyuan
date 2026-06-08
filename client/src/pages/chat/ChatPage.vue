@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch } from 'vue';
+import { ref, onMounted, nextTick, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { chatApi } from '@/api';
 import type { AiSession, ChatMessage } from '@/types';
-import { Send, Plus, X, MessageCircle, BookOpen, Calendar, Heart, MoreVertical, Square } from 'lucide-vue-next';
+import { Send, Plus, X, MessageCircle, BookOpen, Calendar, Heart, MoreVertical, Square, Mic, MicOff } from 'lucide-vue-next';
 import BottomNavBar from '@/components/BottomNavBar.vue';
 
 const route = useRoute();
@@ -19,6 +19,101 @@ const streamingSessionId = ref<number | null>(null);
 let streamController: AbortController | null = null;
 const showSessionList = ref(false);
 const messagesContainer = ref<HTMLElement | null>(null);
+
+// ====== 语音输入 ======
+const isVoiceSupported = ref(false);
+const isListening = ref(false);
+let recognition: any = null;
+
+// 初始化语音识别（Web Speech API）
+const initSpeechRecognition = () => {
+  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    isVoiceSupported.value = false;
+    return;
+  }
+  isVoiceSupported.value = true;
+
+  recognition = new SpeechRecognition();
+  recognition.lang = 'zh-CN';
+  recognition.interimResults = true;   // 实时显示识别中间结果
+  recognition.continuous = true;       // 持续识别直到手动停止
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = (event: any) => {
+    let interim = '';
+    let final = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        final += transcript;
+      } else {
+        interim += transcript;
+      }
+    }
+    // 追加最终结果，中间结果显示在末尾
+    if (final) {
+      inputMessage.value = inputMessage.value ? inputMessage.value + final : final;
+    }
+    // 可以考虑显示 interim，但这里直接合并到输入框更简单
+    if (interim && !final) {
+      const base = inputMessage.value || '';
+      // 把 interim 临时显示为灰色提示（简化：直接追加）
+      // 更好的做法是用一个单独的 ref，但保持简单
+    }
+  };
+
+  recognition.onerror = (event: any) => {
+    console.warn('Speech recognition error:', event.error);
+    if (event.error === 'no-speech') {
+      // 没有说话，静默处理
+    } else if (event.error === 'aborted') {
+      // 用户手动停止
+    } else {
+      // 其他错误
+    }
+    stopListening();
+  };
+
+  recognition.onend = () => {
+    isListening.value = false;
+    // 如果用户没有手动停止且还在语音模式，自动重启
+    // （continuous 模式下通常不会自动结束，除非超时）
+  };
+};
+
+const startListening = () => {
+  if (!recognition) {
+    initSpeechRecognition();
+  }
+  if (!recognition) return;
+
+  try {
+    isListening.value = true;
+    recognition.start();
+  } catch (e: any) {
+    // 可能已经在识别中，先停止再开始
+    try { recognition.stop(); } catch { /* */ }
+    setTimeout(() => {
+      try { recognition.start(); isListening.value = true; } catch { /* */ }
+    }, 100);
+  }
+};
+
+const stopListening = () => {
+  if (recognition) {
+    try { recognition.stop(); } catch { /* */ }
+  }
+  isListening.value = false;
+};
+
+const toggleVoice = () => {
+  if (isListening.value) {
+    stopListening();
+  } else {
+    startListening();
+  }
+};
 
 const scrollToBottom = async () => {
   await nextTick();
@@ -236,6 +331,7 @@ const getMoodEmoji = (tag: string) => {
 };
 
 onMounted(async () => {
+  initSpeechRecognition();
   await loadSessions();
   if (route.params.sessionId) {
     const sessionId = parseInt(route.params.sessionId as string);
@@ -248,6 +344,10 @@ onMounted(async () => {
   } else if (sessions.value.length > 0) {
     await selectSession(sessions.value[0]);
   }
+});
+
+onUnmounted(() => {
+  stopListening();
 });
 </script>
 
@@ -398,11 +498,26 @@ onMounted(async () => {
     <!-- Input Area -->
     <footer class="bg-white/90 backdrop-blur border-t border-gray-50 p-4">
       <div class="max-w-lg mx-auto flex items-end gap-3">
+        <!-- 语音按钮 -->
+        <button
+          v-if="isVoiceSupported"
+          class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all active:scale-95 relative"
+          :class="isListening ? 'bg-red-500 text-white shadow-lg animate-pulse' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'"
+          :disabled="isStreaming"
+          @click="toggleVoice"
+          :title="isListening ? '点击停止' : '语音输入'"
+        >
+          <Mic v-if="!isListening" class="w-5 h-5" />
+          <MicOff v-else class="w-5 h-5" />
+          <!-- 录音波纹指示 -->
+          <span v-if="isListening" class="absolute inset-0 rounded-2xl ring-4 ring-red-300 animate-ping opacity-30"></span>
+        </button>
+
         <textarea
           v-model="inputMessage"
           rows="1"
           class="flex-1 resize-none rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-calm-200/50 focus:border-calm-300 max-h-32 transition-all duration-200 placeholder:text-gray-300"
-          placeholder="说说你的感受..."
+          :placeholder="isListening ? '正在聆听...' : '说说你的感受...'"
           :disabled="isStreaming"
           @keydown="handleKeydown"
           @input="(e: any) => { e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px'; }"

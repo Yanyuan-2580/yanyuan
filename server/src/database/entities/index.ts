@@ -16,3 +16,6 @@ export { Questionnaire } from './Questionnaire.entity';
 export { QuestionnaireResult } from './QuestionnaireResult.entity';
 export { VideoSession } from './VideoSession.entity';
 export { Reminder } from './Reminder.entity';
+export { RiskRecord } from './RiskRecord.entity';
+export { TextChatSession } from './TextChatSession.entity';
+export { TextChatMessage } from './TextChatMessage.entity';

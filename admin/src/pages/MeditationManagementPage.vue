@@ -125,7 +125,7 @@ onMounted(() => loadList());
 
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
       <el-table :data="meditations" stripe style="width: 100%">
-        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column type="index" label="序号" width="60" />
         <el-table-column prop="title" label="标题" min-width="180" />
         <el-table-column label="分类" width="120">
           <template #default="{ row }">{{ getCategoryLabel(row.category) }}</template>

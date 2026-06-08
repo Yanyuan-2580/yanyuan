@@ -16,9 +16,14 @@ export class BehaviorInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest();
     const startTime = Date.now();
 
-    // Skip logging for admin routes and health check
+    // 只记录客户端请求，跳过管理后台、健康检查等
     const path = request.route?.path || request.url || '';
-    if (path.startsWith('/admin') || path.includes('health') || path.includes('api-docs')) {
+    if (
+      path.startsWith('/api/v1/admin') ||
+      path.startsWith('/admin') ||
+      path.includes('health') ||
+      path.includes('api-docs')
+    ) {
       return next.handle();
     }
 

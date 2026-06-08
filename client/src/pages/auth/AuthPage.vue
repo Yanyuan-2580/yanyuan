@@ -152,11 +152,19 @@ const sendLoginCode = async () => {
   }
   codeSending.value = true;
   try {
-    await request.post('/users/send-code', { phone: codePhone.value });
+    const res = await request.post('/users/send-code', { phone: codePhone.value });
     startCodeCountdown(codeCountdown);
-    errorMessage.value = '';
+    // 开发环境显示验证码
+    if (res.data?.devCode) {
+      errorMessage.value = '';
+      successMessage.value = `[DEV] 验证码: ${res.data.devCode}`;
+    } else {
+      errorMessage.value = '';
+      successMessage.value = '验证码已发送';
+    }
   } catch (error: any) {
     errorMessage.value = error.message || '发送失败';
+    successMessage.value = '';
   } finally {
     codeSending.value = false;
   }
@@ -194,12 +202,19 @@ const sendResetCode = async () => {
   }
   resetSending.value = true;
   try {
-    await request.post('/users/forgot-password', { phone: resetPhone.value });
+    const res = await request.post('/users/forgot-password', { phone: resetPhone.value });
     resetStep.value = 'code';
     startCodeCountdown(resetCountdown);
-    errorMessage.value = '';
+    if (res.data?.devCode) {
+      successMessage.value = `[DEV] 验证码: ${res.data.devCode}`;
+      errorMessage.value = '';
+    } else {
+      errorMessage.value = '';
+      successMessage.value = '验证码已发送';
+    }
   } catch (error: any) {
     errorMessage.value = error.message || '发送失败，请确认手机号已注册';
+    successMessage.value = '';
   } finally {
     resetSending.value = false;
   }

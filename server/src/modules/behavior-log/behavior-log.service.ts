@@ -32,26 +32,17 @@ export class BehaviorLogService {
     }
   }
 
-  async getPageViewStats(days: number = 7): Promise<any> {
-    const since = new Date();
-    since.setDate(since.getDate() - days);
-
-    const results = await this.behaviorLogModel.aggregate([
-      { $match: { createdAt: { $gte: since } } },
-      { $group: { _id: '$page', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 20 },
-    ]);
-
-    return results.map((r) => ({ page: r._id, count: r.count }));
-  }
-
   async getDailyActiveUsers(days: number = 7): Promise<any> {
     const since = new Date();
     since.setDate(since.getDate() - days);
 
     const results = await this.behaviorLogModel.aggregate([
-      { $match: { createdAt: { $gte: since } } },
+      {
+        $match: {
+          createdAt: { $gte: since },
+          page: { $not: /^\/api\/v1\/admin/ },
+        },
+      },
       {
         $group: {
           _id: {
@@ -77,12 +68,89 @@ export class BehaviorLogService {
     since.setDate(since.getDate() - days);
 
     const results = await this.behaviorLogModel.aggregate([
-      { $match: { createdAt: { $gte: since } } },
-      { $group: { _id: '$eventType', count: { $sum: 1 } } },
+      {
+        $match: {
+          createdAt: { $gte: since },
+          page: { $not: /^\/api\/v1\/admin/ },
+        },
+      },
+      // 按模块归一化：合并同一资源下的子路径
+      {
+        $addFields: {
+          normalizedPage: {
+            $switch: {
+              branches: [
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/video/ } }, then: '/api/v1/video' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/chat/ } }, then: '/api/v1/chat' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/diary|^\/api\/v1\/diaries/ } }, then: '/api/v1/diaries' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/users/ } }, then: '/api/v1/users' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/mood/ } }, then: '/api/v1/mood' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/meditation/ } }, then: '/api/v1/meditation' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/articles/ } }, then: '/api/v1/articles' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/questionnaires/ } }, then: '/api/v1/questionnaires' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/notifications/ } }, then: '/api/v1/notifications' },
+              ],
+              default: '$page',
+            },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: '$normalizedPage',
+          count: { $sum: 1 },
+          uniqueUsers: { $addToSet: '$userId' },
+        },
+      },
       { $sort: { count: -1 } },
     ]);
 
-    return results.map((r) => ({ eventType: r._id, count: r.count }));
+    return results.map((r) => ({
+      eventType: r._id,
+      count: r.count,
+      uniqueUsers: r.uniqueUsers.length,
+    }));
+  }
+
+  // 同样更新 page-views 查询
+  async getPageViewStats(days: number = 7): Promise<any> {
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+
+    const results = await this.behaviorLogModel.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: since },
+          page: { $not: /^\/api\/v1\/admin/ },
+        },
+      },
+      // 归一化路径
+      {
+        $addFields: {
+          normalizedPage: {
+            $switch: {
+              branches: [
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/video/ } }, then: '/api/v1/video' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/chat/ } }, then: '/api/v1/chat' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/diary|^\/api\/v1\/diaries/ } }, then: '/api/v1/diaries' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/users/ } }, then: '/api/v1/users' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/mood/ } }, then: '/api/v1/mood' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/meditation/ } }, then: '/api/v1/meditation' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/articles/ } }, then: '/api/v1/articles' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/questionnaires/ } }, then: '/api/v1/questionnaires' },
+                { case: { $regexMatch: { input: '$page', regex: /^\/api\/v1\/notifications/ } }, then: '/api/v1/notifications' },
+              ],
+              default: '$page',
+            },
+          },
+        },
+      },
+      { $group: { _id: '$normalizedPage', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 20 },
+    ]);
+
+    return results.map((r) => ({ page: r._id, count: r.count }));
   }
 
   async getOverview(): Promise<any> {

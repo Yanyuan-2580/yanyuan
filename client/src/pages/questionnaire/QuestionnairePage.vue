@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { request } from '@/api/request';
 import PageHeader from '@/components/PageHeader.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import { History, TrendingUp } from 'lucide-vue-next';
 
 interface Question {
   id: number;
@@ -17,6 +18,12 @@ interface Questionnaire {
   category: string;
   questions: Question[];
 }
+interface PreviousResult {
+  id: number;
+  totalScore: number;
+  resultLevel: 'low' | 'moderate' | 'high';
+  createdAt: string;
+}
 
 const router = useRouter();
 const route = useRoute();
@@ -25,6 +32,30 @@ const currentStep = ref(0);
 const answers = ref<Record<number, number>>({});
 const isLoading = ref(true);
 const isSubmitting = ref(false);
+const previousResult = ref<PreviousResult | null>(null);
+
+const formatDate = (dateStr: string) => {
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+const prevLevelLabel = (level: string) => {
+  switch (level) {
+    case 'low': return '状态良好';
+    case 'moderate': return '需要关注';
+    case 'high': return '建议咨询';
+    default: return '';
+  }
+};
+
+const prevLevelColor = (level: string) => {
+  switch (level) {
+    case 'low': return 'text-emerald-600 bg-emerald-50';
+    case 'moderate': return 'text-calm-600 bg-calm-50';
+    case 'high': return 'text-rose-500 bg-rose-50';
+    default: return 'text-gray-500 bg-gray-50';
+  }
+};
 
 onMounted(async () => {
   try {
@@ -36,6 +67,19 @@ onMounted(async () => {
     console.error('Failed to load questionnaire:', e);
   } finally {
     isLoading.value = false;
+  }
+
+  // 如果是已登录用户，获取上次测评分数
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    try {
+      const prevRes = await request.get(`/questionnaires/${route.params.id}/latest-result`);
+      if (prevRes.code === 200 && prevRes.data) {
+        previousResult.value = prevRes.data;
+      }
+    } catch (e) {
+      // 没有历史记录或其他错误，静默处理
+    }
   }
 });
 
@@ -78,14 +122,38 @@ const submit = async () => {
     <LoadingSpinner v-if="isLoading" />
 
     <div v-else-if="questionnaire" class="max-w-lg mx-auto px-4 py-6">
+      <!-- Previous Result -->
+      <div
+        v-if="previousResult"
+        class="mb-4 bg-white rounded-2xl border border-gray-50 p-4 shadow-card"
+      >
+        <div class="flex items-center gap-2 mb-2">
+          <History class="w-4 h-4 text-gray-400" />
+          <span class="text-xs text-gray-400">上次测评 · {{ formatDate(previousResult.createdAt) }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-baseline gap-2">
+            <span class="text-2xl font-bold text-gray-800">{{ previousResult.totalScore }}</span>
+            <span class="text-sm text-gray-400">分</span>
+          </div>
+          <span class="px-3 py-1 rounded-full text-xs font-medium" :class="prevLevelColor(previousResult.resultLevel)">
+            {{ prevLevelLabel(previousResult.resultLevel) }}
+          </span>
+        </div>
+        <div class="mt-2 flex items-center gap-1 text-xs text-calm-500">
+          <TrendingUp class="w-3.5 h-3.5" />
+          <span>请根据近期真实感受作答，对比上次结果看变化</span>
+        </div>
+      </div>
+
       <!-- Progress -->
       <div class="mb-6">
         <div class="flex justify-between text-xs text-gray-400 mb-2">
           <span>第 {{ currentStep + 1 }} / {{ questions().length }} 题</span>
-          <span>{{ progress }}%</span>
+          <span>{{ progress() }}%</span>
         </div>
         <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-calm-500 to-emerald-500 rounded-full transition-all duration-300" :style="{ width: progress + '%' }" />
+          <div class="h-full bg-gradient-to-r from-calm-500 to-emerald-500 rounded-full transition-all duration-300" :style="{ width: progress() + '%' }" />
         </div>
       </div>
 

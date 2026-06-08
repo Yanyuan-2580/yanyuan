@@ -61,7 +61,7 @@ onMounted(loadLogs);
       <table class="w-full">
         <thead>
           <tr class="border-b border-gray-100">
-            <th class="text-left p-4 text-sm text-gray-500">ID</th>
+            <th class="text-left p-4 text-sm text-gray-500 w-16">序号</th>
             <th class="text-left p-4 text-sm text-gray-500">管理员</th>
             <th class="text-left p-4 text-sm text-gray-500">操作</th>
             <th class="text-left p-4 text-sm text-gray-500">目标类型</th>
@@ -71,8 +71,8 @@ onMounted(loadLogs);
           </tr>
         </thead>
         <tbody>
-          <tr v-for="log in logs" :key="log.id" class="border-b border-gray-50 hover:bg-gray-50">
-            <td class="p-4 text-sm text-gray-600">{{ log.id }}</td>
+          <tr v-for="(log, idx) in logs" :key="log.id" class="border-b border-gray-50 hover:bg-gray-50">
+            <td class="p-4 text-sm text-gray-500">{{ (page - 1) * pageSize + idx + 1 }}</td>
             <td class="p-4 text-sm text-gray-800">{{ log.adminId }}</td>
             <td class="p-4"><span class="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600">{{ log.action }}</span></td>
             <td class="p-4 text-sm text-gray-500">{{ log.targetType }}</td>

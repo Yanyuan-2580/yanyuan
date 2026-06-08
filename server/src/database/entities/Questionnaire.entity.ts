@@ -26,14 +26,12 @@ export class Questionnaire {
   }>;
 
   @Column({ type: 'json', nullable: true })
-  scoringRules: {
-    ranges: Array<{
-      min: number;
-      max: number;
-      level: 'low' | 'moderate' | 'high';
-      label: string;
-    }>;
-  };
+  scoringRules: Array<{
+    min: number;
+    max: number;
+    level: 'low' | 'moderate' | 'high';
+    label: string;
+  }>;
 
   @Column({ type: 'tinyint', default: 1 })
   status: number; // 0: inactive, 1: active

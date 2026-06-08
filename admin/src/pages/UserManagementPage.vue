@@ -13,7 +13,7 @@ const showEditDialog = ref(false);
 const showCreateDialog = ref(false);
 const editUser = ref<User | null>(null);
 const editForm = ref({ nickname: '', status: 1, riskLevel: 0 });
-const createForm = ref({ phone: '', password: '', nickname: '' });
+const createForm = ref({ username: '', password: '', nickname: '' });
 const searchKeyword = ref('');
 const filterStatus = ref<number | undefined>(undefined);
 const filterRiskLevel = ref<number | undefined>(undefined);
@@ -53,15 +53,15 @@ const saveUser = async () => {
 };
 
 const createUser = async () => {
-  if (!createForm.value.phone || !createForm.value.password) {
-    ElMessage.warning('请填写手机号和密码');
+  if (!createForm.value.username || !createForm.value.password) {
+    ElMessage.warning('请填写用户名和密码');
     return;
   }
   try {
     await userApi.createUser(createForm.value);
     ElMessage.success('创建成功');
     showCreateDialog.value = false;
-    createForm.value = { phone: '', password: '', nickname: '' };
+    createForm.value = { username: '', password: '', nickname: '' };
     loadUsers();
   } catch (error: any) {
     ElMessage.error(error.message || '创建失败');
@@ -109,7 +109,7 @@ onMounted(loadUsers);
       <input
         v-model="searchKeyword"
         type="text"
-        placeholder="搜索手机号或昵称..."
+        placeholder="搜索用户名或昵称..."
         class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64"
         @keyup.enter="handleSearch"
       />
@@ -132,8 +132,8 @@ onMounted(loadUsers);
       <table class="w-full">
         <thead>
           <tr class="border-b border-gray-100">
-            <th class="text-left p-4 text-sm font-medium text-gray-500">ID</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500">手机号</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 w-16">序号</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500">用户名</th>
             <th class="text-left p-4 text-sm font-medium text-gray-500">昵称</th>
             <th class="text-left p-4 text-sm font-medium text-gray-500">状态</th>
             <th class="text-left p-4 text-sm font-medium text-gray-500">风险等级</th>
@@ -142,9 +142,9 @@ onMounted(loadUsers);
           </tr>
         </thead>
         <tbody>
-          <tr v-for="user in users" :key="user.id" class="border-b border-gray-50 hover:bg-gray-50">
-            <td class="p-4 text-sm text-gray-600">{{ user.id }}</td>
-            <td class="p-4 text-sm text-gray-800">{{ user.phone }}</td>
+          <tr v-for="(user, idx) in users" :key="user.id" class="border-b border-gray-50 hover:bg-gray-50">
+            <td class="p-4 text-sm text-gray-500">{{ (page - 1) * pageSize + idx + 1 }}</td>
+            <td class="p-4 text-sm text-gray-800">{{ user.username }}</td>
             <td class="p-4 text-sm text-gray-800">{{ user.nickname }}</td>
             <td class="p-4">
               <span :class="['px-2 py-1 rounded-full text-xs', user.status === 1 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600']">
@@ -216,8 +216,8 @@ onMounted(loadUsers);
     <el-dialog title="创建用户" v-model="showCreateDialog">
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">手机号 *</label>
-          <el-input v-model="createForm.phone" placeholder="请输入手机号" />
+          <label class="block text-sm font-medium text-gray-700 mb-1">用户名 *</label>
+          <el-input v-model="createForm.username" placeholder="请输入用户名" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">密码 *</label>

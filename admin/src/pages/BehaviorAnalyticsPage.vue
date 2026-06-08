@@ -35,8 +35,148 @@ const totalEvents = () => {
   return overview.value?.eventDistribution?.reduce((sum, e) => sum + e.count, 0) || 0;
 };
 
-const shortenPage = (page: string) => {
-  return page.replace('/api/v1', '').substring(0, 40);
+const pageLabelMap: Record<string, string> = {
+  // 用户端页面
+  '/': '首页',
+  '/login': '登录页',
+  '/register': '注册页',
+  '/chat': 'AI对话',
+  '/diary': '日记列表',
+  '/diary/create': '写日记',
+  '/diary/:id': '日记详情',
+  '/knowledge': '知识库',
+  '/knowledge/:id': '文章详情',
+  '/mood': '心情记录',
+  '/meditation': '冥想放松',
+  '/user': '个人中心',
+  '/user/settings': '用户设置',
+  '/user/password': '修改密码',
+  '/user/help': '帮助中心',
+  '/user/about': '关于我们',
+  '/notification': '通知中心',
+  '/questionnaire': '问卷列表',
+  '/questionnaire/:id': '问卷答题',
+  '/questionnaire/result/:id': '问卷结果',
+  '/video': '视频咨询',
+  '/reminder': '提醒设置',
+  // 用户端 API
+  '/api/v1/users/login': '用户登录',
+  '/api/v1/users/register': '用户注册',
+  '/api/v1/users/profile': '获取个人信息',
+  '/api/v1/users/refresh-token': '刷新Token',
+  '/api/v1/users/logout': '退出登录',
+  '/api/v1/users/password': '修改密码',
+  '/api/v1/users/report': '用户报告',
+  '/api/v1/users/send-code': '发送验证码',
+  '/api/v1/users/code-login': '验证码登录',
+  '/api/v1/users/forgot-password': '忘记密码',
+  '/api/v1/users/reset-password': '重置密码',
+  '/api/v1/users/wechat-login': '微信登录',
+  '/api/v1/chat/sessions': 'AI会话列表',
+  '/api/v1/chat/sessions/:id': 'AI会话详情',
+  '/api/v1/chat/messages': 'AI消息',
+  '/api/v1/chat/messages/stream': 'AI流式对话',
+  '/api/v1/chat/messages/:sessionId': '获取聊天记录',
+  '/api/v1/chat/stats/weekly-count': '聊天周统计',
+  '/api/v1/diaries': '日记CRUD',
+  '/api/v1/diaries/:id': '日记操作',
+  '/api/v1/diaries/stats/:period': '日记统计',
+  '/api/v1/diaries/public/list': '公开日记',
+  '/api/v1/articles': '知识文章列表',
+  '/api/v1/articles/:id': '文章详情',
+  '/api/v1/articles/my': '我的文章',
+  '/api/v1/articles/search': '文章搜索',
+  '/api/v1/articles/:id/like': '文章点赞',
+  '/api/v1/articles/:id/collect': '文章收藏',
+  '/api/v1/articles/:articleId/comments': '文章评论',
+  '/api/v1/categories': '文章分类',
+  '/api/v1/mood/record': '心情记录',
+  '/api/v1/mood/history': '心情历史',
+  '/api/v1/mood/stats': '心情统计',
+  '/api/v1/mood/weekly-report': '心情周报',
+  '/api/v1/mood/daily-greeting': '每日问候',
+  '/api/v1/mood/recommendations': '心情推荐',
+  '/api/v1/meditation': '冥想列表',
+  '/api/v1/meditation/:id': '冥想详情',
+  '/api/v1/meditation/record': '冥想记录',
+  '/api/v1/meditation/history': '冥想历史',
+  '/api/v1/meditation/stats': '冥想统计',
+  '/api/v1/meditation/admin/list': '冥想管理列表',
+  '/api/v1/questionnaires': '问卷列表',
+  '/api/v1/questionnaires/:id': '问卷详情',
+  '/api/v1/questionnaires/:id/submit': '提交问卷',
+  '/api/v1/questionnaires/results': '问卷结果',
+  '/api/v1/questionnaires/admin/list': '问卷管理列表',
+  '/api/v1/notifications': '通知列表',
+  '/api/v1/notifications/unread-count': '未读通知数',
+  '/api/v1/video/rooms': '视频房间',
+  '/api/v1/reminders': '提醒设置',
+  '/api/v1/health': '健康检查',
+  // 归一化后的模块级路径
+  '/api/v1/chat': 'AI对话',
+  '/api/v1/diaries': '心情日记',
+  '/api/v1/users': '用户相关',
+  '/api/v1/mood': '心情记录',
+  '/api/v1/video': '视频房间',
+  '/api/v1/meditation': '冥想放松',
+  '/api/v1/articles': '知识文章',
+  '/api/v1/questionnaires': '心理测评',
+  '/api/v1/notifications': '通知消息',
+  // 管理端 API
+  '/api/v1/admin/login': '管理端登录',
+  '/api/v1/admin/register': '管理端注册',
+  '/api/v1/admin/logout': '管理端退出',
+  '/api/v1/admin/users': '用户管理',
+  '/api/v1/admin/users/:id': '用户详情/编辑',
+  '/api/v1/admin/users/:id/status': '修改用户状态',
+  '/api/v1/admin/users/:id/risk-level': '修改用户风险',
+  '/api/v1/admin/articles': '文章管理',
+  '/api/v1/admin/articles/:id': '文章编辑',
+  '/api/v1/admin/articles/:id/status': '修改文章状态',
+  '/api/v1/admin/articles/:id/approve': '审核通过',
+  '/api/v1/admin/articles/:id/reject': '驳回文章',
+  '/api/v1/admin/articles/:id/publish': '发布文章',
+  '/api/v1/admin/categories': '分类管理',
+  '/api/v1/admin/chat/sessions': '会话管理(旧)',
+  '/api/v1/admin/diaries': '日记管理(旧)',
+  '/api/v1/admin/admins': '管理员管理',
+  '/api/v1/admin/risk-records': '风险记录',
+  '/api/v1/admin/risk-records-v2': '风险记录V2',
+  '/api/v1/admin/risk-records-v2/stats': '风险统计',
+  '/api/v1/admin/risk-records-v2/:id/resolve': '处理风险',
+  '/api/v1/admin/risk-records-v2/:id/false-positive': '标记误报',
+  '/api/v1/admin/audit-logs': '审计日志',
+  '/api/v1/admin/export/:type': '数据导出',
+  '/api/v1/admin/statistics': '统计概览',
+  '/api/v1/admin/analytics/dashboard': '数据面板',
+  '/api/v1/admin/analytics/overview': '数据总览',
+  '/api/v1/admin/analytics/weekly-trend': '周趋势',
+  '/api/v1/admin/analytics/weekly-distribution': '周分布',
+  '/api/v1/admin/analytics/hourly-heatmap': '小时热力图',
+  '/api/v1/admin/analytics/mood-distribution': '心情分布',
+  '/api/v1/admin/behavior/overview': '行为分析总览',
+  '/api/v1/admin/behavior/page-views': '页面访问统计',
+  '/api/v1/admin/behavior/daily-active': '日活跃统计',
+  '/api/v1/admin/behavior/event-distribution': '事件分布',
+};
+
+const getPageLabel = (page: string): string => {
+  // 去掉 HTTP 方法前缀 (如 "GET:", "POST:")
+  const cleanPage = page.replace(/^(GET|POST|PUT|DELETE|PATCH):/, '');
+  // 精确匹配
+  if (pageLabelMap[cleanPage]) return pageLabelMap[cleanPage];
+  if (pageLabelMap[page]) return pageLabelMap[page];
+  // 去掉路径参数 (:id, :period 等) 后匹配
+  const withoutParams = cleanPage.replace(/\/:[a-zA-Z]+/g, '/:id');
+  if (pageLabelMap[withoutParams]) return pageLabelMap[withoutParams];
+  // 尝试匹配已知前缀
+  for (const [key, label] of Object.entries(pageLabelMap)) {
+    if (key.length > 8 && cleanPage.startsWith(key.replace(/\/:[a-zA-Z]+/g, ''))) {
+      return label;
+    }
+  }
+  // 降级显示简化路径
+  return cleanPage.replace('/api/v1/', '').substring(0, 35) || page.substring(0, 35);
 };
 
 onMounted(() => loadData());
@@ -99,7 +239,7 @@ onMounted(() => loadData());
         <div v-if="overview?.pageViews?.length" class="space-y-3">
           <div v-for="pv in overview.pageViews.slice(0, 10)" :key="pv.page">
             <div class="flex justify-between text-sm mb-1">
-              <span class="text-gray-600 truncate max-w-[250px]">{{ shortenPage(pv.page) }}</span>
+              <span class="text-gray-600 truncate max-w-[250px]">{{ getPageLabel(pv.page) }}</span>
               <span class="text-gray-400">{{ pv.count }}</span>
             </div>
             <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -145,7 +285,7 @@ onMounted(() => loadData());
         >
           <div class="w-3 h-3 rounded-full bg-primary-400" />
           <div>
-            <p class="text-sm font-medium text-gray-700">{{ shortenPage(event.eventType) }}</p>
+            <p class="text-sm font-medium text-gray-700">{{ getPageLabel(event.eventType) }}</p>
             <p class="text-xs text-gray-500">{{ event.count }} 次</p>
           </div>
         </div>

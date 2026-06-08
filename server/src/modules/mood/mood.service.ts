@@ -63,23 +63,33 @@ export class MoodService {
     
     const records = await this.moodRecordRepository.find({
       where: { userId, createdAt: MoreThanOrEqual(weekAgo) },
-      select: ['moodScore', 'moodType']
+      select: ['moodScore', 'moodType', 'createdAt'],
+      order: { createdAt: 'ASC' }
     });
 
-    const total = records.length;
-    const avgScore = total > 0
-      ? records.reduce((sum, r) => sum + r.moodScore, 0) / total
+    const recordCount = records.length;
+    const total = new Set(records.map(r => {
+      const d = r.createdAt instanceof Date ? r.createdAt : new Date(r.createdAt);
+      return d.toDateString();
+    })).size;
+    const avgScore = recordCount > 0
+      ? records.reduce((sum, r) => sum + r.moodScore, 0) / recordCount
       : 0;
 
     const moodDistribution: Record<string, number> = {};
+    const scoreDistribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     records.forEach(r => {
       moodDistribution[r.moodType] = (moodDistribution[r.moodType] || 0) + 1;
+      if (scoreDistribution[r.moodScore] !== undefined) {
+        scoreDistribution[r.moodScore]++;
+      }
     });
 
     return {
       total,
       avgScore: avgScore.toFixed(2),
       moodDistribution,
+      scoreDistribution,
       trend: this.calculateTrend(records)
     };
   }

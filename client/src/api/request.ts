@@ -42,7 +42,13 @@ instance.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+
+    // 登录/注册等公开接口不触发 token 自动刷新（URL匹配 OR 无token）
+    const publicPaths = ['/users/login', '/users/register', '/users/refresh-token', '/users/send-code', '/users/forgot-password', '/users/code-login', '/users/wechat-login'];
+    const isPublicUrl = publicPaths.some((p) => originalRequest.url?.includes(p));
+    const hasAuthHeader = !!originalRequest.headers?.Authorization;
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isPublicUrl && hasAuthHeader) {
       if (isRefreshing) {
         return new Promise((resolve) => {
           addRefreshSubscriber((token) => {

@@ -2,26 +2,42 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
-import { diaryApi, knowledgeApi } from '@/api';
-import type { MoodDiary, KnowledgeArticle } from '@/types';
+import { moodApi, knowledgeApi } from '@/api';
+import type { KnowledgeArticle } from '@/types';
 import { MessageCircle, BookOpen, Calendar, Heart, Star, ChevronRight, TrendingUp, Smile, Lightbulb, Zap, Phone, Music, ClipboardList } from 'lucide-vue-next';
 import BottomNavBar from '@/components/BottomNavBar.vue';
-import type { DiaryStats } from '@/api/modules/diary';
+
+interface MoodStatsData {
+  total: number;
+  avgScore: string;
+  moodDistribution: Record<string, number>;
+  scoreDistribution: Record<number, number>;
+  trend: string;
+}
 
 const router = useRouter();
 const userStore = useUserStore();
 const isPageLoading = ref(true);
 const todayMood = ref<number>(3);
-const diaryStats = ref<DiaryStats | null>(null);
-const recentDiary = ref<MoodDiary | null>(null);
+const moodStats = ref<MoodStatsData | null>(null);
+const recentMood = ref<{ moodType: string; moodScore: number; createdAt: string } | null>(null);
 const recentArticles = ref<KnowledgeArticle[]>([]);
 
 const quickActions = [
   { icon: MessageCircle, label: 'AI咨询', path: '/chat', bg: 'bg-gradient-to-br from-calm-500 to-emerald-500', desc: '随时陪伴' },
   { icon: Calendar, label: '情绪日记', path: '/diary', bg: 'bg-gradient-to-br from-rose-300 to-pink-400', desc: '记录心情' },
   { icon: Lightbulb, label: '冥想疗愈', path: '/meditation', bg: 'bg-gradient-to-br from-emerald-300 to-teal-400', desc: '放松身心' },
+  { icon: Phone, label: '视频咨询', path: '/video', bg: 'bg-gradient-to-br from-indigo-400 to-purple-500', desc: '面对面支持' },
   { icon: Zap, label: '心理测评', path: '/questionnaire', bg: 'bg-gradient-to-br from-violet-300 to-purple-400', desc: '了解自己' },
   { icon: BookOpen, label: '知识库', path: '/knowledge', bg: 'bg-gradient-to-br from-sky-300 to-blue-400', desc: '学习成长' },
+];
+
+const barColors = [
+  'bg-gradient-to-t from-blue-300 to-blue-200',
+  'bg-gradient-to-t from-indigo-300 to-indigo-200',
+  'bg-gradient-to-t from-calm-300 to-calm-200',
+  'bg-gradient-to-t from-orange-300 to-orange-200',
+  'bg-gradient-to-t from-rose-300 to-rose-200',
 ];
 
 const moodOptions = [
@@ -35,12 +51,20 @@ const moodOptions = [
 const showMoodModal = ref(false);
 const showAssessmentCta = ref(!localStorage.getItem('assessment_completed'));
 
+const scoreToMoodType = (score: number): 'happy' | 'calm' | 'sad' | 'anxious' | 'angry' => {
+  if (score >= 5) return 'happy';
+  if (score >= 4) return 'calm';
+  if (score >= 3) return 'calm';
+  if (score >= 2) return 'sad';
+  return 'sad';
+};
+
 const selectMood = async (score: number) => {
   todayMood.value = score;
   showMoodModal.value = false;
   try {
-    await diaryApi.create({ moodScore: score });
-    await loadDiaryData();
+    await moodApi.recordMood({ moodScore: score, moodType: scoreToMoodType(score) });
+    await loadMoodData();
   } catch (e) { /* ignore */ }
 };
 
@@ -54,9 +78,13 @@ const getGreeting = () => {
 };
 
 const getScoreDistributionArray = () => {
-  if (!diaryStats.value?.scoreDistribution) return [0, 0, 0, 0, 0];
-  return [1, 2, 3, 4, 5].map(score => diaryStats.value.scoreDistribution[score] || 0);
+  if (!moodStats.value?.scoreDistribution) return [0, 0, 0, 0, 0];
+  return [1, 2, 3, 4, 5].map(score => moodStats.value.scoreDistribution[score] || 0);
 };
+
+const maxDistributionCount = computed(() => {
+  return Math.max(...getScoreDistributionArray(), 1);
+});
 
 const loadArticles = async () => {
   try {
@@ -67,25 +95,28 @@ const loadArticles = async () => {
   } catch (e) { /* ignore */ }
 };
 
-const loadDiaryData = async () => {
+const loadMoodData = async () => {
   const token = localStorage.getItem('accessToken');
   if (!token) return;
   try {
-    const [statsRes, diaryRes] = await Promise.allSettled([
-      diaryApi.stats('week'),
-      diaryApi.list(1, 1)
+    const [statsRes, historyRes] = await Promise.allSettled([
+      moodApi.getMoodStats(),
+      moodApi.getMoodHistory('week')
     ]);
     if (statsRes.status === 'fulfilled' && statsRes.value.code === 200) {
-      diaryStats.value = statsRes.value.data;
+      moodStats.value = statsRes.value.data;
     }
-    if (diaryRes.status === 'fulfilled' && diaryRes.value.code === 200 && diaryRes.value.data.list.length > 0) {
-      recentDiary.value = diaryRes.value.data.list[0];
+    if (historyRes.status === 'fulfilled' && historyRes.value.code === 200) {
+      const history = historyRes.value.data;
+      if (Array.isArray(history) && history.length > 0) {
+        recentMood.value = history[0];
+      }
     }
   } catch (e) { /* ignore */ }
 };
 
 const recommendations = computed(() => {
-  const avgScore = diaryStats.value?.avgScore ? Number(diaryStats.value.avgScore) : 3;
+  const avgScore = moodStats.value?.avgScore ? Number(moodStats.value.avgScore) : 3;
   const recs: { title: string; desc: string; path: string; icon: any; bg: string }[] = [];
 
   if (avgScore <= 2.5) {
@@ -106,7 +137,7 @@ const recommendations = computed(() => {
 
 onMounted(async () => {
   await loadArticles();
-  await loadDiaryData();
+  await loadMoodData();
   isPageLoading.value = false;
 });
 </script>
@@ -138,14 +169,14 @@ onMounted(async () => {
           <div>
             <p class="text-gray-500 text-xs font-medium uppercase tracking-wide">本周心情指数</p>
             <div class="flex items-end gap-2 mt-1">
-              <span class="text-4xl">{{ diaryStats?.avgScore ? moodOptions[Math.min(Math.max(Math.round(Number(diaryStats.avgScore)) - 1, 0), 4)]?.emoji : '😐' }}</span>
-              <span class="text-3xl font-bold text-gray-800">{{ diaryStats?.avgScore || '--' }}</span>
+              <span class="text-4xl">{{ moodStats?.avgScore ? moodOptions[Math.min(Math.max(Math.round(Number(moodStats.avgScore)) - 1, 0), 4)]?.emoji : '😐' }}</span>
+              <span class="text-3xl font-bold text-gray-800">{{ moodStats?.avgScore || '--' }}</span>
               <span class="text-gray-400 text-sm mb-1">/ 5</span>
             </div>
           </div>
           <div class="text-right">
             <p class="text-gray-500 text-xs font-medium uppercase tracking-wide">本周记录</p>
-            <p class="text-2xl font-bold text-gray-800 mt-1">{{ diaryStats?.total ?? '0' }} <span class="text-sm text-gray-400 font-normal">天</span></p>
+            <p class="text-2xl font-bold text-gray-800 mt-1">{{ moodStats?.total ?? '0' }} <span class="text-sm text-gray-400 font-normal">天</span></p>
           </div>
         </div>
         <!-- Quick mood record -->
@@ -186,7 +217,7 @@ onMounted(async () => {
     <main class="px-6 -mt-2">
       <!-- Quick Actions -->
       <section class="py-6">
-        <div class="grid grid-cols-5 gap-3">
+        <div class="grid grid-cols-3 gap-3">
           <button
             v-for="action in quickActions"
             :key="action.label"
@@ -220,7 +251,7 @@ onMounted(async () => {
       </section>
 
       <!-- AI Recommendations -->
-      <section v-if="diaryStats?.avgScore" class="mb-6">
+      <section v-if="moodStats?.avgScore" class="mb-6">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-base font-semibold text-gray-800 flex items-center gap-2">
             <Zap class="w-4 h-4 text-purple-500" />
@@ -304,31 +335,27 @@ onMounted(async () => {
         </div>
       </section>
 
-      <!-- Recent Diary -->
-      <section v-if="recentDiary" class="mb-6">
+      <!-- Recent Mood -->
+      <section v-if="recentMood" class="mb-6">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-base font-semibold text-gray-800 flex items-center gap-2">
             <Calendar class="w-4 h-4 text-rose-500" />
             最近记录
           </h2>
-          <button class="text-calm-600 text-sm flex items-center gap-1 font-medium hover:text-calm-700 transition-colors" @click="router.push('/diary')">
-            全部 <ChevronRight class="w-3.5 h-3.5" />
+          <button class="text-calm-600 text-sm flex items-center gap-1 font-medium hover:text-calm-700 transition-colors" @click="router.push('/mood')">
+            心情页 <ChevronRight class="w-3.5 h-3.5" />
           </button>
         </div>
 
         <div class="bg-white rounded-2xl p-5 hover:shadow-card-hover transition-all">
           <div class="flex items-start justify-between mb-3">
             <div class="flex items-center gap-3">
-              <span class="text-3xl">{{ moodOptions[recentDiary.moodScore - 1]?.emoji }}</span>
+              <span class="text-3xl">{{ moodOptions[Math.min(Math.max(recentMood.moodScore - 1, 0), 4)]?.emoji }}</span>
               <div>
-                <p class="font-medium text-gray-800 text-sm">{{ moodOptions[recentDiary.moodScore - 1]?.label }}</p>
-                <p class="text-xs text-gray-400 mt-0.5">{{ new Date(recentDiary.createdAt).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' }) }}</p>
+                <p class="font-medium text-gray-800 text-sm">{{ moodOptions[Math.min(Math.max(recentMood.moodScore - 1, 0), 4)]?.label }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">{{ new Date(recentMood.createdAt).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' }) }}</p>
               </div>
             </div>
-          </div>
-          <p v-if="recentDiary.content" class="text-gray-500 text-sm mb-3 line-clamp-2 leading-relaxed">{{ recentDiary.content }}</p>
-          <div v-if="recentDiary.aiInsight" class="bg-calm-50 rounded-xl p-3 border border-calm-100">
-            <p class="text-xs text-calm-800 leading-relaxed"><span class="font-medium">💡 AI洞察：</span>{{ recentDiary.aiInsight }}</p>
           </div>
         </div>
       </section>
@@ -348,12 +375,8 @@ onMounted(async () => {
             >
               <div
                 class="w-full rounded-t-lg transition-all duration-500"
-                :class="index === 0 ? 'bg-gradient-to-t from-blue-300 to-blue-200' :
-                        index === 1 ? 'bg-gradient-to-t from-indigo-300 to-indigo-200' :
-                        index === 2 ? 'bg-gradient-to-t from-calm-300 to-calm-200' :
-                        index === 3 ? 'bg-gradient-to-t from-orange-300 to-orange-200' :
-                                     'bg-gradient-to-t from-rose-300 to-rose-200'"
-                :style="{ height: `${Math.max((count / (diaryStats?.total || 1)) * 100, 6)}px` }"
+                :class="barColors[index]"
+                :style="{ height: `${Math.max((count / maxDistributionCount) * 88, 6)}px` }"
               ></div>
               <span class="text-sm">{{ moodOptions[index]?.emoji }}</span>
             </div>

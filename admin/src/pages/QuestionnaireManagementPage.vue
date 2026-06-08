@@ -127,7 +127,7 @@ onMounted(() => loadList());
     <!-- Table -->
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
       <el-table :data="questionnaires" stripe style="width: 100%">
-        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column type="index" label="序号" width="60" />
         <el-table-column prop="title" label="标题" min-width="200" />
         <el-table-column prop="category" label="分类" width="120" />
         <el-table-column label="题目数" width="100">

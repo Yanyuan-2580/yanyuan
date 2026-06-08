@@ -23,12 +23,11 @@ const menuItems = [
   { name: 'users', label: '用户管理', icon: '👥', path: '/users' },
   { name: 'articles', label: '文章管理', icon: '📝', path: '/articles' },
   { name: 'risk', label: '风险监控', icon: '🛡️', path: '/risk' },
-  { name: 'chat-sessions', label: '会话管理', icon: '💬', path: '/chat-sessions' },
-  { name: 'diaries', label: '日记管理', icon: '📔', path: '/diaries' },
   { name: 'questionnaires', label: '问卷管理', icon: '📋', path: '/questionnaires' },
   { name: 'meditations', label: '冥想管理', icon: '🧘', path: '/meditations' },
   { name: 'behavior', label: '行为分析', icon: '📈', path: '/behavior' },
   { name: 'export', label: '数据导出', icon: '📥', path: '/export' },
+  { name: 'admins', label: '管理员管理', icon: '🔑', path: '/admins' },
   { name: 'audit-logs', label: '审计日志', icon: '📜', path: '/audit-logs' },
 ];
 

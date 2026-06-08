@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { MoodDiary } from '@/database/entities';
 import { DiaryService } from './diary.service';
 import { DiaryController } from './diary.controller';
-import { AiModule } from '@/shared';
+import { AiModule, RiskControlModule } from '@/shared';
 
 @Module({
   imports: [
@@ -17,7 +17,8 @@ import { AiModule } from '@/shared';
       }),
       inject: [ConfigService]
     }),
-    AiModule
+    AiModule,
+    RiskControlModule
   ],
   providers: [DiaryService],
   controllers: [DiaryController]

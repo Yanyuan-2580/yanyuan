@@ -30,6 +30,12 @@ export class QuestionnaireController {
     return this.questionnaireService.getResultDetail(user.userId, parseInt(id));
   }
 
+  @Get(':id/latest-result')
+  @UseGuards(JwtAuthGuard)
+  getLatestResult(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.questionnaireService.getLatestResult(user.userId, parseInt(id));
+  }
+
   @Get(':id')
   getQuestionnaire(@Param('id') id: string) {
     return this.questionnaireService.getQuestionnaire(parseInt(id));
@@ -46,6 +52,13 @@ export class QuestionnaireController {
   }
 
   // ========== 管理端 ==========
+
+  @Get('admin/list')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  adminList() {
+    return this.questionnaireService.adminList();
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)

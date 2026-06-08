@@ -20,7 +20,7 @@ export interface AdminQuestionnaire {
 
 export const questionnaireApi = {
   getList: (): Promise<ApiResponse<AdminQuestionnaire[]>> => {
-    return getPublic('/questionnaires');
+    return getPublic('/questionnaires/admin/list');
   },
 
   getDetail: (id: number): Promise<ApiResponse<AdminQuestionnaire>> => {

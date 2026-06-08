@@ -1,17 +1,27 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { request } from '@/api/request';
 import PageHeader from '@/components/PageHeader.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import { MessageCircle } from 'lucide-vue-next';
 
+interface ScoringRange {
+  min: number;
+  max: number;
+  level: 'low' | 'moderate' | 'high';
+  label: string;
+}
 interface Result {
   id: number;
   totalScore: number;
   resultLevel: 'low' | 'moderate' | 'high';
   aiAdvice: string;
   createdAt: string;
+  questionnaire?: {
+    title: string;
+    scoringRules?: ScoringRange[];
+  };
 }
 const router = useRouter();
 const route = useRoute();
@@ -30,6 +40,16 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
+});
+
+const isCurrentRange = (range: ScoringRange) => {
+  return result.value!.totalScore >= range.min && result.value!.totalScore <= range.max;
+};
+const isInAnyRange = computed(() => {
+  if (!result.value?.questionnaire?.scoringRules) return false;
+  return result.value.questionnaire.scoringRules.some(
+    r => result.value!.totalScore >= r.min && result.value!.totalScore <= r.max
+  );
 });
 
 const levelConfig = (level: string) => {
@@ -56,6 +76,29 @@ const levelConfig = (level: string) => {
         <p class="text-3xl font-bold text-gray-900">{{ result.totalScore }} <span class="text-sm text-gray-400">分</span></p>
         <p class="text-sm mt-2" :class="levelConfig(result.resultLevel).color">
           {{ levelConfig(result.resultLevel).label }}
+        </p>
+      </div>
+
+      <!-- Scoring Guide -->
+      <div v-if="result.questionnaire?.scoringRules?.length" class="bg-white rounded-2xl shadow-card border border-gray-50 p-5">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">评分说明</h3>
+        <div class="space-y-2">
+          <div
+            v-for="(range, idx) in result.questionnaire.scoringRules"
+            :key="idx"
+            class="flex items-center gap-3 p-3 rounded-xl"
+            :class="isCurrentRange(range) ? (range.level === 'low' ? 'bg-emerald-50 ring-1 ring-emerald-300' : range.level === 'moderate' ? 'bg-calm-50 ring-1 ring-calm-300' : 'bg-rose-50 ring-1 ring-rose-300') : 'bg-gray-50'"
+          >
+            <span class="text-lg">{{ levelConfig(range.level).emoji }}</span>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-gray-700">{{ range.min }}–{{ range.max }} 分</p>
+              <p class="text-xs text-gray-500">{{ range.label }}</p>
+            </div>
+            <span v-if="isCurrentRange(range)" class="text-xs font-medium" :class="levelConfig(range.level).color">当前</span>
+          </div>
+        </div>
+        <p v-if="!isInAnyRange" class="mt-3 text-xs text-gray-400 text-center">
+          得分 {{ result.totalScore }} 分，{{ result.totalScore < result.questionnaire.scoringRules[0].min ? '低于标准参考区间' : '高于标准参考区间' }}
         </p>
       </div>
 

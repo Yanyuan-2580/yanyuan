@@ -10,7 +10,7 @@ export const userApi = {
     return get(`/users/${id}`);
   },
 
-  createUser: (data: { phone: string; password: string; nickname?: string }): Promise<ApiResponse<User>> => {
+  createUser: (data: { username: string; password: string; nickname?: string }): Promise<ApiResponse<User>> => {
     return post('/users', data);
   },
 

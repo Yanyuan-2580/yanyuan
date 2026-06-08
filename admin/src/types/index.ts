@@ -17,13 +17,15 @@ export interface Admin {
   username: string;
   nickname: string;
   roles?: string[];
+  status?: number;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface User {
   id: number;
-  phone: string;
+  username: string;
+  phone?: string;
   email?: string;
   nickname: string;
   avatarUrl?: string;
@@ -75,6 +77,29 @@ export interface RiskRecord {
   riskType?: string;
   createdAt: string;
   updatedAt?: string;
+}
+
+// V2 风险记录（持久化到 risk_records 表）
+export interface RiskRecordV2 {
+  id: number;
+  userId: number;
+  sessionId?: number;
+  content?: string;
+  riskLevel: number;
+  source: 'chat' | 'diary' | 'comment' | 'mood';
+  action: 'crisis_blocked' | 'warned' | 'logged';
+  status: 'pending' | 'resolved' | 'false_positive';
+  resolvedBy?: number;
+  resolvedAt?: string;
+  resolution?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RiskRecordStats {
+  pendingCount: number;
+  highCount: number;
+  mediumCount: number;
 }
 
 export interface Statistics {

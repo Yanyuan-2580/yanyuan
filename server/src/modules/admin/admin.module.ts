@@ -2,15 +2,16 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { User, Admin, AdminOperationLog, AiSession, MoodDiary, KnowledgeArticle, KnowledgeCategory, ArticleLike, ArticleCollect, MoodRecord, MeditationHistory, QuestionnaireResult, Notification } from '@/database/entities';
+import { User, Admin, AdminOperationLog, RiskRecord, AiSession, MoodDiary, KnowledgeArticle, KnowledgeCategory, ArticleLike, ArticleCollect, MoodRecord, MeditationHistory, QuestionnaireResult, Notification } from '@/database/entities';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 import { KnowledgeService } from '@/modules/knowledge/knowledge.service';
 import { ExportModule } from '@/shared/export/export.module';
+import { RiskControlModule } from '@/shared';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Admin, AdminOperationLog, AiSession, MoodDiary, KnowledgeArticle, KnowledgeCategory, ArticleLike, ArticleCollect, MoodRecord, MeditationHistory, QuestionnaireResult, Notification]),
+    TypeOrmModule.forFeature([User, Admin, AdminOperationLog, RiskRecord, AiSession, MoodDiary, KnowledgeArticle, KnowledgeCategory, ArticleLike, ArticleCollect, MoodRecord, MeditationHistory, QuestionnaireResult, Notification]),
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
@@ -19,6 +20,7 @@ import { ExportModule } from '@/shared/export/export.module';
       inject: [ConfigService],
     }),
     ExportModule,
+    RiskControlModule,
   ],
   providers: [AdminService, KnowledgeService],
   controllers: [AdminController],

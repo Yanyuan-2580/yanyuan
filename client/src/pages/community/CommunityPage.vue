@@ -21,15 +21,14 @@ const moodEmojis: Record<string, string> = {
 const loadDiaries = async () => {
   loading.value = true;
   try {
-    const res = await request.get('/diaries/public/list', {
-      params: { page: page.value, pageSize },
+    const res: any = await request.get('/diaries/public/list', {
+      page: page.value, pageSize,
     });
-    if (res.data?.code === 200) {
-      diaries.value = res.data.data.list;
-      total.value = res.data.data.total;
+    if (res.code === 200) {
+      diaries.value = res.data.list;
+      total.value = res.data.total;
     }
   } catch {
-    // fallback
     diaries.value = [];
   } finally {
     loading.value = false;
@@ -37,13 +36,15 @@ const loadDiaries = async () => {
 };
 
 const loadMore = async () => {
+  if (diaries.value.length >= total.value) return;
   page.value++;
   try {
-    const res = await request.get('/diaries/public/list', {
-      params: { page: page.value, pageSize },
+    const res: any = await request.get('/diaries/public/list', {
+      page: page.value, pageSize,
     });
-    if (res.data?.code === 200) {
-      diaries.value = [...diaries.value, ...res.data.data.list];
+    if (res.code === 200) {
+      diaries.value = [...diaries.value, ...res.data.list];
+      total.value = res.data.total;
     }
   } catch { /* ignore */ }
 };

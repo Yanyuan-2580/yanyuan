@@ -39,18 +39,6 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/chat-sessions',
-      name: 'ChatSessions',
-      component: () => import('@/pages/ChatSessionPage.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/diaries',
-      name: 'DiaryManagement',
-      component: () => import('@/pages/DiaryManagementPage.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
       path: '/questionnaires',
       name: 'QuestionnaireManagement',
       component: () => import('@/pages/QuestionnaireManagementPage.vue'),
@@ -66,6 +54,12 @@ const router = createRouter({
       path: '/behavior',
       name: 'BehaviorAnalytics',
       component: () => import('@/pages/BehaviorAnalyticsPage.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/admins',
+      name: 'AdminManagement',
+      component: () => import('@/pages/AdminManagementPage.vue'),
       meta: { requiresAuth: true }
     },
     {

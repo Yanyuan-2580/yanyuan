@@ -3,10 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual, LessThan, Between, Like } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { User, Admin, AdminOperationLog, AiSession, MoodDiary, KnowledgeArticle, MoodRecord, MeditationHistory, QuestionnaireResult, Notification } from '@/database/entities';
+import { User, Admin, AdminOperationLog, RiskRecord, AiSession, MoodDiary, KnowledgeArticle, MoodRecord, MeditationHistory, QuestionnaireResult, Notification } from '@/database/entities';
 import { JwtPayload, UserStatus, RiskLevel } from '@/types';
 import { AdminLoginDto } from './dto/login.dto';
 import { AdminRegisterDto } from './dto/register.dto';
+import { CreateAdminDto, UpdateAdminDto } from './dto/create-admin.dto';
 import { CreateArticleDto } from '@/modules/knowledge/dto/create-article.dto';
 
 @Injectable()
@@ -14,6 +15,8 @@ export class AdminService {
   constructor(
     @InjectRepository(Admin)
     private adminRepository: Repository<Admin>,
+    @InjectRepository(RiskRecord)
+    private riskRecordRepository: Repository<RiskRecord>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @InjectRepository(AiSession)
@@ -69,7 +72,8 @@ export class AdminService {
       throw new ForbiddenException('账号已被禁用');
     }
 
-    const payload: JwtPayload = { userId: admin.id, username: admin.username, role: 'admin' };
+    const role = admin.roles?.includes('superadmin') ? 'superadmin' : 'admin';
+    const payload: JwtPayload = { userId: admin.id, username: admin.username, role };
     const accessToken = await this.jwtService.signAsync(payload);
 
     return {
@@ -223,33 +227,6 @@ export class AdminService {
     }
     await this.articleRepository.update(id, updateData);
     return this.articleRepository.findOne({ where: { id } });
-  }
-
-  // ==================== Chat & Diary ====================
-
-  async getSessions(page: number, pageSize: number, riskFlag?: number): Promise<{ list: AiSession[]; total: number; page: number; pageSize: number; totalPages: number }> {
-    const query = this.aiSessionRepository.createQueryBuilder('session');
-
-    if (riskFlag !== undefined) {
-      query.andWhere('session.riskFlag = :riskFlag', { riskFlag });
-    }
-
-    const [list, total] = await query
-      .orderBy('session.updatedAt', 'DESC')
-      .skip((page - 1) * pageSize)
-      .take(pageSize)
-      .getManyAndCount();
-
-    return { list, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
-  }
-
-  async getDiaries(page: number, pageSize: number): Promise<{ list: MoodDiary[]; total: number; page: number; pageSize: number; totalPages: number }> {
-    const [list, total] = await this.moodDiaryRepository.findAndCount({
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * pageSize,
-      take: pageSize
-    });
-    return { list, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
 
   // ==================== Analytics ====================
@@ -624,6 +601,137 @@ export class AdminService {
 
   async logout(adminId: number): Promise<{ success: boolean }> {
     return { success: true };
+  }
+
+  // ==================== Admin Management (SuperAdmin) ====================
+
+  async getAdmins(page: number, pageSize: number, keyword?: string): Promise<{ list: Admin[]; total: number; page: number; pageSize: number; totalPages: number }> {
+    const query = this.adminRepository.createQueryBuilder('admin');
+
+    if (keyword) {
+      query.andWhere('(admin.username LIKE :keyword OR admin.nickname LIKE :keyword)', { keyword: `%${keyword}%` });
+    }
+
+    const [list, total] = await query
+      .orderBy('admin.createdAt', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
+
+    // Strip passwordHash from response
+    const safeList = list.map(a => {
+      const { passwordHash, ...safe } = a;
+      return safe as Admin;
+    });
+
+    return { list: safeList, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+  }
+
+  async getAdminDetail(id: number): Promise<Admin> {
+    const admin = await this.adminRepository.findOne({ where: { id } });
+    if (!admin) {
+      throw new NotFoundException('管理员不存在');
+    }
+    const { passwordHash, ...safe } = admin;
+    return safe as Admin;
+  }
+
+  async createAdmin(dto: CreateAdminDto): Promise<Admin> {
+    const existing = await this.adminRepository.findOne({ where: { username: dto.username } });
+    if (existing) {
+      throw new ConflictException('管理员用户名已存在');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+
+    const admin = this.adminRepository.create({
+      username: dto.username,
+      passwordHash,
+      nickname: dto.nickname || dto.username,
+      roles: dto.roles?.length ? dto.roles : ['admin'],
+      status: 1
+    });
+
+    const saved = await this.adminRepository.save(admin);
+    const { passwordHash: _, ...safe } = saved;
+    return safe as Admin;
+  }
+
+  async updateAdmin(id: number, dto: UpdateAdminDto, currentAdminId: number): Promise<Admin> {
+    const admin = await this.adminRepository.findOne({ where: { id } });
+    if (!admin) {
+      throw new NotFoundException('管理员不存在');
+    }
+
+    const updateData: any = {};
+
+    if (dto.nickname !== undefined) {
+      updateData.nickname = dto.nickname;
+    }
+    if (dto.roles !== undefined) {
+      // Prevent demoting self from superadmin
+      if (id === currentAdminId) {
+        const currentRoles = admin.roles || [];
+        const currentIsSuper = currentRoles.includes('superadmin');
+        const newRoles = dto.roles || [];
+        const newIsSuper = newRoles.includes('superadmin');
+        if (currentIsSuper && !newIsSuper) {
+          throw new BadRequestException('不能取消自己的超级管理员角色');
+        }
+      }
+      updateData.roles = dto.roles;
+    }
+    if (dto.status !== undefined) {
+      if (id === currentAdminId && dto.status === 0) {
+        throw new BadRequestException('不能禁用自己');
+      }
+      updateData.status = dto.status;
+    }
+
+    await this.adminRepository.update(id, updateData);
+    return this.getAdminDetail(id);
+  }
+
+  async deleteAdmin(id: number, currentAdminId: number): Promise<{ success: boolean }> {
+    if (id === currentAdminId) {
+      throw new BadRequestException('不能删除自己');
+    }
+
+    const admin = await this.adminRepository.findOne({ where: { id } });
+    if (!admin) {
+      throw new NotFoundException('管理员不存在');
+    }
+
+    await this.adminRepository.delete(id);
+    return { success: true };
+  }
+
+  // ==================== Risk Record Management V2 (优化3) ====================
+
+  async getRiskRecordsV2(
+    page: number,
+    pageSize: number,
+    filters?: { status?: string; riskLevel?: number; source?: string },
+  ): Promise<{ list: RiskRecord[]; total: number; page: number; pageSize: number; totalPages: number }> {
+    const query = this.riskRecordRepository.createQueryBuilder('record');
+
+    if (filters?.status) {
+      query.andWhere('record.status = :status', { status: filters.status });
+    }
+    if (filters?.riskLevel !== undefined) {
+      query.andWhere('record.riskLevel = :riskLevel', { riskLevel: filters.riskLevel });
+    }
+    if (filters?.source) {
+      query.andWhere('record.source = :source', { source: filters.source });
+    }
+
+    const [list, total] = await query
+      .orderBy('record.createdAt', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
+
+    return { list, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
 
   async logOperation(adminId: number, action: string, targetType: string, targetId?: number, detail?: Record<string, any>, ip?: string): Promise<void> {

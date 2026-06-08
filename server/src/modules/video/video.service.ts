@@ -3,7 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
-import * as zlib from 'zlib';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const TLSSigAPIv2 = require('tls-sig-api-v2');
 import { VideoSession } from '@/database/entities/VideoSession.entity';
 
 @Injectable()
@@ -22,6 +23,17 @@ export class VideoService {
       userId,
       roomId,
       status: 'waiting',
+    });
+    return this.videoSessionRepository.save(session);
+  }
+
+  /** 为匹配/呼叫创建房间（不需要调用 POST /video/rooms） */
+  async createRoomForUsers(userIdA: number, userIdB: number, roomId: string): Promise<VideoSession> {
+    const session = this.videoSessionRepository.create({
+      userId: userIdA,
+      roomId,
+      status: 'active',
+      startedAt: new Date(),
     });
     return this.videoSessionRepository.save(session);
   }
@@ -61,31 +73,11 @@ export class VideoService {
       throw new Error('TRTC 未配置 (TRTC_SDK_APP_ID / TRTC_SECRET_KEY)');
     }
 
-    const currentTime = Math.floor(Date.now() / 1000);
-    const expireTime = currentTime + 86400; // 24小时有效
+    // 使用腾讯官方 TLSSigAPIv2 库生成 UserSig
+    const api = new TLSSigAPIv2.Api(sdkAppId, secretKey);
+    const userSig = api.genSig(userId, 86400); // 24小时有效
 
-    // 构造签名内容
-    const sigContent = {
-      'TLS.ver': '2.0',
-      'TLS.identifier': userId,
-      'TLS.sdkappid': sdkAppId,
-      'TLS.expire': expireTime,
-      'TLS.time': currentTime,
-    };
-
-    // HMAC-SHA256 签名
-    const contentStr = JSON.stringify(sigContent);
-    const compressed = zlib.deflateSync(Buffer.from(contentStr, 'utf8'));
-    const base64Compressed = compressed.toString('base64');
-
-    const hmac = crypto.createHmac('sha256', secretKey);
-    hmac.update(base64Compressed);
-    const signature = hmac.digest('base64');
-
-    // 最终 userSig 格式: base64(zlib(JSON)) + ":" + base64(HMAC-SHA256(secretKey, compressed))
-    const userSig = `${base64Compressed}:${signature}`;
-
-    this.logger.log(`Generated UserSig for userId=${userId}, roomId=${roomId}`);
+    this.logger.log(`Generated UserSig via official SDK for userId=${userId}, roomId=${roomId}`);
     return { userSig, sdkAppId };
   }
 

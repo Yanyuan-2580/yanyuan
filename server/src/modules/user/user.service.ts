@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, UnauthorizedException, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -15,6 +15,8 @@ import { CacheService, NotificationService } from '@/shared';
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
+
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
@@ -192,20 +194,27 @@ export class UserService {
   /**
    * 发送短信验证码（通用）
    */
-  async sendCode(phone: string): Promise<{ success: boolean }> {
+  async sendCode(phone: string): Promise<{ success: boolean; devCode?: string }> {
     // 生成6位随机验证码
     const code = String(Math.floor(100000 + Math.random() * 900000));
     // 存入 Redis，5分钟有效
     await this.cacheService.set(`sms_code:${phone}`, code, 300);
     // 发送短信
     await this.notificationService.sendVerificationCode(phone, code);
+
+    // 开发环境 SMS_PROVIDER=log 时，返回验证码供测试
+    const smsProvider = this.configService.get('SMS_PROVIDER', 'log');
+    if (smsProvider === 'log') {
+      this.logger.log(`[DEV] 验证码 for ${phone}: ${code}`);
+      return { success: true, devCode: code };
+    }
     return { success: true };
   }
 
   /**
    * 忘记密码 - 发送重置验证码
    */
-  async forgotPassword(phone: string): Promise<{ success: boolean }> {
+  async forgotPassword(phone: string): Promise<{ success: boolean; devCode?: string }> {
     const user = await this.userRepository.findOne({ where: { phone } });
     if (!user) {
       throw new NotFoundException('该手机号未注册');
@@ -213,6 +222,12 @@ export class UserService {
     const code = String(Math.floor(100000 + Math.random() * 900000));
     await this.cacheService.set(`reset_code:${phone}`, code, 300);
     await this.notificationService.sendPasswordResetCode(phone, code);
+
+    const smsProvider = this.configService.get('SMS_PROVIDER', 'log');
+    if (smsProvider === 'log') {
+      this.logger.log(`[DEV] 重置验证码 for ${phone}: ${code}`);
+      return { success: true, devCode: code };
+    }
     return { success: true };
   }
 

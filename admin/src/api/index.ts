@@ -2,8 +2,6 @@ export { adminApi } from './modules/admin';
 export { userApi } from './modules/user';
 export { knowledgeApi } from './modules/knowledge';
 export { riskApi } from './modules/risk';
-export { chatSessionApi } from './modules/chat-session';
-export { diaryApi } from './modules/diary';
 export { questionnaireApi } from './modules/questionnaire';
 export { meditationApi } from './modules/meditation';
 export { exportApi } from './modules/export';

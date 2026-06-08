@@ -1,21 +1,43 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual } from 'typeorm';
 import { MoodDiary } from '@/database/entities';
 import { DiaryStatus } from '@/types';
-import { AiService } from '@/shared';
+import { AiService, RiskControlService } from '@/shared';
 import { CreateDiaryDto } from './dto/create-diary.dto';
 import { UpdateDiaryDto } from './dto/update-diary.dto';
 
 @Injectable()
 export class DiaryService {
+  private readonly logger = new Logger(DiaryService.name);
+
   constructor(
     @InjectRepository(MoodDiary)
     private moodDiaryRepository: Repository<MoodDiary>,
-    private aiService: AiService
+    private aiService: AiService,
+    private riskControlService: RiskControlService,
   ) {}
 
   async create(userId: number, dto: CreateDiaryDto): Promise<MoodDiary> {
+    // 风险分析（优化5 — 日记接入风控）
+    if (dto.content) {
+      const riskLevel = this.riskControlService.analyzeRisk(dto.content);
+
+      if (riskLevel > 0) {
+        this.logger.warn(`日记风险检测: userId=${userId}, level=${riskLevel}`);
+
+        await this.riskControlService.saveRiskRecord({
+          userId,
+          content: dto.content.slice(0, 500),
+          riskLevel,
+          source: 'diary',
+          action: riskLevel === 2 ? 'crisis_blocked' : 'warned',
+        });
+
+        await this.riskControlService.trackRisk(userId, riskLevel, dto.content);
+      }
+    }
+
     const diary = this.moodDiaryRepository.create({
       userId,
       ...dto,
@@ -94,9 +116,13 @@ export class DiaryService {
       select: ['moodScore', 'createdAt']
     });
 
-    const total = diaries.length;
-    const avgScore = total > 0 
-      ? diaries.reduce((sum, d) => sum + d.moodScore, 0) / total 
+    const diaryCount = diaries.length;
+    const total = new Set(diaries.map(d => {
+      const date = d.createdAt instanceof Date ? d.createdAt : new Date(d.createdAt);
+      return date.toDateString();
+    })).size;
+    const avgScore = diaryCount > 0
+      ? diaries.reduce((sum, d) => sum + d.moodScore, 0) / diaryCount
       : 0;
 
     const scoreDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
@@ -121,12 +147,6 @@ export class DiaryService {
     pageSize: number = 20,
     tag?: string,
   ): Promise<{ list: any[]; total: number; page: number; pageSize: number; totalPages: number }> {
-    const whereCondition: any = { isPublic: 1 };
-    if (tag) {
-      // JSON array LIKE search for moodTags
-      whereCondition.moodTags = tag ? undefined : undefined;
-    }
-
     const [list, total] = await this.moodDiaryRepository.findAndCount({
       where: { isPublic: 1 },
       relations: ['user'],

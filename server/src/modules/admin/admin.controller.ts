@@ -2,10 +2,12 @@ import { Controller, Post, Get, Put, Delete, Body, Query, Param, UseGuards } fro
 import { AdminService } from './admin.service';
 import { KnowledgeService } from '@/modules/knowledge/knowledge.service';
 import { ExportService } from '@/shared/export/export.service';
+import { RiskControlService } from '@/shared';
 import { JwtAuthGuard, CurrentUser, RolesGuard, Roles, Public } from '@/common';
 import { JwtPayload } from '@/types';
 import { AdminLoginDto } from './dto/login.dto';
 import { AdminRegisterDto } from './dto/register.dto';
+import { CreateAdminDto, UpdateAdminDto } from './dto/create-admin.dto';
 import { CreateArticleDto } from '@/modules/knowledge/dto/create-article.dto';
 
 @Controller('admin')
@@ -15,7 +17,8 @@ export class AdminController {
   constructor(
     private adminService: AdminService,
     private exportService: ExportService,
-    private knowledgeService: KnowledgeService
+    private knowledgeService: KnowledgeService,
+    private riskControlService: RiskControlService,
   ) {}
 
   // ==================== Auth ====================
@@ -189,31 +192,6 @@ export class AdminController {
     return this.knowledgeService.deleteCategory(parseInt(id));
   }
 
-  // ==================== Chat Sessions ====================
-
-  @Get('chat/sessions')
-  getSessions(
-    @Query('page') page: string = '1',
-    @Query('pageSize') pageSize: string = '20',
-    @Query('riskFlag') riskFlag?: string
-  ) {
-    return this.adminService.getSessions(
-      parseInt(page),
-      parseInt(pageSize),
-      riskFlag ? parseInt(riskFlag) : undefined
-    );
-  }
-
-  // ==================== Diary Management ====================
-
-  @Get('diaries')
-  getDiaries(
-    @Query('page') page: string = '1',
-    @Query('pageSize') pageSize: string = '20'
-  ) {
-    return this.adminService.getDiaries(parseInt(page), parseInt(pageSize));
-  }
-
   // ==================== Analytics ====================
 
   @Get('analytics/dashboard')
@@ -306,5 +284,88 @@ export class AdminController {
     @Query('endDate') endDate?: string,
   ) {
     return this.exportService.exportAdminData(type, { startDate, endDate });
+  }
+
+  // ==================== Risk Record Management (优化3+8) ====================
+
+  @Get('risk-records-v2')
+  getRiskRecordsV2(
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '20',
+    @Query('status') status?: string,
+    @Query('riskLevel') riskLevel?: string,
+    @Query('source') source?: string,
+  ) {
+    return this.adminService.getRiskRecordsV2(
+      parseInt(page),
+      parseInt(pageSize),
+      { status, riskLevel: riskLevel ? parseInt(riskLevel) : undefined, source },
+    );
+  }
+
+  @Put('risk-records-v2/:id/resolve')
+  resolveRiskRecordV2(
+    @Param('id') id: string,
+    @Body() body: { resolution?: string },
+    @CurrentUser() admin: JwtPayload,
+  ) {
+    return this.riskControlService.resolveRiskRecord(parseInt(id), admin.userId, body.resolution);
+  }
+
+  @Put('risk-records-v2/:id/false-positive')
+  markFalsePositive(
+    @Param('id') id: string,
+    @Body() body: { reason?: string },
+    @CurrentUser() admin: JwtPayload,
+  ) {
+    return this.riskControlService.markAsFalsePositive(parseInt(id), admin.userId, body.reason);
+  }
+
+  @Get('risk-records-v2/stats')
+  getRiskRecordStats() {
+    return this.riskControlService.getPendingRiskStats();
+  }
+
+  // ==================== Admin Management (SuperAdmin) ====================
+
+  @Roles('superadmin')
+  @Get('admins')
+  getAdmins(
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '20',
+    @Query('keyword') keyword?: string,
+  ) {
+    return this.adminService.getAdmins(parseInt(page), parseInt(pageSize), keyword);
+  }
+
+  @Roles('superadmin')
+  @Get('admins/:id')
+  getAdminDetail(@Param('id') id: string) {
+    return this.adminService.getAdminDetail(parseInt(id));
+  }
+
+  @Roles('superadmin')
+  @Post('admins')
+  createAdmin(@Body() dto: CreateAdminDto) {
+    return this.adminService.createAdmin(dto);
+  }
+
+  @Roles('superadmin')
+  @Put('admins/:id')
+  updateAdmin(
+    @Param('id') id: string,
+    @Body() dto: UpdateAdminDto,
+    @CurrentUser() admin: JwtPayload,
+  ) {
+    return this.adminService.updateAdmin(parseInt(id), dto, admin.userId);
+  }
+
+  @Roles('superadmin')
+  @Delete('admins/:id')
+  deleteAdmin(
+    @Param('id') id: string,
+    @CurrentUser() admin: JwtPayload,
+  ) {
+    return this.adminService.deleteAdmin(parseInt(id), admin.userId);
   }
 }

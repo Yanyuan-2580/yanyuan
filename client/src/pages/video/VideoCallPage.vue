@@ -1,20 +1,22 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { request } from '@/api/request';
 import { useTrtc } from '@/composables/useTrtc';
-import PageHeader from '@/components/PageHeader.vue';
+import { useVideoSignal } from '@/composables/useVideoSignal';
 import { Phone, Mic, MicOff, Video, VideoOff, Users } from 'lucide-vue-next';
 
 const router = useRouter();
 const route = useRoute();
+const signal = useVideoSignal();
 const roomId = ref((route.params.roomId as string) || '');
+const peerId = ref(Number(route.query.peerId || 0));
 const isInCall = ref(false);
 const isConnecting = ref(false);
-const roomError = ref('');
+const callDuration = ref(0);
+let durationTimer: ReturnType<typeof setInterval> | null = null;
 
 const {
-  isJoined,
   isMuted,
   isVideoOff,
   remoteUsers,
@@ -25,64 +27,43 @@ const {
   toggleVideo: trtcToggleVideo,
 } = useTrtc();
 
-const createRoom = async () => {
-  isConnecting.value = true;
-  roomError.value = '';
-  try {
-    const res = await request.post('/video/rooms');
-    if (res.code === 200) {
-      roomId.value = res.data.roomId;
-      await startTrtcCall();
-    }
-  } catch (err: any) {
-    roomError.value = err.message || '创建房间失败';
-  } finally {
-    isConnecting.value = false;
-  }
-};
-
-const joinRoom = async () => {
-  if (!roomId.value) return;
-  isConnecting.value = true;
-  roomError.value = '';
-  try {
-    await startTrtcCall();
-  } catch (err: any) {
-    roomError.value = err.message || '加入房间失败';
-  } finally {
-    isConnecting.value = false;
-  }
-};
-
 const startTrtcCall = async () => {
-  // 1. 从后端获取 TRTC 凭证
-  const credRes = await request.post(`/video/rooms/${roomId.value}/credentials`);
-  if (credRes.code !== 200) {
-    throw new Error('获取TRTC凭证失败');
+  isConnecting.value = true;
+  try {
+    const credRes: any = await request.post(`/video/rooms/${roomId.value}/credentials`);
+    if (credRes.code !== 200) throw new Error('获取凭证失败');
+    const { sdkAppId, userSig, userId, roomId: trtcRoomId } = credRes.data;
+    await request.post(`/video/rooms/${roomId.value}/join`).catch(() => {});
+    await trtcJoin({ sdkAppId, userId, userSig, roomId: trtcRoomId }, 'local-video');
+    isInCall.value = true;
+    durationTimer = setInterval(() => { callDuration.value++; }, 1000);
+  } catch (err: any) {
+    console.error('Video error:', err);
+  } finally {
+    isConnecting.value = false;
   }
-  const { sdkAppId, userSig, userId, roomId: trtcRoomId } = credRes.data;
-
-  // 2. 标记加入房间 (激活会话)
-  await request.post(`/video/rooms/${roomId.value}/join`);
-
-  // 3. 进入 TRTC 房间
-  await trtcJoin({ sdkAppId, userId, userSig, roomId: trtcRoomId }, 'local-video');
-  isInCall.value = true;
 };
 
 const endCall = async () => {
-  try {
-    await request.post(`/video/rooms/${roomId.value}/end`);
-  } catch { /* ignore */ }
+  if (durationTimer) clearInterval(durationTimer);
+  try { await request.post(`/video/rooms/${roomId.value}/end`).catch(() => {}); } catch { /* */ }
+  if (peerId.value) signal.hangup(roomId.value, peerId.value);
   await trtcLeave();
-  isInCall.value = false;
-  roomId.value = '';
+  router.push('/video');
+};
+
+const formatDuration = (s: number) => {
+  const m = Math.floor(s / 60), sec = s % 60;
+  return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 };
 
 onMounted(() => {
-  if (roomId.value) {
-    joinRoom();
-  }
+  if (roomId.value) startTrtcCall();
+  setInterval(() => { if (signal.peerHungUp.value) endCall(); }, 1000);
+});
+
+onUnmounted(() => {
+  if (durationTimer) clearInterval(durationTimer);
 });
 </script>
 
@@ -91,17 +72,14 @@ onMounted(() => {
     <!-- Header -->
     <div class="relative z-10">
       <div class="flex items-center justify-between px-4 py-3">
-        <button
-          class="text-white/70 hover:text-white flex items-center gap-2 text-sm transition"
-          @click="router.back()"
-        >
-          ← 返回
+        <button class="text-white/70 hover:text-white flex items-center gap-2 text-sm transition" @click="endCall">
+          ← 挂断
         </button>
-        <div class="flex items-center gap-2 text-white/50 text-xs">
-          <Users class="w-3.5 h-3.5" />
-          <span>{{ remoteUsers.length + 1 }} 人在线</span>
+        <div class="flex items-center gap-3 text-white/50 text-xs">
+          <span>{{ formatDuration(callDuration) }}</span>
+          <span class="flex items-center gap-1"><Users class="w-3.5 h-3.5" />{{ remoteUsers.length + 1 }}</span>
         </div>
-        <div class="w-16" /><!-- spacer -->
+        <div class="w-16" />
       </div>
     </div>
 
@@ -142,40 +120,12 @@ onMounted(() => {
         <p v-if="trtcError" class="text-xs text-center text-red-400">{{ trtcError }}</p>
       </div>
 
-      <!-- Pre-call UI -->
-      <div v-else class="w-full max-w-md">
-        <div class="aspect-video bg-slate-800/50 rounded-2xl flex items-center justify-center mb-6 border border-white/5">
-          <div class="text-center text-gray-400">
-            <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-              <Video class="w-8 h-8 text-white/30" />
-            </div>
-            <p class="text-sm text-white/40">输入房间号或创建新房间开始</p>
-            <p class="text-xs text-white/30 mt-2">🔒 端到端加密 · TRTC 实时音视频</p>
-          </div>
+      <!-- Connecting -->
+      <div v-else-if="isConnecting" class="text-center">
+        <div class="w-20 h-20 rounded-full bg-calm-500/30 animate-pulse flex items-center justify-center mx-auto mb-4">
+          <Video class="w-10 h-10 text-white/70" />
         </div>
-
-        <!-- Room ID input -->
-        <div class="space-y-3">
-          <div class="relative">
-            <input
-              v-model="roomId"
-              type="text"
-              placeholder="输入房间号（可选，留空则创建新房间）"
-              class="w-full pl-4 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-calm-400/30 focus:border-calm-400/50 transition-all"
-            />
-          </div>
-          <p v-if="roomError" class="text-xs text-center text-red-400">{{ roomError }}</p>
-          <button
-            class="w-full py-3.5 rounded-2xl font-medium text-sm transition-all duration-200"
-            :class="isConnecting
-              ? 'bg-white/10 text-white/30 cursor-not-allowed'
-              : 'bg-gradient-to-r from-calm-500 to-emerald-500 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5'"
-            :disabled="isConnecting"
-            @click="roomId ? joinRoom() : createRoom()"
-          >
-            {{ isConnecting ? '连接中...' : roomId ? '加入房间' : '创建新房间' }}
-          </button>
-        </div>
+        <p class="text-white/60 text-sm">正在连接...</p>
       </div>
 
       <!-- Call Controls -->

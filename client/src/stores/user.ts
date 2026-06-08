@@ -25,8 +25,9 @@ export const useUserStore = defineStore('user', () => {
     if (response.code === 200) {
       localStorage.setItem('accessToken', response.data.accessToken);
       setUser(response.data.user);
+      return response.data;
     }
-    return response.data;
+    throw new Error((response as any).message || '登录失败');
   };
 
   const register = async (data: RegisterData): Promise<LoginResponse> => {
@@ -34,8 +35,9 @@ export const useUserStore = defineStore('user', () => {
     if (response.code === 200) {
       localStorage.setItem('accessToken', response.data.accessToken);
       setUser(response.data.user);
+      return response.data;
     }
-    return response.data;
+    throw new Error((response as any).message || '注册失败');
   };
 
   const logout = async () => {

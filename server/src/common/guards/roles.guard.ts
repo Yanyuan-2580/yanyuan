@@ -23,6 +23,10 @@ export class RolesGuard implements CanActivate {
     const { user } = context.switchToHttp().getRequest();
     if (!user) return false;
 
-    return requiredRoles.some(role => user.role === role);
+    // superadmin inherits all admin privileges
+    return requiredRoles.some(role => {
+      if (role === 'admin' && user.role === 'superadmin') return true;
+      return user.role === role;
+    });
   }
 }

@@ -25,12 +25,11 @@ export function useTrtc() {
     try {
       trtcClient = TRTC.create();
 
-      // Enter TRTC room
+      // Enter TRTC room (字符串房间号用 strRoomId)
       await trtcClient.enterRoom({
         sdkAppId: config.sdkAppId,
         userId: config.userId,
         userSig: config.userSig,
-        roomId: parseInt(config.roomId.replace(/[^0-9]/g, '')) || Math.floor(Math.random() * 999999),
         strRoomId: config.roomId,
         scene: 'rtc',
       });

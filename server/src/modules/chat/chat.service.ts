@@ -73,11 +73,12 @@ export class ChatService {
         .find({ sessionId })
         .sort({ createdAt: 'asc' })
         .exec();
-    } else {
-      return this.memoryMessages
-        .filter(m => m.sessionId === sessionId)
-        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()) as unknown as ChatMessageDocument[];
     }
+    // MongoDB 未连接时仅用于降级开发，生产环境应确保 MongoDB 已配置
+    this.logger.warn('ChatMessageModel 未注入，使用内存存储（重启丢失，仅限开发）');
+    return this.memoryMessages
+      .filter(m => m.sessionId === sessionId)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()) as unknown as ChatMessageDocument[];
   }
 
   async getWeeklyChatCount(userId: number): Promise<{ weeklyCount: number; weeklyLimit: number; totalCount: number }> {
@@ -87,30 +88,76 @@ export class ChatService {
     return { weeklyCount, weeklyLimit: 50, totalCount };
   }
 
-  async sendMessage(userId: number, dto: SendMessageDto): Promise<{ session: AiSession; message: ChatMessageDocument }> {
-    if (this.riskControlService.hasSensitiveContent(dto.content)) {
+  /**
+   * 公共预处理：敏感词检测 + 获取/创建会话 + 风险分析 + 持久化
+   * sendMessage 和 sendMessageStream 共用
+   */
+  private async preprocessMessage(
+    userId: number,
+    content: string,
+    sessionId?: string
+  ): Promise<{ session: AiSession; riskLevel: RiskLevel; aiCrisis: { isCrisis: boolean; message: string; keywords: string[] }; repeatHighCount: number }> {
+    // 1. 敏感内容检测
+    if (this.riskControlService.hasSensitiveContent(content)) {
       throw new ForbiddenException('检测到敏感内容，已拦截');
     }
 
+    // 2. 获取或创建会话
     let session: AiSession;
-    if (dto.sessionId) {
-      session = await this.getSessionById(userId, parseInt(dto.sessionId));
+    if (sessionId) {
+      session = await this.getSessionById(userId, parseInt(sessionId));
     } else {
       session = await this.createSession(userId);
     }
 
-    const riskLevel = this.riskControlService.analyzeRisk(dto.content);
+    // 3. 风险分析
+    let riskLevel = this.riskControlService.analyzeRisk(content);
 
-    // AI 辅助危机检测（补充关键词检测，捕捉更细微的危机表达）
-    const aiCrisis = this.aiService.detectCrisisInContent(dto.content);
+    // 4. AI 危机检测
+    const aiCrisis = this.aiService.detectCrisisInContent(content);
     if (aiCrisis.isCrisis && riskLevel < 2) {
       this.logger.warn(`AI crisis detected for userId=${userId}: keywords=${aiCrisis.keywords.join(', ')}`);
+      riskLevel = 2;
     }
 
+    // 5. 风险追踪 + 时间衰减
+    if (riskLevel > 0) {
+      const trackedLevel = await this.riskControlService.trackRisk(userId, riskLevel, content);
+      if (trackedLevel > riskLevel) {
+        this.logger.warn(`用户 ${userId} 风险等级升级: ${riskLevel} → ${trackedLevel}`);
+        riskLevel = trackedLevel;
+      }
+    }
+
+    // 6. 持久化风险记录
+    if (riskLevel > 0) {
+      await this.riskControlService.saveRiskRecord({
+        userId,
+        sessionId: session.id,
+        content: content.slice(0, 500),
+        riskLevel,
+        source: 'chat',
+        action: riskLevel === 2 ? 'crisis_blocked' : 'warned',
+      });
+    }
+
+    // 7. 重复高危统计
+    const riskStats = riskLevel > 0 ? await this.riskControlService.getRiskStats(userId) : null;
+    const repeatHighCount = riskStats?.recentHighCount || 0;
+
+    return { session, riskLevel: riskLevel as RiskLevel, aiCrisis, repeatHighCount };
+  }
+
+  async sendMessage(userId: number, dto: SendMessageDto): Promise<{ session: AiSession; message: ChatMessageDocument }> {
+    const { session, riskLevel, aiCrisis, repeatHighCount } =
+      await this.preprocessMessage(userId, dto.content, dto.sessionId);
+
+    // ===== 高危处理 =====
     if (riskLevel === 2) {
       await this.handleHighRisk(userId, session.id, dto.content);
-      // 使用 AI 危机消息或默认危机干预消息
-      const crisisMessage = aiCrisis.isCrisis ? aiCrisis.message : this.riskControlService.getCrisisInterventionMessage();
+      const crisisMessage = aiCrisis.isCrisis
+        ? aiCrisis.message
+        : this.riskControlService.getInterventionMessage(2, repeatHighCount);
       const message = await this.saveMessage(session.id.toString(), userId, 'assistant', crisisMessage, 'crisis', riskLevel);
       await this.updateSession(session.id, riskLevel);
       return { session, message };
@@ -136,12 +183,17 @@ export class ChatService {
       historyMessages
     );
 
-    const responseMood = await this.aiService.analyzeMood(aiResponse);
+    // 中危时追加温和关怀提示（优化7）
+    const finalResponse = riskLevel === 1
+      ? aiResponse + this.riskControlService.getGentlePrompt()
+      : aiResponse;
+
+    const responseMood = await this.aiService.analyzeMood(finalResponse);
     const responseMessage = await this.saveMessage(
       session.id.toString(),
       userId,
       'assistant',
-      aiResponse,
+      finalResponse,
       responseMood.mood,
       0
     );
@@ -150,6 +202,16 @@ export class ChatService {
 
     if (riskLevel === 1) {
       await this.notificationService.notifyHighRiskUser(userId);
+      // 推送温和提示通知（优化7）
+      if (this.userNotificationService) {
+        await this.userNotificationService.createNotification(userId, {
+          type: 'risk',
+          title: '关心你自己',
+          content: '最近可能有些辛苦吧？需要的话，我随时可以陪你聊聊。',
+          referenceType: 'session',
+          referenceId: session.id,
+        });
+      }
     }
 
     return { session, message: responseMessage };
@@ -159,28 +221,28 @@ export class ChatService {
     return new Observable(subscriber => {
       (async () => {
         try {
-          // Sensitive content check
-          if (this.riskControlService.hasSensitiveContent(dto.content)) {
-            subscriber.next({ type: 'error', data: { message: '检测到敏感内容，已拦截' } });
+          // 复用公共预处理（敏感词 + 会话 + 风险分析 + AI危机检测 + 持久化）
+          let session: AiSession;
+          let riskLevel: RiskLevel;
+          let aiCrisis: { isCrisis: boolean; message: string; keywords: string[] };
+          try {
+            const pre = await this.preprocessMessage(userId, dto.content, dto.sessionId);
+            session = pre.session;
+            riskLevel = pre.riskLevel;
+            aiCrisis = pre.aiCrisis;
+          } catch (err) {
+            if (err instanceof ForbiddenException) {
+              subscriber.next({ type: 'error', data: { message: '检测到敏感内容，已拦截' } });
+            } else {
+              subscriber.next({ type: 'error', data: { message: err.message || '服务器错误' } });
+            }
             subscriber.complete();
             return;
           }
 
-          // Get or create session
-          let session: AiSession;
-          if (dto.sessionId) {
-            session = await this.getSessionById(userId, parseInt(dto.sessionId));
-          } else {
-            session = await this.createSession(userId);
-          }
-
-          // Risk check
-          const riskLevel = this.riskControlService.analyzeRisk(dto.content);
-
           // High risk - crisis intervention
           if (riskLevel === 2) {
             await this.handleHighRisk(userId, session.id, dto.content);
-            // Create in-app notification
             if (this.userNotificationService) {
               await this.userNotificationService.createNotification(userId, {
                 type: 'risk',
@@ -190,9 +252,10 @@ export class ChatService {
                 referenceId: session.id
               });
             }
-            const crisisMessage = this.riskControlService.getCrisisInterventionMessage();
+            const crisisMessage = aiCrisis.isCrisis
+              ? aiCrisis.message
+              : this.riskControlService.getCrisisInterventionMessage();
             subscriber.next({ type: 'start', data: { sessionId: session.id, riskLevel: 2 } });
-            // Stream crisis message character by character
             for (const char of crisisMessage) {
               subscriber.next({ type: 'chunk', data: { content: char } });
               await this.delay(30);

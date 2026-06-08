@@ -193,7 +193,7 @@ onMounted(() => {
       <table class="w-full">
         <thead>
           <tr class="border-b border-gray-100">
-            <th class="text-left p-4 text-sm font-medium text-gray-500 w-16">ID</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 w-16">序号</th>
             <th class="text-left p-4 text-sm font-medium text-gray-500">标题</th>
             <th class="text-left p-4 text-sm font-medium text-gray-500 w-24">分类</th>
             <th class="text-left p-4 text-sm font-medium text-gray-500 w-20">状态</th>
@@ -203,8 +203,8 @@ onMounted(() => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="article in articles" :key="article.id" class="border-b border-gray-50 hover:bg-gray-50">
-            <td class="p-4 text-sm text-gray-600">{{ article.id }}</td>
+          <tr v-for="(article, idx) in articles" :key="article.id" class="border-b border-gray-50 hover:bg-gray-50">
+            <td class="p-4 text-sm text-gray-500">{{ (page - 1) * pageSize + idx + 1 }}</td>
             <td class="p-4 text-sm text-gray-800 max-w-xs truncate">{{ article.title }}</td>
             <td class="p-4 text-sm text-gray-500">{{ article.category?.name || '-' }}</td>
             <td class="p-4">

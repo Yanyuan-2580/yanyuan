@@ -118,8 +118,29 @@ const router = createRouter({
       name: 'QuestionnaireResult',
       component: () => import('@/pages/questionnaire/QuestionnaireResultPage.vue')
     },
+    // ====== 视频倾诉模块 ======
     {
-      path: '/video/:roomId?',
+      path: '/video',
+      name: 'VideoHome',
+      component: () => import('@/pages/video/ChatHomePage.vue')
+    },
+    {
+      path: '/video/match',
+      name: 'VideoMatch',
+      component: () => import('@/pages/video/MatchWaitPage.vue')
+    },
+    {
+      path: '/video/chat/:roomId',
+      name: 'TextChat',
+      component: () => import('@/pages/video/TextChatPage.vue')
+    },
+    {
+      path: '/video/users',
+      name: 'VideoUsers',
+      component: () => import('@/pages/video/OnlineUsersPage.vue')
+    },
+    {
+      path: '/video/call/:roomId',
       name: 'VideoCall',
       component: () => import('@/pages/video/VideoCallPage.vue')
     },
