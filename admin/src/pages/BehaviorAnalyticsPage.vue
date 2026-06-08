@@ -112,16 +112,6 @@ const pageLabelMap: Record<string, string> = {
   '/api/v1/video/rooms': '视频房间',
   '/api/v1/reminders': '提醒设置',
   '/api/v1/health': '健康检查',
-  // 归一化后的模块级路径
-  '/api/v1/chat': 'AI对话',
-  '/api/v1/diaries': '心情日记',
-  '/api/v1/users': '用户相关',
-  '/api/v1/mood': '心情记录',
-  '/api/v1/video': '视频房间',
-  '/api/v1/meditation': '冥想放松',
-  '/api/v1/articles': '知识文章',
-  '/api/v1/questionnaires': '心理测评',
-  '/api/v1/notifications': '通知消息',
   // 管理端 API
   '/api/v1/admin/login': '管理端登录',
   '/api/v1/admin/register': '管理端注册',
