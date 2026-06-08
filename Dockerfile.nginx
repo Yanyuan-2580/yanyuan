@@ -8,7 +8,7 @@ WORKDIR /app
 COPY client/package*.json ./
 RUN npm ci
 COPY client/ ./
-RUN npm run build
+RUN npx vite build
 
 # ---- Stage 2: Build Admin (Management Vue 3 SPA) ----
 FROM node:22-alpine AS admin-builder
@@ -16,7 +16,7 @@ WORKDIR /app
 COPY admin/package*.json ./
 RUN npm ci
 COPY admin/ ./
-RUN npm run build
+RUN npx vite build
 
 # ---- Stage 3: Final Nginx + Certbot ----
 FROM nginx:alpine
