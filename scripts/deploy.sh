@@ -66,7 +66,7 @@ echo "  这可能需要几分钟，请耐心等待..."
 
 docker compose down --remove-orphans 2>/dev/null || true
 
-if docker compose build --no-cache; then
+if docker compose build; then
     echo -e "  ${GREEN}✓ 镜像构建完成${NC}"
 else
     echo -e "${RED}错误: 镜像构建失败!${NC}"
