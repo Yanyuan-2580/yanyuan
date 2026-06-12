@@ -60,22 +60,22 @@ const handleLogin = async () => {
 
       <div class="space-y-5">
         <div>
-          <label class="block text-[13px] font-medium text-gray-600 dark:text-gray-300 dark:text-gray-300 mb-1.5 ml-1">用户名</label>
+          <label class="block text-[13px] font-medium text-gray-600 dark:text-gray-300 mb-1.5 ml-1">用户名</label>
           <input
             v-model="username"
             type="text"
-            placeholder="请输入管理员用户名" class="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-            class="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-700 dark:border-gray-600 dark:text-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white dark:focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300/50 focus:border-gray-400 transition-all duration-200"
+            placeholder="请输入管理员用户名"
+            class="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600 dark:text-gray-100 rounded-2xl text-sm placeholder:text-gray-300 dark:placeholder:text-gray-500 focus:bg-white dark:focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300/50 focus:border-gray-400 transition-all duration-200"
           />
         </div>
 
         <div>
-          <label class="block text-[13px] font-medium text-gray-600 dark:text-gray-300 dark:text-gray-300 mb-1.5 ml-1">密码</label>
+          <label class="block text-[13px] font-medium text-gray-600 dark:text-gray-300 mb-1.5 ml-1">密码</label>
           <input
             v-model="password"
             type="password"
-            placeholder="请输入管理员密码" class="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-            class="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-700 dark:border-gray-600 dark:text-gray-100 rounded-2xl text-sm placeholder:text-gray-300 focus:bg-white dark:focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300/50 focus:border-gray-400 transition-all duration-200"
+            placeholder="请输入管理员密码"
+            class="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600 dark:text-gray-100 rounded-2xl text-sm placeholder:text-gray-300 dark:placeholder:text-gray-500 focus:bg-white dark:focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300/50 focus:border-gray-400 transition-all duration-200"
           />
         </div>
 
