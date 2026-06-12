@@ -164,8 +164,8 @@ onMounted(loadAdmins);
   <AdminLayout active-menu="admins">
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h2 class="text-2xl font-bold text-gray-800">管理员管理</h2>
-        <p class="text-gray-500 mt-1">管理系统管理员账号，共 {{ total }} 人</p>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">管理员管理</h2>
+        <p class="text-gray-500 dark:text-gray-400 mt-1">管理系统管理员账号，共 {{ total }} 人</p>
       </div>
       <button class="btn-primary px-4 py-2 rounded-lg" @click="showCreateDialog = true">
         + 创建管理员
@@ -173,33 +173,33 @@ onMounted(loadAdmins);
     </div>
 
     <!-- Search -->
-    <div class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-4 items-center">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-4 items-center">
       <input
         v-model="searchKeyword"
         type="text"
         placeholder="搜索用户名或昵称..."
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64"
+        class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm w-64"
         @keyup.enter="handleSearch"
       />
       <button class="btn-primary px-4 py-2 text-sm rounded-lg" @click="handleSearch">搜索</button>
     </div>
 
     <!-- Admin Table -->
-    <div class="bg-white rounded-2xl shadow-sm">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
       <table class="w-full">
         <thead>
           <tr class="border-b border-gray-100">
-            <th class="text-left p-4 text-sm font-medium text-gray-500 w-16">序号</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500">用户名</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500">昵称</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500">角色</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500">状态</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500">创建时间</th>
-            <th class="text-right p-4 text-sm font-medium text-gray-500">操作</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-16">序号</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400">用户名</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400">昵称</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400">角色</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400">状态</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400">创建时间</th>
+            <th class="text-right p-4 text-sm font-medium text-gray-500 dark:text-gray-400">操作</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(admin, idx) in admins" :key="admin.id" class="border-b border-gray-50 hover:bg-gray-50">
+          <tr v-for="(admin, idx) in admins" :key="admin.id" class="border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
             <td class="p-4 text-sm text-gray-500">{{ (page - 1) * pageSize + idx + 1 }}</td>
             <td class="p-4 text-sm text-gray-800">{{ admin.username }}</td>
             <td class="p-4 text-sm text-gray-800">{{ admin.nickname }}</td>
@@ -233,7 +233,7 @@ onMounted(loadAdmins);
             v-for="p in Math.ceil(total / pageSize)"
             :key="p"
             class="w-8 h-8 rounded-lg text-sm"
-            :class="page === p ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+            :class="page === p ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'"
             @click="handlePageChange(p)"
           >{{ p }}</button>
         </div>

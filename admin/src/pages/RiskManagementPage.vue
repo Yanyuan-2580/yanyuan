@@ -45,7 +45,7 @@ const getRiskLabel = (level: number) => {
   switch (level) {
     case 1: return { label: '中危关注', cls: 'bg-yellow-100 text-yellow-700' };
     case 2: return { label: '高危预警', cls: 'bg-red-100 text-red-700' };
-    default: return { label: '正常', cls: 'bg-gray-100 text-gray-600' };
+    default: return { label: '正常', cls: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300' };
   }
 };
 
@@ -61,7 +61,7 @@ const getSourceClass = (source: string) => {
     comment: 'bg-purple-100 text-purple-600',
     mood: 'bg-orange-100 text-orange-600',
   };
-  return map[source] || 'bg-gray-100 text-gray-600';
+  return map[source] || 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
 };
 
 const getStatusLabel = (status: string) => {
@@ -136,28 +136,28 @@ onMounted(() => {
   <AdminLayout active-menu="risk">
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h2 class="text-2xl font-bold text-gray-800">风险监控</h2>
-        <p class="text-gray-500 mt-1">实时风险内容追踪，及时干预</p>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">风险监控</h2>
+        <p class="text-gray-500 dark:text-gray-400 mt-1">实时风险内容追踪，及时干预</p>
       </div>
     </div>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div class="bg-white rounded-2xl shadow-sm p-6">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-gray-500 text-sm">待处理</p>
-            <p class="text-3xl font-bold text-gray-800 mt-2">{{ stats.pendingCount }}</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">待处理</p>
+            <p class="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-2">{{ stats.pendingCount }}</p>
           </div>
-          <div class="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center">
+          <div class="w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-600 flex items-center justify-center">
             <span class="text-2xl">📋</span>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-2xl shadow-sm p-6">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-gray-500 text-sm">中危关注</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">中危关注</p>
             <p class="text-3xl font-bold text-yellow-600 mt-2">{{ stats.mediumCount }}</p>
           </div>
           <div class="w-14 h-14 rounded-xl bg-yellow-100 flex items-center justify-center">
@@ -165,10 +165,10 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-2xl shadow-sm p-6">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-gray-500 text-sm">高危预警</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">高危预警</p>
             <p class="text-3xl font-bold text-red-600 mt-2">{{ stats.highCount }}</p>
           </div>
           <div class="w-14 h-14 rounded-xl bg-red-100 flex items-center justify-center">
@@ -179,20 +179,20 @@ onMounted(() => {
     </div>
 
     <!-- Filters -->
-    <div class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-4 items-center">
-      <select v-model="filterRiskLevel" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" @change="handleSearch">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-4 items-center">
+      <select v-model="filterRiskLevel" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm" @change="handleSearch">
         <option :value="undefined">全部风险等级</option>
         <option :value="2">高危</option>
         <option :value="1">中危</option>
       </select>
-      <select v-model="filterSource" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" @change="handleSearch">
+      <select v-model="filterSource" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm" @change="handleSearch">
         <option :value="undefined">全部来源</option>
         <option value="chat">AI对话</option>
         <option value="diary">日记</option>
         <option value="comment">评论</option>
         <option value="mood">心情</option>
       </select>
-      <select v-model="filterStatus" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" @change="handleSearch">
+      <select v-model="filterStatus" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm" @change="handleSearch">
         <option value="pending">待处理</option>
         <option value="resolved">已处理</option>
         <option value="false_positive">误报</option>
@@ -202,22 +202,22 @@ onMounted(() => {
     </div>
 
     <!-- Risk Records Table -->
-    <div class="bg-white rounded-2xl shadow-sm">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
       <table class="w-full">
         <thead>
           <tr class="border-b border-gray-100">
-            <th class="text-left p-4 text-sm font-medium text-gray-500 w-16">序号</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500 w-20">来源</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500 w-16">用户</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500">风险内容</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500 w-20">等级</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500 w-20">状态</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500 w-40">时间</th>
-            <th class="text-right p-4 text-sm font-medium text-gray-500 w-48">操作</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-16">序号</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-20">来源</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-16">用户</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400">风险内容</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-20">等级</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-20">状态</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-40">时间</th>
+            <th class="text-right p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-48">操作</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(record, idx) in records" :key="record.id" class="border-b border-gray-50 hover:bg-gray-50">
+          <tr v-for="(record, idx) in records" :key="record.id" class="border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
             <td class="p-4 text-sm text-gray-500">{{ (page - 1) * pageSize + idx + 1 }}</td>
             <td class="p-4">
               <span :class="['px-2 py-1 rounded-full text-xs', getSourceClass(record.source)]">
@@ -253,11 +253,11 @@ onMounted(() => {
                 <button class="text-xs text-green-500 hover:underline mr-2" @click="resolveRecord(record)">
                   已处理
                 </button>
-                <button class="text-xs text-gray-400 hover:text-gray-600 underline" @click="markFalsePositive(record)">
+                <button class="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 underline" @click="markFalsePositive(record)">
                   误报
                 </button>
               </template>
-              <span v-else class="text-xs text-gray-400">
+              <span v-else class="text-xs text-gray-400 dark:text-gray-500">
                 {{ record.resolvedAt ? new Date(record.resolvedAt).toLocaleDateString('zh-CN') : '' }}
               </span>
             </td>
@@ -279,7 +279,7 @@ onMounted(() => {
             v-for="p in Math.min(Math.ceil(total / pageSize), 10)"
             :key="p"
             class="w-8 h-8 rounded-lg text-sm"
-            :class="page === p ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+            :class="page === p ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'"
             @click="handlePageChange(p)"
           >{{ p }}</button>
         </div>

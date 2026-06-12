@@ -51,10 +51,10 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <div class="h-screen flex overflow-hidden bg-gray-50 dark:bg-charcoal-900 transition-colors">
+  <div class="h-screen flex overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors">
     <!-- Sidebar -->
-    <aside class="w-64 flex-shrink-0 bg-white dark:bg-charcoal-800 shadow-md flex flex-col h-full transition-colors">
-      <div class="p-6 border-b dark:border-charcoal-700">
+    <aside class="w-64 flex-shrink-0 bg-white dark:bg-gray-800 shadow-md flex flex-col h-full transition-colors">
+      <div class="p-6 border-b dark:border-gray-700">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
             <span class="text-white text-lg">AI</span>
@@ -73,7 +73,7 @@ const handleLogout = async () => {
               class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
               :class="currentMenu === item.name
                 ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-charcoal-700'"
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'"
               @click="handleMenuClick(item)"
             >
               <span class="text-xl">{{ item.icon }}</span>
@@ -83,10 +83,10 @@ const handleLogout = async () => {
         </ul>
       </nav>
 
-      <div class="p-4 border-t dark:border-charcoal-700 space-y-2">
+      <div class="p-4 border-t dark:border-gray-700 space-y-2">
         <!-- Dark Mode Toggle -->
         <button
-          class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-charcoal-700 transition-all"
+          class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
           @click="toggleDarkMode"
         >
           <span class="text-lg">{{ isDark ? '☀️' : '🌙' }}</span>
@@ -107,7 +107,7 @@ const handleLogout = async () => {
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto p-6 dark:bg-charcoal-900 transition-colors">
+    <main class="flex-1 overflow-y-auto p-6 dark:bg-gray-900 transition-colors">
       <slot />
     </main>
   </div>

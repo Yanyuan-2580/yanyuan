@@ -72,55 +72,55 @@ const weeklyBarSeries = computed(() => {
   <AdminLayout active-menu="dashboard">
     <header class="flex items-center justify-between mb-8">
       <div>
-        <h2 class="text-2xl font-bold text-gray-800">数据概览</h2>
-        <p class="text-gray-500 mt-1 text-sm">{{ new Date().toLocaleDateString('zh-CN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}</p>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">数据概览</h2>
+        <p class="text-gray-500 dark:text-gray-400 mt-1 text-sm">{{ new Date().toLocaleDateString('zh-CN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}</p>
       </div>
     </header>
 
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-      <div class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow">
         <div class="flex items-start justify-between">
           <div>
-            <p class="text-gray-400 text-sm">总用户数</p>
-            <p class="text-3xl font-bold text-gray-800 mt-1">{{ loading ? '-' : (overview?.totalUsers ?? 0).toLocaleString() }}</p>
-            <p class="text-xs text-gray-400 mt-1">本周新增 {{ overview?.newUsersThisWeek ?? 0 }}</p>
+            <p class="text-gray-400 dark:text-gray-500 text-sm">总用户数</p>
+            <p class="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-1">{{ loading ? '-' : (overview?.totalUsers ?? 0).toLocaleString() }}</p>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">本周新增 {{ overview?.newUsersThisWeek ?? 0 }}</p>
           </div>
           <div class="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center flex-shrink-0">
             <Users class="text-white" :size="22" />
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow">
         <div class="flex items-start justify-between">
           <div>
-            <p class="text-gray-400 text-sm">活跃用户</p>
-            <p class="text-3xl font-bold text-gray-800 mt-1">{{ loading ? '-' : (overview?.activeUsers ?? 0).toLocaleString() }}</p>
-            <p class="text-xs text-gray-400 mt-1">活跃率 {{ overview?.engagementRate ?? 0 }}%</p>
+            <p class="text-gray-400 dark:text-gray-500 text-sm">活跃用户</p>
+            <p class="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-1">{{ loading ? '-' : (overview?.activeUsers ?? 0).toLocaleString() }}</p>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">活跃率 {{ overview?.engagementRate ?? 0 }}%</p>
           </div>
           <div class="w-12 h-12 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
             <Activity class="text-white" :size="22" />
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow">
         <div class="flex items-start justify-between">
           <div>
-            <p class="text-gray-400 text-sm">日记总数</p>
-            <p class="text-3xl font-bold text-gray-800 mt-1">{{ loading ? '-' : (overview?.totalDiaries ?? 0).toLocaleString() }}</p>
-            <p class="text-xs text-gray-400 mt-1">今日 {{ overview?.todayDiaries ?? 0 }} 篇</p>
+            <p class="text-gray-400 dark:text-gray-500 text-sm">日记总数</p>
+            <p class="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-1">{{ loading ? '-' : (overview?.totalDiaries ?? 0).toLocaleString() }}</p>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">今日 {{ overview?.todayDiaries ?? 0 }} 篇</p>
           </div>
           <div class="w-12 h-12 rounded-xl bg-purple-500 flex items-center justify-center flex-shrink-0">
             <BookOpen class="text-white" :size="22" />
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow">
         <div class="flex items-start justify-between">
           <div>
-            <p class="text-gray-400 text-sm">风险预警</p>
-            <p class="text-3xl font-bold text-gray-800 mt-1">{{ loading ? '-' : (overview?.riskCount ?? 0).toLocaleString() }}</p>
-            <p class="text-xs text-gray-400 mt-1">{{ overview?.highRiskUsers ?? 0 }} 用户 · {{ overview?.highRiskSessions ?? 0 }} 会话</p>
+            <p class="text-gray-400 dark:text-gray-500 text-sm">风险预警</p>
+            <p class="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-1">{{ loading ? '-' : (overview?.riskCount ?? 0).toLocaleString() }}</p>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ overview?.highRiskUsers ?? 0 }} 用户 · {{ overview?.highRiskSessions ?? 0 }} 会话</p>
           </div>
           <div class="w-12 h-12 rounded-xl bg-red-500 flex items-center justify-center flex-shrink-0">
             <TriangleAlert class="text-white" :size="22" />
@@ -131,7 +131,7 @@ const weeklyBarSeries = computed(() => {
 
     <!-- Row 2: LineChart + DonutChart -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-      <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6">
+      <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
         <SvgLineChart
           title="七日活跃趋势"
           subtitle="每日 AI 会话 + 日记总活动量"
@@ -141,7 +141,7 @@ const weeklyBarSeries = computed(() => {
           :height="260"
         />
       </div>
-      <div class="bg-white rounded-2xl shadow-sm p-6">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
         <SvgDonutChart
           v-if="moodSegments.length > 0"
           :segments="moodSegments"
@@ -164,7 +164,7 @@ const weeklyBarSeries = computed(() => {
 
     <!-- Row 3: Weekly Bar Chart + Risk Panel -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-      <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6">
+      <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
         <WeeklyDistChart
           v-if="weeklyBarSeries.labels.length > 0"
           title="本周数据概览"
@@ -175,33 +175,33 @@ const weeklyBarSeries = computed(() => {
         />
         <div v-else class="flex items-center justify-center h-72 text-gray-400 text-sm">暂无趋势数据</div>
       </div>
-      <div class="bg-white rounded-2xl shadow-sm p-6">
-        <h3 class="font-semibold text-gray-800 mb-4">风险等级分布</h3>
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
+        <h3 class="font-semibold text-gray-800 dark:text-gray-100 mb-4">风险等级分布</h3>
         <div class="space-y-4">
           <div>
             <div class="flex justify-between text-sm mb-1.5">
               <span class="text-gray-500">低风险</span>
-              <span class="text-gray-700 font-medium">{{ moodDistribution ? moodDistribution.riskLevelDistribution.low : (overview ? Math.max((overview.totalUsers - overview.riskCount), 0) : 0) }}</span>
+              <span class="text-gray-700 dark:text-gray-200 font-medium">{{ moodDistribution ? moodDistribution.riskLevelDistribution.low : (overview ? Math.max((overview.totalUsers - overview.riskCount), 0) : 0) }}</span>
             </div>
-            <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+            <div class="h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
               <div class="h-full bg-green-400 rounded-full transition-all duration-700" :style="{ width: overview?.totalUsers ? Math.max(((overview.totalUsers - overview.riskCount) / overview.totalUsers) * 100, 3) + '%' : '0%' }" />
             </div>
           </div>
           <div>
             <div class="flex justify-between text-sm mb-1.5">
               <span class="text-gray-500">中风险</span>
-              <span class="text-gray-700 font-medium">{{ moodDistribution?.riskLevelDistribution.medium ?? 0 }}</span>
+              <span class="text-gray-700 dark:text-gray-200 font-medium">{{ moodDistribution?.riskLevelDistribution.medium ?? 0 }}</span>
             </div>
-            <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+            <div class="h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
               <div class="h-full bg-yellow-400 rounded-full transition-all duration-700" :style="{ width: overview?.totalUsers ? Math.max(((moodDistribution?.riskLevelDistribution.medium ?? 0) / overview.totalUsers) * 100, 3) + '%' : '0%' }" />
             </div>
           </div>
           <div>
             <div class="flex justify-between text-sm mb-1.5">
               <span class="text-gray-500">高风险</span>
-              <span class="text-gray-700 font-medium">{{ moodDistribution ? moodDistribution.riskLevelDistribution.high : (overview?.highRiskUsers ?? 0) }}</span>
+              <span class="text-gray-700 dark:text-gray-200 font-medium">{{ moodDistribution ? moodDistribution.riskLevelDistribution.high : (overview?.highRiskUsers ?? 0) }}</span>
             </div>
-            <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+            <div class="h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
               <div class="h-full bg-red-400 rounded-full transition-all duration-700" :style="{ width: overview?.totalUsers ? Math.max(((moodDistribution?.riskLevelDistribution.high ?? overview?.highRiskUsers ?? 0) / overview.totalUsers) * 100, 3) + '%' : '0%' }" />
             </div>
           </div>
@@ -211,7 +211,7 @@ const weeklyBarSeries = computed(() => {
 
     <!-- Row 4: Heatmap -->
     <div class="mb-6">
-      <div class="bg-white rounded-2xl shadow-sm p-6">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
         <HeatmapChart
           title="24小时活跃热力图"
           subtitle="最近 7 天活动时段分布"

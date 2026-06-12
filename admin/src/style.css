@@ -17,6 +17,15 @@ html, body {
   min-height: 100vh;
 }
 
+html.dark body {
+  background: #141414;
+  color: #e5e5e5;
+}
+
+html.dark #app {
+  background: #141414;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -27,11 +36,23 @@ html, body {
   border-radius: 3px;
 }
 
+html.dark ::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
 ::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 3px;
 }
 
+html.dark ::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background: #a1a1a1;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #777;
 }

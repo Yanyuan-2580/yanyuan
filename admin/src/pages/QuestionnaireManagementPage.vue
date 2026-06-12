@@ -103,7 +103,7 @@ const handleDelete = async (row: AdminQuestionnaire) => {
 const getStatusLabel = (status: number) => {
   return status === 1
     ? { label: '已发布', class: 'bg-green-100 text-green-600' }
-    : { label: '已下架', class: 'bg-gray-100 text-gray-600' };
+    : { label: '已下架', class: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300' };
 };
 
 onMounted(() => loadList());
@@ -113,8 +113,8 @@ onMounted(() => loadList());
   <AdminLayout active-menu="questionnaires">
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h2 class="text-2xl font-bold text-gray-800">问卷管理</h2>
-        <p class="text-gray-500 mt-1">创建和管理心理测评问卷</p>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">问卷管理</h2>
+        <p class="text-gray-500 dark:text-gray-400 mt-1">创建和管理心理测评问卷</p>
       </div>
       <button
         class="px-6 py-3 bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-primary-600 transition shadow-sm"
@@ -125,7 +125,7 @@ onMounted(() => loadList());
     </div>
 
     <!-- Table -->
-    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
       <el-table :data="questionnaires" stripe style="width: 100%">
         <el-table-column type="index" label="序号" width="60" />
         <el-table-column prop="title" label="标题" min-width="200" />

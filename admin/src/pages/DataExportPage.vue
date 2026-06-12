@@ -31,8 +31,8 @@ const handleExport = async (type: string) => {
   <AdminLayout active-menu="export">
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h2 class="text-2xl font-bold text-gray-800">数据导出</h2>
-        <p class="text-gray-500 mt-1">导出平台各类数据为 JSON 格式</p>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">数据导出</h2>
+        <p class="text-gray-500 dark:text-gray-400 mt-1">导出平台各类数据为 JSON 格式</p>
       </div>
     </div>
 
@@ -40,7 +40,7 @@ const handleExport = async (type: string) => {
       <div
         v-for="item in exportTypes"
         :key="item.key"
-        class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition cursor-pointer border border-gray-100"
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 hover:shadow-md transition cursor-pointer border border-gray-100 dark:border-gray-700"
         @click="handleExport(item.key)"
       >
         <div class="flex items-start justify-between mb-4">
@@ -52,7 +52,7 @@ const handleExport = async (type: string) => {
             <span class="animate-spin">⏳</span> 导出中...
           </span>
         </div>
-        <h3 class="font-semibold text-gray-800 mb-1">{{ item.label }}</h3>
+        <h3 class="font-semibold text-gray-800 dark:text-gray-100 mb-1">{{ item.label }}</h3>
         <p class="text-sm text-gray-500">{{ item.desc }}</p>
       </div>
     </div>

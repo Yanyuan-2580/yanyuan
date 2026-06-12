@@ -96,8 +96,8 @@ onMounted(loadUsers);
   <AdminLayout active-menu="users">
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h2 class="text-2xl font-bold text-gray-800">用户管理</h2>
-        <p class="text-gray-500 mt-1">管理平台用户，共 {{ total }} 人</p>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">用户管理</h2>
+        <p class="text-gray-500 dark:text-gray-400 mt-1">管理平台用户，共 {{ total }} 人</p>
       </div>
       <button class="btn-primary px-4 py-2 rounded-lg" @click="showCreateDialog = true">
         + 创建用户
@@ -105,20 +105,20 @@ onMounted(loadUsers);
     </div>
 
     <!-- Search & Filters -->
-    <div class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-4 items-center">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-4 items-center">
       <input
         v-model="searchKeyword"
         type="text"
         placeholder="搜索用户名或昵称..."
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64"
+        class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm w-64"
         @keyup.enter="handleSearch"
       />
-      <select v-model="filterStatus" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" @change="handleSearch">
+      <select v-model="filterStatus" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm" @change="handleSearch">
         <option :value="undefined">全部状态</option>
         <option :value="1">正常</option>
         <option :value="0">禁用</option>
       </select>
-      <select v-model="filterRiskLevel" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" @change="handleSearch">
+      <select v-model="filterRiskLevel" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm" @change="handleSearch">
         <option :value="undefined">全部风险等级</option>
         <option :value="0">正常</option>
         <option :value="1">关注</option>
@@ -128,21 +128,21 @@ onMounted(loadUsers);
     </div>
 
     <!-- Users Table -->
-    <div class="bg-white rounded-2xl shadow-sm">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
       <table class="w-full">
         <thead>
           <tr class="border-b border-gray-100">
-            <th class="text-left p-4 text-sm font-medium text-gray-500 w-16">序号</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500">用户名</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500">昵称</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500">状态</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500">风险等级</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500">注册时间</th>
-            <th class="text-right p-4 text-sm font-medium text-gray-500">操作</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-16">序号</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400">用户名</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400">昵称</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400">状态</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400">风险等级</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400">注册时间</th>
+            <th class="text-right p-4 text-sm font-medium text-gray-500 dark:text-gray-400">操作</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(user, idx) in users" :key="user.id" class="border-b border-gray-50 hover:bg-gray-50">
+          <tr v-for="(user, idx) in users" :key="user.id" class="border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
             <td class="p-4 text-sm text-gray-500">{{ (page - 1) * pageSize + idx + 1 }}</td>
             <td class="p-4 text-sm text-gray-800">{{ user.username }}</td>
             <td class="p-4 text-sm text-gray-800">{{ user.nickname }}</td>
@@ -155,7 +155,7 @@ onMounted(loadUsers);
               <span :class="['px-2 py-1 rounded-full text-xs',
                 user.riskLevel === 2 ? 'bg-red-100 text-red-600' :
                 user.riskLevel === 1 ? 'bg-yellow-100 text-yellow-600' :
-                'bg-gray-100 text-gray-600'
+                'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
               ]">
                 {{ user.riskLevel === 2 ? '高危' : user.riskLevel === 1 ? '关注' : '正常' }}
               </span>
@@ -176,7 +176,7 @@ onMounted(loadUsers);
             v-for="p in Math.ceil(total / pageSize)"
             :key="p"
             class="w-8 h-8 rounded-lg text-sm"
-            :class="page === p ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+            :class="page === p ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'"
             @click="handlePageChange(p)"
           >{{ p }}</button>
         </div>

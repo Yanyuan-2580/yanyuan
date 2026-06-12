@@ -112,8 +112,8 @@ onMounted(() => loadList());
   <AdminLayout active-menu="meditations">
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h2 class="text-2xl font-bold text-gray-800">冥想管理</h2>
-        <p class="text-gray-500 mt-1">管理冥想课程内容</p>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">冥想管理</h2>
+        <p class="text-gray-500 dark:text-gray-400 mt-1">管理冥想课程内容</p>
       </div>
       <button
         class="px-6 py-3 bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-primary-600 transition shadow-sm"
@@ -123,7 +123,7 @@ onMounted(() => loadList());
       </button>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
       <el-table :data="meditations" stripe style="width: 100%">
         <el-table-column type="index" label="序号" width="60" />
         <el-table-column prop="title" label="标题" min-width="180" />
@@ -138,7 +138,7 @@ onMounted(() => loadList());
           <template #default="{ row }">
             <span
               class="px-2 py-1 rounded-full text-xs font-medium"
-              :class="row.status === 1 ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'"
+              :class="row.status === 1 ? 'bg-green-100 text-green-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'"
             >{{ row.status === 1 ? '已发布' : '已下架' }}</span>
           </template>
         </el-table-column>

@@ -156,11 +156,11 @@ onMounted(() => {
   <AdminLayout active-menu="articles">
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h2 class="text-2xl font-bold text-gray-800">文章管理</h2>
-        <p class="text-gray-500 mt-1">管理知识库文章</p>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">文章管理</h2>
+        <p class="text-gray-500 dark:text-gray-400 mt-1">管理知识库文章</p>
       </div>
       <div class="flex gap-3">
-        <button class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50" @click="showCategoryDialog = true">
+        <button class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700" @click="showCategoryDialog = true">
           管理分类
         </button>
         <button class="btn-primary px-4 py-2 rounded-lg" @click="openCreateDialog">
@@ -170,15 +170,15 @@ onMounted(() => {
     </div>
 
     <!-- Search & Filter -->
-    <div class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-4 items-center">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-4 items-center">
       <input
         v-model="searchKeyword"
         type="text"
         placeholder="搜索标题或内容..."
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64"
+        class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm w-64"
         @keyup.enter="handleSearch"
       />
-      <select v-model="filterStatus" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" @change="handleSearch">
+      <select v-model="filterStatus" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm" @change="handleSearch">
         <option :value="undefined">全部状态</option>
         <option :value="2">已发布</option>
         <option :value="1">待审核</option>
@@ -189,21 +189,21 @@ onMounted(() => {
     </div>
 
     <!-- Articles Table -->
-    <div class="bg-white rounded-2xl shadow-sm">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
       <table class="w-full">
         <thead>
           <tr class="border-b border-gray-100">
-            <th class="text-left p-4 text-sm font-medium text-gray-500 w-16">序号</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500">标题</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500 w-24">分类</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500 w-20">状态</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500 w-24">浏览量</th>
-            <th class="text-left p-4 text-sm font-medium text-gray-500 w-32">创建时间</th>
-            <th class="text-right p-4 text-sm font-medium text-gray-500 w-48">操作</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-16">序号</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400">标题</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-24">分类</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-20">状态</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-24">浏览量</th>
+            <th class="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-32">创建时间</th>
+            <th class="text-right p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-48">操作</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(article, idx) in articles" :key="article.id" class="border-b border-gray-50 hover:bg-gray-50">
+          <tr v-for="(article, idx) in articles" :key="article.id" class="border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
             <td class="p-4 text-sm text-gray-500">{{ (page - 1) * pageSize + idx + 1 }}</td>
             <td class="p-4 text-sm text-gray-800 max-w-xs truncate">{{ article.title }}</td>
             <td class="p-4 text-sm text-gray-500">{{ article.category?.name || '-' }}</td>
@@ -211,7 +211,7 @@ onMounted(() => {
               <span :class="['px-2 py-1 rounded-full text-xs',
                 article.status === 2 ? 'bg-green-100 text-green-600' :
                 article.status === 1 ? 'bg-yellow-100 text-yellow-600' :
-                article.status === 0 ? 'bg-gray-100 text-gray-600' :
+                article.status === 0 ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300' :
                 'bg-red-100 text-red-600'
               ]">
                 {{ article.status === 2 ? '已发布' : article.status === 1 ? '待审' : article.status === 0 ? '草稿' : '已下线' }}
@@ -234,7 +234,7 @@ onMounted(() => {
         <div class="flex gap-2">
           <button v-for="p in Math.min(Math.ceil(total / pageSize), 10)" :key="p"
             class="w-8 h-8 rounded-lg text-sm"
-            :class="page === p ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+            :class="page === p ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'"
             @click="page = p; loadArticles()"
           >{{ p }}</button>
         </div>
@@ -313,7 +313,7 @@ onMounted(() => {
           <div v-for="cat in categories" :key="cat.id" class="flex items-center justify-between py-2 border-b border-gray-100">
             <div>
               <span class="text-sm text-gray-800">{{ cat.name }}</span>
-              <span v-if="cat.description" class="text-xs text-gray-400 ml-2">{{ cat.description }}</span>
+              <span v-if="cat.description" class="text-xs text-gray-400 dark:text-gray-500 ml-2">{{ cat.description }}</span>
             </div>
             <button class="text-xs text-red-500 hover:underline" @click="deleteCategory(cat.id)">删除</button>
           </div>
