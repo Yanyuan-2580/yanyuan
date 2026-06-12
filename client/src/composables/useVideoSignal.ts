@@ -23,7 +23,9 @@ export function useVideoSignal() {
   const incomingCall = ref<{ fromUserId: number; fromNickname: string; requestId: string } | null>(null);
   const callAccepted = ref<{ roomId: string; peerId: number } | null>(null);
   const peerHungUp = ref(false);
-  const matchable = ref(false);
+  const matchable = ref(
+    localStorage.getItem('video_matchable') === 'true'
+  );
   const matchInvite = ref<{ fromUserId: number; fromNickname: string; roomId: string; preference: string } | null>(null);
   const isInviting = ref(false);
 
