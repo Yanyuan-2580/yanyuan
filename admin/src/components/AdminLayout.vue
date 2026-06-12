@@ -90,7 +90,7 @@ const handleLogout = async () => {
           @click="toggleDarkMode"
         >
           <span class="text-lg">{{ isDark ? '☀️' : '🌙' }}</span>
-          <span class="font-medium text-sm">{{ isDark ? '浅色模式' : '深色模式' }}</span>
+          <span class="font-medium text-sm">{{ isDark ? '日间模式' : '夜间模式' }}</span>
         </button>
         <button
           class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
